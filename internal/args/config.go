@@ -1,0 +1,63 @@
+package args
+
+import (
+	"encoding/json"
+	"opensca/internal/logs"
+	"os"
+)
+
+/**
+ * @description: 加载配置文件
+ * @param {string} filepath 配置文件路径
+ * @return {bool} 读取成功返回true
+ */
+func loadConfigFile() bool {
+	configFilePath := Config
+	if configFilePath == "" {
+		return false
+	}
+	if _, err := os.Stat(configFilePath); err != nil {
+		logs.Error(err)
+		return false
+	}
+	if data, err := os.ReadFile(configFilePath); err != nil {
+		logs.Error(err)
+		return false
+	} else {
+		config := struct {
+			Path     string `json:"path"`
+			DB       string `json:"db"`
+			Url      string `json:"url"`
+			Token    string `json:"token"`
+			Out      string `json:"output"`
+			Cache    *bool  `json:"cache"`
+			OnlyVuln *bool  `json:"vuln"`
+		}{}
+		if err = json.Unmarshal(data, &config); err != nil {
+			logs.Error(err)
+			return false
+		}
+		if Filepath == "" && config.Path != "" {
+			Filepath = config.Path
+		}
+		if VulnDB == "" && config.DB != "" {
+			VulnDB = config.DB
+		}
+		if Url == "" && config.Url != "" {
+			Url = config.Url
+		}
+		if Token == "" && config.Token != "" {
+			Token = config.Token
+		}
+		if Out == "" && config.Out != "" {
+			Out = config.Out
+		}
+		if !Cache && config.Cache != nil {
+			Cache = *config.Cache
+		}
+		if !OnlyVuln && config.OnlyVuln != nil {
+			OnlyVuln = *config.OnlyVuln
+		}
+		return true
+	}
+}
