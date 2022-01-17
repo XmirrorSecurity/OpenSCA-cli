@@ -9,6 +9,7 @@ import (
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
 	"opensca/internal/srt"
+	"sort"
 )
 
 type Analyzer struct{}
@@ -35,7 +36,7 @@ func (a Analyzer) GetLanguage() language.Type {
  * @return {bool} 是可解析的文件返回true
  */
 func (a Analyzer) CheckFile(filename string) bool {
-	return filter.JavaScriptPackageLock(filename)
+	return filter.JavaScriptPackageLock(filename) || filter.JavaScriptPackage(filename)
 }
 
 /**
@@ -46,12 +47,32 @@ func (a Analyzer) CheckFile(filename string) bool {
  */
 func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files []*srt.FileData) {
 	files = []*srt.FileData{}
+	// 标记是否存在lock文件
+	lock := false
 	// 筛选需要解析的文件
 	for _, f := range dirRoot.Files {
 		if a.CheckFile(f.Name) {
 			files = append(files, f)
+			if filter.JavaScriptPackageLock(f.Name) {
+				lock = true
+			}
 		}
 	}
+	// 存在package-lock.json文件则不解析package.json文件
+	if lock {
+		for i := 0; i < len(files); {
+			if filter.JavaScriptPackage(files[i].Name) {
+				files = append(files[:i], files[i+1:]...)
+			} else {
+				i++
+			}
+		}
+	}
+	// 文件排序
+	sort.Slice(files, func(i, j int) bool {
+		// 优先解析package-lock.json文件
+		return filter.JavaScriptPackageLock(files[i].Name) && !filter.JavaScriptPackageLock(files[j].Name)
+	})
 	return files
 }
 
@@ -66,6 +87,8 @@ func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *sr
 	deps := []*srt.DepTree{}
 	if filter.JavaScriptPackageLock(file.Name) {
 		return parsePackageLock(depRoot, file)
+	} else if filter.JavaScriptPackage(file.Name) {
+		return parsePackage(depRoot, file)
 	}
 	return deps
 }

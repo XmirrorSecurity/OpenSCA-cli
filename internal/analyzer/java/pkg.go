@@ -9,11 +9,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"opensca/internal/args"
+	"opensca/internal/cache"
 	"opensca/internal/enum/language"
 	"opensca/internal/logs"
 	"opensca/internal/srt"
-	"os"
 	"path"
 	"strings"
 )
@@ -74,51 +73,14 @@ func (a Analyzer) getpom(dep srt.Dependency, dirpath string, repos []string, isi
 	if dep.Vendor == "" || dep.Name == "" || !dep.Version.Ok() {
 		return nil
 	}
-	// pom文件保存路径
-	var pomdir, pompath string
-	if pwd, err := os.Executable(); err == nil {
-		pwd = path.Dir(strings.ReplaceAll(pwd, `\`, `/`))
-		pomdir = path.Join(pwd, ".cache", dep.Vendor, dep.Name, dep.Version.Org)
-		pompath = path.Join(pomdir, fmt.Sprintf("%s-%s.pom", dep.Name, dep.Version.Org))
-	}
-	/**
-	* @description: 保存pom文件
-	* @param {[]byte} data pom文件数据
-	 */
-	savepom := func(data []byte) {
-		if pomdir == "" || !args.Cache {
-			return
-		}
-		if err := os.MkdirAll(pomdir, os.ModeDir); err == nil {
-			if f, err := os.Create(pompath); err == nil {
-				defer f.Close()
-				f.Write(data)
-			}
-		}
-	}
-	/**
-	* @description: 加载pom文件
-	* @return {[]byte} data pom文件数据
-	 */
-	loadPom := func() []byte {
-		if pomdir == "" || !args.Cache {
-			return nil
-		}
-		if data, err := ioutil.ReadFile(pompath); err == nil {
-			return data
-		} else {
-			return nil
-		}
-	}
-	// 读取本地缓存
-	data := loadPom()
+	data := cache.LoadPom(dep)
 	if len(data) != 0 {
 		return a.parsePomXml(dirpath, data, isimport)
 	} else {
 		// 无本地缓存下载pom文件
 		if data, err := downloadPom(dep, repos...); err == nil {
 			// 保存pom文件
-			savepom(data)
+			cache.SavePom(dep, data)
 			return a.parsePomXml(dirpath, data, isimport)
 		} else {
 			logs.Warn(err)

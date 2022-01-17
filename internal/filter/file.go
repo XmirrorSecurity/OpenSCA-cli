@@ -55,6 +55,7 @@ var (
 // javascript相关
 var (
 	JavaScriptPackageLock = filterFunc(strings.HasSuffix, "package-lock.json")
+	JavaScriptPackage     = filterFunc(strings.HasSuffix, "package.json")
 )
 
 // php相关

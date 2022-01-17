@@ -78,7 +78,7 @@ func (e Engine) ParseFile(filepath string) {
 	}
 	dirRoot.BuildDirPath()
 	// 解析目录树获取依赖树
-	e.parseDependency(dirRoot).Move(depRoot)
+	e.parseDependency(dirRoot, depRoot)
 	// 同组件去重
 	q := srt.NewQueue()
 	q.Push(depRoot)

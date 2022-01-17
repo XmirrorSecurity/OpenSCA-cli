@@ -13,9 +13,10 @@ import (
 /**
  * @description: 解析依赖
  * @param {*srt.DirTree} dirRoot 目录树根节点
+ * @param {*srt.DepTree} depRoot 依赖树根节点
  * @return {*srt.DepTree} 依赖树根节点
  */
-func (e Engine) parseDependency(dirRoot *srt.DirTree) *srt.DepTree {
+func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt.DepTree {
 	type node struct {
 		Dir *srt.DirTree
 		Dep *srt.DepTree
@@ -26,7 +27,9 @@ func (e Engine) parseDependency(dirRoot *srt.DirTree) *srt.DepTree {
 			Dep: depRoot,
 		}
 	}
-	depRoot := srt.NewDepTree(nil)
+	if depRoot == nil {
+		depRoot = srt.NewDepTree(nil)
+	}
 	queue := srt.NewQueue()
 	for _, analyzer := range e.Analyzers {
 		// 将根目录添加到队列

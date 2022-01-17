@@ -29,7 +29,7 @@ func loadConfigFile() bool {
 			DB       string `json:"db"`
 			Url      string `json:"url"`
 			Token    string `json:"token"`
-			Out      string `json:"output"`
+			Out      string `json:"out"`
 			Cache    *bool  `json:"cache"`
 			OnlyVuln *bool  `json:"vuln"`
 		}{}

@@ -267,6 +267,7 @@ func (dep *DepTree) Json(err string) []byte {
 			node.LanguageStr = node.Language.String()
 		}
 		node.VersionStr = node.Version.Org
+		node.Path = node.Path[strings.Index(node.Path, "/")+1:]
 		// 删除数据，不生成json
 		node.Language = language.None
 		node.Version = nil
