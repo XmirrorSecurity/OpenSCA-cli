@@ -138,12 +138,12 @@ func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *sr
 			// if dep.Scope != "provied" {
 			sub.Version = srt.NewVersion(dep.Version)
 			// }
+			// 添加exclusion
+			for _, exc := range dep.Exclusions {
+				key := strings.ToLower(fmt.Sprintf("%s+%s", exc.GroupId, exc.ArtifactId))
+				sub.Exclusions[key] = struct{}{}
+			}
 			deps = append(deps, sub)
-		}
-		// 添加exclusion
-		for _, exc := range pomXml.Exclusions {
-			key := strings.ToLower(fmt.Sprintf("%s+%s", exc.GroupId, exc.ArtifactId))
-			pomRoot.Exclusions[key] = struct{}{}
 		}
 	} else if filter.JavaPomProperties(file.Name) {
 		a.parsePomProperties(dirRoot.Path, file.Data)
