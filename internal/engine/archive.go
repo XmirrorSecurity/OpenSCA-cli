@@ -10,6 +10,7 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"io/ioutil"
+	"opensca/internal/bar"
 	"opensca/internal/filter"
 	"opensca/internal/logs"
 	"opensca/internal/srt"
@@ -64,6 +65,7 @@ func (e Engine) unArchiveFile(filepath string) (root *srt.DirTree) {
 	}
 	if err := walker.Walk(filepath, func(f archiver.File) error {
 		if !f.IsDir() {
+			bar.Archive.Add(1)
 			// 跳过过大文件
 			if f.Size() > 1024*1024*1024 {
 				return nil
@@ -150,6 +152,7 @@ func (e Engine) opendir(dirpath string) (dir *srt.DirTree) {
 		return
 	}
 	for _, file := range files {
+		bar.Dir.Add(1)
 		filename := file.Name()
 		filepath := path.Join(dirpath, filename)
 		if file.IsDir() {

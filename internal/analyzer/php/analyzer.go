@@ -9,6 +9,7 @@ import (
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
 	"opensca/internal/srt"
+	"sort"
 )
 
 type Analyzer struct{}
@@ -35,7 +36,7 @@ func (Analyzer) GetLanguage() language.Type {
  * @return {bool} 是可解析的文件返回true
  */
 func (Analyzer) CheckFile(filename string) bool {
-	return filter.PhpComposerLock(filename)
+	return filter.PhpComposerLock(filename) || filter.PhpComposer(filename)
 }
 
 /**
@@ -52,6 +53,9 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 			files = append(files, f)
 		}
 	}
+	sort.Slice(files, func(i, j int) bool {
+		return filter.PhpComposerLock(files[i].Name) && !filter.PhpComposerLock(files[j].Name)
+	})
 	return files
 }
 
@@ -66,6 +70,8 @@ func (Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.
 	deps = []*srt.DepTree{}
 	if filter.PhpComposerLock(file.Name) {
 		return parseComposerLock(depRoot, file)
+	} else if filter.PhpComposer(file.Name) {
+		return parseComposer(depRoot, file)
 	}
 	return deps
 }

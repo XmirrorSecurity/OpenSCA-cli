@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"opensca/internal/bar"
 	"opensca/internal/cache"
 	"opensca/internal/enum/language"
 	"opensca/internal/logs"
@@ -48,7 +49,7 @@ func downloadPom(dep srt.Dependency, repos ...string) (data []byte, err error) {
 			defer rep.Body.Close()
 			if rep.StatusCode != 200 {
 				if last {
-					return nil, fmt.Errorf("%s statuscode: %d", url, rep.StatusCode)
+					return ioutil.ReadAll(rep.Body)
 				} else {
 					continue
 				}
@@ -73,14 +74,15 @@ func (a Analyzer) getpom(dep srt.Dependency, dirpath string, repos []string, isi
 	if dep.Vendor == "" || dep.Name == "" || !dep.Version.Ok() {
 		return nil
 	}
-	data := cache.LoadPom(dep)
+	dep.Language = language.Java
+	data := cache.LoadCache(dep)
 	if len(data) != 0 {
 		return a.parsePomXml(dirpath, data, isimport)
 	} else {
 		// 无本地缓存下载pom文件
 		if data, err := downloadPom(dep, repos...); err == nil {
 			// 保存pom文件
-			cache.SavePom(dep, data)
+			cache.SaveCache(dep, data)
 			return a.parsePomXml(dirpath, data, isimport)
 		} else {
 			logs.Warn(err)
@@ -98,6 +100,7 @@ func (a Analyzer) ParseSubDependencies(root *srt.DepTree) {
 	queue := srt.NewQueue()
 	queue.Push(root)
 	for !queue.Empty() {
+		bar.Maven.Add(1)
 		node := queue.Pop().(*srt.DepTree)
 		// java组件尝试获取子依赖
 		if node.Language == language.Java {

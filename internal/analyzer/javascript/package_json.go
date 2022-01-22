@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"opensca/internal/bar"
 	"opensca/internal/cache"
 	"opensca/internal/enum/language"
 	"opensca/internal/logs"
@@ -79,13 +80,13 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
 	exist := map[string]struct{}{}
 	// 搜索子依赖
 	q := srt.NewQueue()
-	// q.Push(pkgDep)
 	exist[pkgDep.Name] = struct{}{}
 	for _, child := range pkgDep.Children {
 		exist[child.Name] = struct{}{}
 		q.Push(child)
 	}
 	for !q.Empty() {
+		bar.Npm.Add(1)
 		node := q.Pop().(*srt.DepTree)
 		for _, sub := range npmSimulation(node) {
 			if _, ok := exist[sub.Name]; !ok {
@@ -104,8 +105,9 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
  */
 func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	subDeps = []*srt.DepTree{}
+	dep.Language = language.JavaScript
 	// 获取依赖数据
-	data := cache.LoadNpm(dep.Dependency)
+	data := cache.LoadCache(dep.Dependency)
 	if len(data) == 0 {
 		url := fmt.Sprintf(`https://r.cnpmjs.org/%s`, dep.Name)
 		if rep, err := http.Get(url); err != nil {
@@ -115,7 +117,7 @@ func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 			if data, err = ioutil.ReadAll(rep.Body); err != nil {
 				logs.Error(err)
 			} else {
-				cache.SaveNpm(dep.Dependency, data)
+				cache.SaveCache(dep.Dependency, data)
 			}
 			rep.Body.Close()
 		}

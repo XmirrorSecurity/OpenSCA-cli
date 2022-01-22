@@ -36,7 +36,9 @@ func (a Analyzer) GetLanguage() language.Type {
  * @return {bool} 是可解析的文件返回true
  */
 func (a Analyzer) CheckFile(filename string) bool {
-	return filter.JavaScriptPackageLock(filename) || filter.JavaScriptPackage(filename)
+	return filter.JavaScriptPackageLock(filename) ||
+		filter.JavaScriptPackage(filename) ||
+		filter.JavaScriptYarnLock(filename)
 }
 
 /**
@@ -89,6 +91,8 @@ func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *sr
 		return parsePackageLock(depRoot, file)
 	} else if filter.JavaScriptPackage(file.Name) {
 		return parsePackage(depRoot, file)
+	} else if filter.JavaScriptYarnLock(file.Name) {
+		return parseYarnLock(depRoot, file)
 	}
 	return deps
 }

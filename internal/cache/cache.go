@@ -1,14 +1,17 @@
 /*
- * @Description: 缓存下载的文件
+ * @Description: cache download file
  * @Date: 2022-01-08 15:34:37
  */
 
 package cache
 
 import (
+	"fmt"
 	"io/ioutil"
 	"opensca/internal/args"
+	"opensca/internal/enum/language"
 	"opensca/internal/logs"
+	"opensca/internal/srt"
 	"os"
 	"path"
 	"strings"
@@ -17,7 +20,7 @@ import (
 var cacheDir string
 
 func init() {
-	// 创建缓存目录
+	// create cache dir
 	cacheDir = ".cache"
 	if pwd, err := os.Executable(); err == nil {
 		pwd = path.Dir(strings.ReplaceAll(pwd, `\`, `/`))
@@ -29,9 +32,9 @@ func init() {
 }
 
 /**
- * @description: 保存文件
- * @param {string} filepath 文件保存路径
- * @param {[]byte} data 文件数据
+ * @description: save cache file
+ * @param {string} filepath cache file path
+ * @param {[]byte} cache file data
  */
 func save(filepath string, data []byte) {
 	if args.Cache {
@@ -45,9 +48,9 @@ func save(filepath string, data []byte) {
 }
 
 /**
- * @description: 读取文件
- * @param {string} filepath 文件保存路径
- * @return {[]byte} 文件数据
+ * @description: load cache file
+ * @param {string} filepath cache file path
+ * @return {[]byte} cache file data
  */
 func load(filepath string) []byte {
 	if args.Cache {
@@ -58,4 +61,35 @@ func load(filepath string) []byte {
 		}
 	}
 	return []byte{}
+}
+
+func filepath(dep srt.Dependency) string {
+	switch dep.Language {
+	case language.Java:
+		return path.Join("maven", dep.Vendor, dep.Name, dep.Version.Org, fmt.Sprintf("%s-%s.pom", dep.Name, dep.Version.Org))
+	case language.JavaScript:
+		return path.Join("npm", fmt.Sprintf("%s.json", dep.Name))
+	case language.Php:
+		return path.Join("composer", fmt.Sprintf("%s.json", dep.Name))
+	default:
+		return path.Join("none", fmt.Sprintf("%s-%s-%s", dep.Vendor, dep.Name, dep.Version.Org))
+	}
+}
+
+/**
+ * @description: save cache file
+ * @param {srt.Dependency} dep dependency infomation
+ * @param {[]byte} data cache file data
+ */
+func SaveCache(dep srt.Dependency, data []byte) {
+	save(filepath(dep), data)
+}
+
+/**
+ * @description: load cache file
+ * @param {srt.Dependency} dep dependency infomation
+ * @return {[]byte} cache file data
+ */
+func LoadCache(dep srt.Dependency) []byte {
+	return load(filepath(dep))
 }

@@ -144,6 +144,6 @@ func (e Engine) ParseFile(filepath string) {
 			}
 		}
 	} else {
-		print(string(depRoot.Json(errInfo)))
+		fmt.Println(string(depRoot.Json(errInfo)))
 	}
 }

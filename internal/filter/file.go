@@ -56,10 +56,12 @@ var (
 var (
 	JavaScriptPackageLock = filterFunc(strings.HasSuffix, "package-lock.json")
 	JavaScriptPackage     = filterFunc(strings.HasSuffix, "package.json")
+	JavaScriptYarnLock    = filterFunc(strings.HasSuffix, "yarn.lock")
 )
 
 // php相关
 var (
+	PhpComposer     = filterFunc(strings.HasSuffix, "composer.json")
 	PhpComposerLock = filterFunc(strings.HasSuffix, "composer.lock")
 )
 

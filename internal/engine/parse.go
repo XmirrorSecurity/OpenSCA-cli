@@ -6,6 +6,7 @@
 package engine
 
 import (
+	"opensca/internal/bar"
 	"opensca/internal/srt"
 	"path"
 )
@@ -39,11 +40,11 @@ func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt
 			node.Dep.Path = node.Dir.Path
 			// 解析文件
 			for _, file := range analyzer.FilterFile(node.Dir, node.Dep) {
-				if analyzer.CheckFile(file.Name) {
-					for _, dep := range analyzer.ParseFile(node.Dir, node.Dep, file) {
-						dep.Path = path.Join(node.Dir.Path, path.Base(file.Name), dep.Dependency.String())
-						dep.Language = analyzer.GetLanguage()
-					}
+				bar.Dependency.Add(1)
+				node.Dep.Language = analyzer.GetLanguage()
+				for _, dep := range analyzer.ParseFile(node.Dir, node.Dep, file) {
+					dep.Path = path.Join(node.Dir.Path, path.Base(file.Name), dep.Dependency.String())
+					dep.Language = analyzer.GetLanguage()
 				}
 			}
 			// 将子目录添加到队列

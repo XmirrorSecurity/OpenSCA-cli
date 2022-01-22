@@ -1,64 +1,176 @@
 /*
- * @Descripation: composer文件
- * @Date: 2021-11-26 14:50:06
+ * @Description: parse composer_lock file
+ * @Date: 2022-01-17 14:28:58
  */
 
 package php
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"opensca/internal/bar"
+	"opensca/internal/cache"
+	"opensca/internal/enum/language"
 	"opensca/internal/logs"
 	"opensca/internal/srt"
+	"path"
+	"sort"
+	"strings"
+
+	"github.com/Masterminds/semver"
 )
 
-// composer.lock
-type ComposerLock struct {
-	Pkgs []struct {
-		Name    string            `json:"name"`
-		Version string            `json:"version"`
-		Require map[string]string `json:"require"`
+type Composer struct {
+	Name       string            `json:"name"`
+	License    string            `json:"license"`
+	Require    map[string]string `json:"require"`
+	RequireDev map[string]string `json:"require-dev"`
+}
+
+type ComposerRepo struct {
+	Pkgs map[string][]struct {
+		Version    string            `json:"version"`
+		Require    map[string]string `json:"require"`
+		RequireDev map[string]string `json:"require-dev"`
 	} `json:"packages"`
 }
 
 /**
- * @description: 解析composer.lock文件
- * @param {*srt.DepTree} depRoot 依赖树节点
- * @param {*srt.FileData} file 文件数据
- * @return {[]*srt.DepTree} 组件依赖列表
+ * @description: parse composer.json
+ * @param {*srt.DepTree} depRoot dependency
+ * @param {*srt.FileData} file composer.json file data
+ * @return {[]*srt.DepTree} dependencies list
  */
-func parseComposerLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
+func parseComposer(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
-	lock := ComposerLock{}
-	if err := json.Unmarshal(file.Data, &lock); err != nil {
-		logs.Error(err)
-		return
+	composer := Composer{}
+	if err := json.Unmarshal(file.Data, &composer); err != nil {
+		logs.Warn(err)
 	}
-	// 记录组件信息
-	depMap := map[string]*srt.DepTree{}
-	for _, cps := range lock.Pkgs {
-		dep := srt.NewDepTree(nil)
-		dep.Name = cps.Name
-		dep.Version = srt.NewVersion(cps.Version)
-		depMap[cps.Name] = dep
+	// set name
+	if composer.Name != "" {
+		depRoot.Name = composer.Name
+		deps = append(deps, depRoot)
 	}
-	// 构建依赖树
-	for _, cps := range lock.Pkgs {
-		for n := range cps.Require {
-			if sub, ok := depMap[n]; ok && sub.Parent == nil {
-				dep := depMap[cps.Name]
-				sub.Parent = dep
-				dep.Children = append(dep.Children, sub)
+	// add license
+	if composer.License != "" {
+		depRoot.AddLicense(composer.License)
+	}
+	// parse direct dependency
+	requires := map[string]string{}
+	for name, version := range composer.Require {
+		requires[name] = version
+	}
+	for name, version := range composer.RequireDev {
+		requires[name] = version
+	}
+	names := []string{}
+	for name := range requires {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		dep := srt.NewDepTree(depRoot)
+		dep.Name = name
+		dep.Version = srt.NewVersion(requires[name])
+		deps = append(deps, dep)
+	}
+	// composer simulation
+	exist := map[string]struct{}{}
+	exist[depRoot.Name] = struct{}{}
+	q := srt.NewQueue()
+	for _, child := range depRoot.Children {
+		exist[child.Name] = struct{}{}
+		q.Push(child)
+	}
+	for !q.Empty() {
+		bar.Composer.Add(1)
+		node := q.Pop().(*srt.DepTree)
+		for _, sub := range composerSimulation(node) {
+			if _, ok := exist[sub.Name]; !ok {
+				exist[sub.Name] = struct{}{}
+				q.Push(sub)
 			}
 		}
 	}
-	// 将顶层节点迁移到根节点下
-	for _, cps := range lock.Pkgs {
-		dep := depMap[cps.Name]
-		if dep.Parent == nil {
-			dep.Parent = depRoot
-			depRoot.Children = append(depRoot.Children, dep)
+	return
+}
+
+/**
+ * @description: composer simulation
+ * @param {*srt.DepTree} dep dependency infomation
+ * @return {[]*srt.DepTree} indirect dependencies
+ */
+func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
+	subDeps = []*srt.DepTree{}
+	dep.Language = language.Php
+	data := cache.LoadCache(dep.Dependency)
+	if len(data) == 0 && dep.Name != "" {
+		url := fmt.Sprintf("https://repo.packagist.org/p2/%s.json", dep.Name)
+		rep, err := http.Get(url)
+		if err != nil {
+			logs.Warn(err)
+			return
+		} else {
+			if data, err = ioutil.ReadAll(rep.Body); err != nil {
+				logs.Error(err)
+			} else {
+				cache.SaveCache(dep.Dependency, data)
+			}
+			rep.Body.Close()
 		}
-		deps = append(deps, dep)
+	}
+	constraints := []*semver.Constraints{}
+	for _, constraint := range strings.Split(dep.Version.Org, "|") {
+		constraint = strings.TrimSpace(strings.ReplaceAll(constraint, "*", "x"))
+		if c, err := semver.NewConstraint(constraint); err == nil {
+			constraints = append(constraints, c)
+		}
+	}
+
+	repo := ComposerRepo{}
+	if err := json.Unmarshal(data, &repo); err != nil {
+		logs.Warn(err)
+	}
+
+	// select version
+	for _, infos := range repo.Pkgs {
+		for _, info := range infos {
+			if v, err := semver.NewVersion(info.Version); err == nil {
+				for _, c := range constraints {
+					if c.Check(v) {
+						// add indirect dependencies
+						dep.Version = srt.NewVersion(info.Version)
+						if dep.Parent != nil {
+							dep.Path = path.Join(dep.Parent.Path, dep.Dependency.String())
+						}
+						requires := map[string]string{}
+						for name, version := range info.Require {
+							requires[name] = version
+						}
+						for name, version := range info.RequireDev {
+							requires[name] = version
+						}
+						names := []string{}
+						for name := range requires {
+							names = append(names, name)
+						}
+						sort.Strings(names)
+						for _, name := range names {
+							sub := srt.NewDepTree(dep)
+							sub.Name = name
+							sub.Version = srt.NewVersion(requires[name])
+							sub.Path = path.Join(dep.Path, sub.Dependency.String())
+							sub.Language = language.Php
+							subDeps = append(subDeps, sub)
+						}
+						return
+					}
+				}
+			}
+		}
 	}
 	return
 }

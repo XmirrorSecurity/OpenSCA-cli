@@ -31,7 +31,7 @@ func MvnDepTree(path string) (root *srt.DepTree) {
 		return
 	}
 	os.Chdir(path)
-	cmd := exec.Command("mvn", "dependency:tree")
+	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
 	out, _ := cmd.CombinedOutput()
 	os.Chdir(pwd)
 	// 统一替换换行符为\n
