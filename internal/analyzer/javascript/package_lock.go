@@ -94,18 +94,8 @@ func parsePackageLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.Dep
 	for _, name := range names {
 		dep := depMap[name]
 		if dep.Parent == nil {
-			// 将当前节点信息迁移到父节点
-			// depRoot.Name = dep.Name
-			// depRoot.Version = dep.Version
 			depRoot.Children = append(depRoot.Children, dep)
 			dep.Parent = depRoot
-			// for _, child := range dep.Children {
-			// 	child.Parent = depRoot
-			// 	depRoot.Children = append(depRoot.Children, child)
-			// }
-			// dep.Children = nil
-			deps = append(deps, dep)
-		} else {
 			deps = append(deps, dep)
 		}
 	}

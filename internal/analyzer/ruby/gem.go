@@ -74,12 +74,12 @@ func parseGemfileLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTre
 		dep := depMap[name]
 		dep.Parent = root
 		root.Children = append(root.Children, dep)
+		deps = append(deps, dep)
 		q.Push(dep)
 	}
 	// 层级遍历添加间接依赖
 	for !q.Empty() {
 		dep := q.Pop().(*srt.DepTree)
-		deps = append(deps, dep)
 		subs := subMap[dep.ID]
 		sort.Strings(subs)
 		for _, name := range subs {

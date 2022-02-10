@@ -91,6 +91,7 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 		deps = append(deps, dep)
 	}
 	// build dependency tree
+	// indirecrt dependencies
 	for !q.Empty() {
 		dep := q.Pop().(*srt.DepTree)
 		for _, name := range subMap[dep.Name] {
@@ -98,7 +99,6 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 				sub.Parent = dep
 				dep.Children = append(dep.Children, sub)
 				q.Push(sub)
-				deps = append(deps, sub)
 			}
 		}
 	}

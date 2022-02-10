@@ -9,6 +9,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"opensca/internal/bar"
+	"opensca/internal/filter"
 	"opensca/internal/srt"
 	"regexp"
 	"strings"
@@ -224,4 +226,78 @@ func (a Analyzer) parsePomProperties(dirpath string, data []byte) {
 	for _, match := range regexp.MustCompile(`(\S+)=(\S+)`).FindAllSubmatch(data, -1) {
 		properties[dirpath][string(match[1])] = string(match[2])
 	}
+}
+
+/**
+ * @description: parse pom.xml
+ * @param {*srt.DirTree} dirRoot dir tree node
+ * @param {*srt.DepTree} depRoot dependency tree node
+ * @param {*srt.FileData} file pom.xml file data
+ * @return {[]*srt.DepTree} dependencies list
+ */
+func (a Analyzer) parsePom(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
+	// 解析pom.xml
+	pomXml := a.parsePomXml(dirRoot.Path, file.Data, false)
+	pomRoot := srt.NewDepTree(depRoot)
+	// 记录仓库
+	a.repos[pomRoot.ID] = pomXml.Repositories
+	// 更新依赖信息
+	pomRoot.Vendor = pomXml.GroupId
+	pomRoot.Name = pomXml.ArtifactId
+	pomRoot.Version = srt.NewVersion(pomXml.Version)
+	// 检查是否是顶点
+	top := true
+	parent := pomRoot.Parent
+	for parent != nil {
+		if parent.Name != "" && filter.Jar(parent.Path) {
+			top = false
+			break
+		}
+		parent = parent.Parent
+	}
+	// 添加许可证
+	for _, licName := range pomXml.Licenses {
+		pomRoot.AddLicense(licName)
+	}
+	for _, dep := range pomXml.Dependencies {
+		// 排除scope为provided的组件
+		if dep.Scope == "provided" {
+			continue
+		}
+		// 排除直接依赖的scope为test或optional为true的组件
+		if !top && (dep.Scope == "test" || dep.Optional) {
+			continue
+		}
+		sub := srt.NewDepTree(pomRoot)
+		sub.Vendor = dep.GroupId
+		sub.Name = dep.ArtifactId
+		// provied组件不记录版本
+		// if dep.Scope != "provied" {
+		sub.Version = srt.NewVersion(dep.Version)
+		// }
+		// 添加exclusion
+		for _, exc := range dep.Exclusions {
+			key := strings.ToLower(fmt.Sprintf("%s+%s", exc.GroupId, exc.ArtifactId))
+			sub.Exclusions[key] = struct{}{}
+		}
+	}
+	// maven simulation
+	exist := map[string]struct{}{}
+	exist[pomRoot.Name] = struct{}{}
+	q := srt.NewQueue()
+	for _, child := range pomRoot.Children {
+		exist[child.Name] = struct{}{}
+		q.Push(child)
+	}
+	for !q.Empty() {
+		node := q.Pop().(*srt.DepTree)
+		for _, child := range a.mavenSimulation(node) {
+			if _, ok := exist[child.Name]; !ok {
+				bar.Maven.Add(1)
+				exist[child.Name] = struct{}{}
+				q.Push(child)
+			}
+		}
+	}
+	return []*srt.DepTree{pomRoot}
 }

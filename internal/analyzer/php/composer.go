@@ -15,7 +15,6 @@ import (
 	"opensca/internal/enum/language"
 	"opensca/internal/logs"
 	"opensca/internal/srt"
-	"path"
 	"sort"
 	"strings"
 
@@ -72,10 +71,15 @@ func parseComposer(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTre
 	}
 	sort.Strings(names)
 	for _, name := range names {
+		if strings.EqualFold(name, "php") {
+			continue
+		}
 		dep := srt.NewDepTree(depRoot)
 		dep.Name = name
 		dep.Version = srt.NewVersion(requires[name])
-		deps = append(deps, dep)
+		if composer.Name == "" {
+			deps = append(deps, dep)
+		}
 	}
 	// composer simulation
 	exist := map[string]struct{}{}
@@ -142,9 +146,6 @@ func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 					if c.Check(v) {
 						// add indirect dependencies
 						dep.Version = srt.NewVersion(info.Version)
-						if dep.Parent != nil {
-							dep.Path = path.Join(dep.Parent.Path, dep.Dependency.String())
-						}
 						requires := map[string]string{}
 						for name, version := range info.Require {
 							requires[name] = version
@@ -155,11 +156,12 @@ func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 						}
 						sort.Strings(names)
 						for _, name := range names {
+							if strings.EqualFold(name, "php") {
+								continue
+							}
 							sub := srt.NewDepTree(dep)
 							sub.Name = name
 							sub.Version = srt.NewVersion(requires[name])
-							sub.Path = path.Join(dep.Path, sub.Dependency.String())
-							sub.Language = language.Php
 							subDeps = append(subDeps, sub)
 						}
 						return

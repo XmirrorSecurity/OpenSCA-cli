@@ -5,7 +5,6 @@
 package java
 
 import (
-	"fmt"
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
 	"opensca/internal/srt"
@@ -96,57 +95,10 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
  * @return {[]*srt.DepTree} 解析出的依赖列表
  */
 func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
-	deps := make([]*srt.DepTree, 0)
 	if filter.JavaPom(file.Name) {
-		// 解析pom.xml
-		pomXml := a.parsePomXml(dirRoot.Path, file.Data, false)
-		pomRoot := srt.NewDepTree(depRoot)
-		// 记录仓库
-		a.repos[pomRoot.ID] = pomXml.Repositories
-		// 更新依赖信息
-		pomRoot.Vendor = pomXml.GroupId
-		pomRoot.Name = pomXml.ArtifactId
-		pomRoot.Version = srt.NewVersion(pomXml.Version)
-		deps = append(deps, pomRoot)
-		// 检查是否是顶点
-		top := true
-		parent := pomRoot.Parent
-		for parent != nil {
-			if parent.Name != "" && filter.Jar(parent.Path) {
-				top = false
-				break
-			}
-			parent = parent.Parent
-		}
-		// 添加许可证
-		for _, licName := range pomXml.Licenses {
-			pomRoot.AddLicense(licName)
-		}
-		for _, dep := range pomXml.Dependencies {
-			// 排除scope为provided的组件
-			if dep.Scope == "provided" {
-				continue
-			}
-			// 排除直接依赖的scope为test或optional为true的组件
-			if !top && (dep.Scope == "test" || dep.Optional) {
-				continue
-			}
-			sub := srt.NewDepTree(pomRoot)
-			sub.Vendor = dep.GroupId
-			sub.Name = dep.ArtifactId
-			// provied组件不记录版本
-			// if dep.Scope != "provied" {
-			sub.Version = srt.NewVersion(dep.Version)
-			// }
-			// 添加exclusion
-			for _, exc := range dep.Exclusions {
-				key := strings.ToLower(fmt.Sprintf("%s+%s", exc.GroupId, exc.ArtifactId))
-				sub.Exclusions[key] = struct{}{}
-			}
-			deps = append(deps, sub)
-		}
+		return a.parsePom(dirRoot, depRoot, file)
 	} else if filter.JavaPomProperties(file.Name) {
 		a.parsePomProperties(dirRoot.Path, file.Data)
 	}
-	return deps
+	return make([]*srt.DepTree, 0)
 }

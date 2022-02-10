@@ -15,7 +15,6 @@ import (
 	"opensca/internal/enum/language"
 	"opensca/internal/logs"
 	"opensca/internal/srt"
-	"path"
 	"sort"
 
 	"github.com/Masterminds/semver"
@@ -50,11 +49,12 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
 		return
 	}
 	pkgDep := depRoot
-	pkgDep.Name = pkg.Name
 	pkgDep.Version = srt.NewVersion(pkg.Version)
 	pkgDep.AddLicense(pkg.License)
-	pkgDep.Path = path.Join(depRoot.Path, path.Base(file.Name))
-	deps = append(deps, pkgDep)
+	if pkg.Name != "" {
+		pkgDep.Name = pkg.Name
+		deps = append(deps, pkgDep)
+	}
 	// 依赖列表map[name]version
 	depMap := map[string]string{}
 	for name, version := range pkg.DevDeps {
@@ -74,7 +74,9 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
 		dep := srt.NewDepTree(pkgDep)
 		dep.Name = name
 		dep.Version = srt.NewVersion(version)
-		deps = append(deps, dep)
+		if pkg.Name == "" {
+			deps = append(deps, dep)
+		}
 	}
 	// 记录出现过的组件
 	exist := map[string]struct{}{}
@@ -148,9 +150,6 @@ func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	}
 	info := npm.Versions[latestVersion]
 	dep.Version = srt.NewVersion(latestVersion)
-	if dep.Parent != nil {
-		dep.Path = path.Join(dep.Parent.Path, dep.Dependency.String())
-	}
 	dep.AddLicense(info.License)
 	// 解析子依赖
 	names := []string{}
@@ -162,8 +161,6 @@ func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 		sub := srt.NewDepTree(dep)
 		sub.Name = name
 		sub.Version = srt.NewVersion(info.Deps[name])
-		sub.Path = path.Join(dep.Path, sub.Dependency.String())
-		sub.Language = language.JavaScript
 		subDeps = append(subDeps, sub)
 	}
 	return

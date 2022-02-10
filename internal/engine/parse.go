@@ -37,14 +37,25 @@ func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt
 		queue.Push(newNode(dirRoot, depRoot))
 		for !queue.Empty() {
 			node := queue.Pop().(*node)
-			node.Dep.Path = node.Dir.Path
 			// 解析文件
 			for _, file := range analyzer.FilterFile(node.Dir, node.Dep) {
-				bar.Dependency.Add(1)
-				node.Dep.Language = analyzer.GetLanguage()
+				q := srt.NewQueue()
+				// parse dependencies
 				for _, dep := range analyzer.ParseFile(node.Dir, node.Dep, file) {
+					bar.Dependency.Add(1)
 					dep.Path = path.Join(node.Dir.Path, path.Base(file.Name), dep.Dependency.String())
 					dep.Language = analyzer.GetLanguage()
+					q.Push(dep)
+				}
+				// add indirect dependencies infomation(path, language)
+				for !q.Empty() {
+					now := q.Pop().(*srt.DepTree)
+					for _, child := range now.Children {
+						bar.Dependency.Add(1)
+						child.Path = path.Join(now.Path, child.Dependency.String())
+						child.Language = analyzer.GetLanguage()
+						q.Push(child)
+					}
 				}
 			}
 			// 将子目录添加到队列
@@ -66,7 +77,5 @@ func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt
 	}
 	// 排除exlusion组件
 	depRoot.Exclusion()
-	// 获取java子依赖
-	e.ja.ParseSubDependencies(depRoot)
 	return depRoot
 }

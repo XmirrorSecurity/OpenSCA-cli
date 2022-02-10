@@ -58,8 +58,8 @@ func parseComposerLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.De
 		if dep.Parent == nil {
 			dep.Parent = depRoot
 			depRoot.Children = append(depRoot.Children, dep)
+			deps = append(deps, dep)
 		}
-		deps = append(deps, dep)
 	}
 	return
 }
