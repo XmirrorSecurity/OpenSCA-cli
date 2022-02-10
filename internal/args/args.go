@@ -25,6 +25,8 @@ var (
 	OnlyVuln bool
 	// 本地漏洞库文件路径
 	VulnDB string
+	// display progress bar
+	ProgressBar bool
 )
 
 func init() {
@@ -38,6 +40,7 @@ func init() {
 	flag.BoolVar(&OnlyVuln, "vuln", false, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
 	flag.StringVar(&Out, "out", "", "(可选) 将检测结果保存到指定文件,检测结果为json格式,例: -out output.json")
 	flag.StringVar(&VulnDB, "db", "", "(可选) 指定本地漏洞库文件,希望使用自己漏洞库时可用,漏洞库文件为json格式,具体格式会在开源项目文档中给出;若同时使用云端漏洞库与本地漏洞库,漏洞查询结果取并集,例: -db db.json")
+	flag.BoolVar(&ProgressBar, "progress", false, "(可选) 显示进度条")
 }
 
 func Parse() {

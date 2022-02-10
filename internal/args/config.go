@@ -25,13 +25,14 @@ func loadConfigFile() bool {
 		return false
 	} else {
 		config := struct {
-			Path     string `json:"path"`
-			DB       string `json:"db"`
-			Url      string `json:"url"`
-			Token    string `json:"token"`
-			Out      string `json:"out"`
-			Cache    *bool  `json:"cache"`
-			OnlyVuln *bool  `json:"vuln"`
+			Path        string `json:"path"`
+			DB          string `json:"db"`
+			Url         string `json:"url"`
+			Token       string `json:"token"`
+			Out         string `json:"out"`
+			Cache       *bool  `json:"cache"`
+			OnlyVuln    *bool  `json:"vuln"`
+			ProgressBar *bool  `json:"progress"`
 		}{}
 		if err = json.Unmarshal(data, &config); err != nil {
 			logs.Error(err)
@@ -57,6 +58,9 @@ func loadConfigFile() bool {
 		}
 		if !OnlyVuln && config.OnlyVuln != nil {
 			OnlyVuln = *config.OnlyVuln
+		}
+		if !ProgressBar && config.ProgressBar != nil {
+			ProgressBar = *config.ProgressBar
 		}
 		return true
 	}

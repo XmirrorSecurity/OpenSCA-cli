@@ -86,10 +86,10 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
 		q.Push(child)
 	}
 	for !q.Empty() {
-		bar.Npm.Add(1)
 		node := q.Pop().(*srt.DepTree)
 		for _, sub := range npmSimulation(node) {
 			if _, ok := exist[sub.Name]; !ok {
+				bar.Npm.Add(1)
 				exist[sub.Name] = struct{}{}
 				q.Push(sub)
 			}

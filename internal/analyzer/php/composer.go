@@ -31,9 +31,9 @@ type Composer struct {
 
 type ComposerRepo struct {
 	Pkgs map[string][]struct {
-		Version    string            `json:"version"`
-		Require    map[string]string `json:"require"`
-		RequireDev map[string]string `json:"require-dev"`
+		Version string            `json:"version"`
+		Require map[string]string `json:"require"`
+		// RequireDev map[string]string `json:"require-dev"`
 	} `json:"packages"`
 }
 
@@ -86,10 +86,10 @@ func parseComposer(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTre
 		q.Push(child)
 	}
 	for !q.Empty() {
-		bar.Composer.Add(1)
 		node := q.Pop().(*srt.DepTree)
 		for _, sub := range composerSimulation(node) {
 			if _, ok := exist[sub.Name]; !ok {
+				bar.Composer.Add(1)
 				exist[sub.Name] = struct{}{}
 				q.Push(sub)
 			}
@@ -131,9 +131,8 @@ func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	}
 
 	repo := ComposerRepo{}
-	if err := json.Unmarshal(data, &repo); err != nil {
-		logs.Warn(err)
-	}
+	// ignore error
+	_ = json.Unmarshal(data, &repo)
 
 	// select version
 	for _, infos := range repo.Pkgs {
@@ -148,9 +147,6 @@ func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 						}
 						requires := map[string]string{}
 						for name, version := range info.Require {
-							requires[name] = version
-						}
-						for name, version := range info.RequireDev {
 							requires[name] = version
 						}
 						names := []string{}

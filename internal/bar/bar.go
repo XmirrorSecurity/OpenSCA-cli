@@ -5,13 +5,51 @@
 
 package bar
 
-import "github.com/schollz/progressbar/v3"
+import (
+	"fmt"
+	"opensca/internal/args"
+)
 
 var (
-	Dir        = progressbar.Default(-1, "scan dir")
-	Archive    = progressbar.Default(-1, "unarchive")
-	Maven      = progressbar.Default(-1, "parse maven indirect dependency")
-	Npm        = progressbar.Default(-1, "parse npm indirect dependency")
-	Composer   = progressbar.Default(-1, "parse composer indirect dependency")
-	Dependency = progressbar.Default(-1, "parse project dependency")
+	id         int  = 0
+	Dir        *Bar = newBar("scan dir")
+	Archive    *Bar = newBar("unarchive")
+	Maven      *Bar = newBar("parse maven indirect dependency")
+	Npm        *Bar = newBar("parse npm indirect dependency")
+	Composer   *Bar = newBar("parse composer indirect dependency")
+	Dependency *Bar = newBar("parse project dependency")
 )
+
+// mult pargress bar
+type Bar struct {
+	text string
+	now  int
+	id   int
+}
+
+func newBar(text string) *Bar {
+	return &Bar{
+		id:   -1,
+		now:  0,
+		text: text,
+	}
+}
+
+/**
+ * @description: add progress
+ * @param {int} n
+ */
+func (b *Bar) Add(n int) {
+	if !args.ProgressBar {
+		return
+	}
+	if b.id == -1 {
+		id++
+		b.id = id
+		fmt.Println(b.text)
+	}
+	b.now += n
+	fmt.Printf("\033[%dA\033[K", id-b.id+1)
+	fmt.Printf("\r%s: %d", b.text, b.now)
+	fmt.Printf("\033[%dB\033[K", id-b.id+1)
+}

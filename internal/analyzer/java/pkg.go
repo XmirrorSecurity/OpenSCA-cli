@@ -100,7 +100,6 @@ func (a Analyzer) ParseSubDependencies(root *srt.DepTree) {
 	queue := srt.NewQueue()
 	queue.Push(root)
 	for !queue.Empty() {
-		bar.Maven.Add(1)
 		node := queue.Pop().(*srt.DepTree)
 		// java组件尝试获取子依赖
 		if node.Language == language.Java {
@@ -132,6 +131,7 @@ func (a Analyzer) ParseSubDependencies(root *srt.DepTree) {
 					if dep.GroupId == "" || dep.ArtifactId == "" || !ver.Ok() {
 						continue
 					}
+					bar.Maven.Add(1)
 					sub := srt.NewDepTree(node)
 					sub.Vendor = dep.GroupId
 					sub.Name = dep.ArtifactId
