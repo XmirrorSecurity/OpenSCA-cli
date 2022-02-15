@@ -1,21 +1,23 @@
 /*
- * @Descripation: ruby解析器
- * @Date: 2021-11-30 14:36:49
+ * @Description: golang analyzer
+ * @Date: 2022-02-10 16:08:00
  */
 
-package ruby
+package golang
 
 import (
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
 	"opensca/internal/srt"
+	"sort"
 )
 
+// golang Analyzer
 type Analyzer struct{}
 
 /**
- * @description: 创建ruby解析器
- * @return {ruby.Analyzer} ruby解析器
+ * @description: create golang Analyzer
+ * @return {golang.Analyzer} golang Analyzer
  */
 func New() Analyzer {
 	return Analyzer{}
@@ -23,10 +25,10 @@ func New() Analyzer {
 
 /**
  * @description: Get language of Analyzer
- * @return {enum.Language} 语言
+ * @return {language.Type} language type
  */
-func (a Analyzer) GetLanguage() language.Type {
-	return language.Ruby
+func (Analyzer) GetLanguage() language.Type {
+	return language.Golang
 }
 
 /**
@@ -34,8 +36,8 @@ func (a Analyzer) GetLanguage() language.Type {
  * @param {string} filename file name
  * @return {bool} is a parseable file returns true
  */
-func (a Analyzer) CheckFile(filename string) bool {
-	return filter.RubyGemfileLock(filename)
+func (Analyzer) CheckFile(filename string) bool {
+	return filter.GoMod(filename) || filter.GoSum(filename)
 }
 
 /**
@@ -46,12 +48,14 @@ func (a Analyzer) CheckFile(filename string) bool {
  */
 func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) []*srt.FileData {
 	files := []*srt.FileData{}
-	// 筛选需要解析的文件
-	for _, f := range dirRoot.Files {
-		if a.CheckFile(f.Name) {
-			files = append(files, f)
+	for _, file := range dirRoot.Files {
+		if a.CheckFile(file.Name) {
+			files = append(files, file)
 		}
 	}
+	sort.Slice(files, func(i, j int) bool {
+		return filter.GoSum(files[i].Name) && !filter.GoSum(files[j].Name)
+	})
 	return files
 }
 
@@ -62,10 +66,11 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) []*srt.
  * @param {*srt.FileData} file data to parse
  * @return {[]*srt.DepTree} parsed dependency list
  */
-func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
-	deps = []*srt.DepTree{}
-	if filter.RubyGemfileLock(file.Name) {
-		return parseGemfileLock(depRoot, file)
+func (Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
+	if filter.GoMod(file.Name) {
+		return parseGomod(depRoot, file)
+	} else if filter.GoSum(file.Name) {
+		return parseGosum(depRoot, file)
 	}
-	return deps
+	return []*srt.DepTree{}
 }

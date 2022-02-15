@@ -64,12 +64,6 @@ func (a Analyzer) parsePomXml(dirpath string, data []byte, isimport bool) *PomXm
 	if err != nil && err != io.EOF {
 		return pom
 	}
-	if invalid(pom.GroupId) && pom.Parent.GroupId != "" {
-		pom.GroupId = pom.Parent.GroupId
-	}
-	if invalid(pom.Version) && pom.Parent.Version != "" {
-		pom.Version = pom.Parent.Version
-	}
 
 	// 解析property
 	if _, ok := properties[dirpath]; !ok {
@@ -156,6 +150,13 @@ func (a Analyzer) parsePomXml(dirpath string, data []byte, isimport bool) *PomXm
 	}
 	if invalid(pom.Version) {
 		pom.Version = getValue(pom.Version)
+	}
+
+	if invalid(pom.GroupId) && pom.Parent.GroupId != "" {
+		pom.GroupId = pom.Parent.GroupId
+	}
+	if invalid(pom.Version) && pom.Parent.Version != "" {
+		pom.Version = pom.Parent.Version
 	}
 
 	// 设置属性

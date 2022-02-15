@@ -23,27 +23,27 @@ func New() Analyzer {
 }
 
 /**
- * @description: 获取当前Analyzer的语言
- * @return {language.Type} 语言
+ * @description: Get language of Analyzer
+ * @return {language.Type} language type
  */
 func (Analyzer) GetLanguage() language.Type {
 	return language.Php
 }
 
 /**
- * @description: 检测是否是可解析的文件
- * @param {string} filename 文件名
- * @return {bool} 是可解析的文件返回true
+ * @description: Check if it is a parsable file
+ * @param {string} filename file name
+ * @return {bool} is a parseable file returns true
  */
 func (Analyzer) CheckFile(filename string) bool {
 	return filter.PhpComposerLock(filename) || filter.PhpComposer(filename)
 }
 
 /**
- * @descriptsrt筛选当前解析器需要解析的文件
- * @param {*modsrtrTree} dirRoot 目录树节点
- * @param {*srt.DepTree} depRoot 依赖树节点
- * @return {[]*srt.FileData} 需要解析的文件列表
+ * @description: filters the files that the current parser needs to parse
+ * @param {*srt.DirTree} dirRoot directory tree node
+ * @param {*srt.DepTree} depRoot Dependency tree node
+ * @return {[]*srt.FileData} List of files to parse
  */
 func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files []*srt.FileData) {
 	files = []*srt.FileData{}
@@ -60,11 +60,11 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 }
 
 /**
- * @descriptsrt解析文件
- * @param {*srt.DirTree} dirRoot 目录树节点
- * @param {*modsrtpTree} depRoot 依赖树节点
- * @param {*srt.FileData} file 文件信息
- * @return {[]*srt.DepTree} 解析出的依赖列表
+ * @description: Parse the file
+ * @param {*srt.DirTree} dirRoot directory tree node
+ * @param {*srt.DepTree} depRoot Dependency tree node
+ * @param {*srt.FileData} file data to parse
+ * @return {[]*srt.DepTree} parsed dependency list
  */
 func (Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}

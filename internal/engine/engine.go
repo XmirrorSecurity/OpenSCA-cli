@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"opensca/internal/analyzer"
+	"opensca/internal/analyzer/golang"
 	"opensca/internal/analyzer/java"
 	"opensca/internal/analyzer/javascript"
 	"opensca/internal/analyzer/php"
@@ -26,7 +27,6 @@ import (
 
 type Engine struct {
 	Analyzers []analyzer.Analyzer
-	ja        java.Analyzer
 }
 
 /**
@@ -34,14 +34,13 @@ type Engine struct {
  * @return {engine.Engine} 解析引擎
  */
 func NewEngine() Engine {
-	ja := java.New()
 	return Engine{
-		ja: ja,
 		Analyzers: []analyzer.Analyzer{
-			ja,
+			java.New(),
 			javascript.New(),
 			php.New(),
 			ruby.New(),
+			golang.New(),
 		},
 	}
 }

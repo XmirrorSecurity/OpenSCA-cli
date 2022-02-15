@@ -69,3 +69,9 @@ var (
 var (
 	RubyGemfileLock = filterFunc(strings.HasSuffix, "Gemfile.lock", "gems.locked")
 )
+
+// golang
+var (
+	GoMod = filterFunc(strings.HasSuffix, "go.mod")
+	GoSum = filterFunc(strings.HasSuffix, "go.sum")
+)
