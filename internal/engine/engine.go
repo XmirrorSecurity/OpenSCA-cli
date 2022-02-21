@@ -121,6 +121,23 @@ func (e Engine) ParseFile(filepath string) {
 			}
 		}
 		depRoot = root
+	} else {
+		// save indirect vulninfo
+		q := srt.NewQueue()
+		q.Push(depRoot)
+		for !q.Empty() {
+			dep := q.Pop().(*srt.DepTree)
+			vulnExist := map[string]struct{}{}
+			for _, child := range dep.Children {
+				for _, vuln := range child.Vulnerabilities {
+					if _, exist := vulnExist[vuln.Id]; !exist {
+						vulnExist[vuln.Id] = struct{}{}
+					}
+				}
+				q.Push(child)
+			}
+			dep.IndirectVulnerabilities = len(vulnExist)
+		}
 	}
 	// 整理错误信息
 	errInfo := ""

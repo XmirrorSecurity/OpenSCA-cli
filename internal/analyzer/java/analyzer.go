@@ -71,6 +71,7 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 			depRoot.Version = srt.NewVersion(fileName[index+1:])
 			depRoot.Name = fileName[:index]
 		}
+		depRoot.Path = dirRoot.Path
 	}
 	// 筛选需要解析的文件
 	files = []*srt.FileData{}

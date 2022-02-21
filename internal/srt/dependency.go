@@ -87,7 +87,8 @@ func (dep Dependency) String() string {
  */
 type DepTree struct {
 	Dependency
-	Vulnerabilities []*Vuln `json:"vulnerabilities,omitempty"`
+	Vulnerabilities         []*Vuln `json:"vulnerabilities,omitempty"`
+	IndirectVulnerabilities int     `json:"indirect_vulnerabilities,omitempty"`
 	// 依赖路径
 	Path string `json:"path,omitempty"`
 	// 唯一的组件id，用来标识不同组件

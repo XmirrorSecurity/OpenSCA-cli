@@ -145,6 +145,7 @@ func (e Engine) unArchiveFile(filepath string) (root *srt.DirTree) {
  * @return {*srt.DirTree} 目录树
  */
 func (e Engine) opendir(dirpath string) (dir *srt.DirTree) {
+	bar.Dir.Add(1)
 	dir = srt.NewDirTree()
 	files, err := ioutil.ReadDir(dirpath)
 	if err != nil {
@@ -152,7 +153,6 @@ func (e Engine) opendir(dirpath string) (dir *srt.DirTree) {
 		return
 	}
 	for _, file := range files {
-		bar.Dir.Add(1)
 		filename := file.Name()
 		filepath := path.Join(dirpath, filename)
 		if file.IsDir() {

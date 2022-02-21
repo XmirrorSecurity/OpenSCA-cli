@@ -8,6 +8,7 @@ package golang
 import (
 	"opensca/internal/srt"
 	"regexp"
+	"strings"
 )
 
 /**
@@ -23,7 +24,7 @@ func parseGomod(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 			continue
 		}
 		sub := srt.NewDepTree(dep)
-		sub.Name = match[1]
+		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = srt.NewVersion(match[2])
 		deps = append(deps, sub)
 	}
@@ -50,7 +51,7 @@ func parseGosum(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 			continue
 		}
 		sub := srt.NewDepTree(dep)
-		sub.Name = match[1]
+		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = srt.NewVersion(match[2])
 		exist[sub.Name] = struct{}{}
 		deps = append(deps, sub)
