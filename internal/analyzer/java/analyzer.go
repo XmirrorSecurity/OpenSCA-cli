@@ -15,10 +15,7 @@ import (
 )
 
 type Analyzer struct {
-	// 属性
-	properties map[string]map[string]string
-	// 记录获取过的文件
-	poms map[string]map[string]struct{}
+	mvn *Mvn
 	// maven仓库地址
 	repos map[int64][]string
 }
@@ -29,9 +26,8 @@ type Analyzer struct {
  */
 func New() Analyzer {
 	return Analyzer{
-		properties: map[string]map[string]string{},
-		poms:       map[string]map[string]struct{}{},
-		repos:      map[int64][]string{},
+		mvn:   NewMvn(),
+		repos: map[int64][]string{},
 	}
 }
 
@@ -97,9 +93,9 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
  */
 func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
 	if filter.JavaPom(file.Name) {
-		return a.parsePom(dirRoot, depRoot, file)
-	} else if filter.JavaPomProperties(file.Name) {
-		a.parsePomProperties(dirRoot.Path, file.Data)
+		p := ReadPom(file.Data)
+		p.Path = path.Join(dirRoot.Path, file.Name)
+		a.mvn.AppendPom(p)
 	}
 	return make([]*srt.DepTree, 0)
 }

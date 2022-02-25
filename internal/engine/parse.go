@@ -64,6 +64,7 @@ func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt
 			}
 		}
 	}
+	e.javaAnalyzer.BuildTree(depRoot)
 	// 删除依赖树空节点
 	queue.Push(depRoot)
 	for !queue.Empty() {

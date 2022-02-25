@@ -1,216 +1,316 @@
-/*
- * @Descripation: mvn解析依赖树
- * @Date: 2021-12-16 10:10:13
- */
-
 package java
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"opensca/internal/cache"
-	"opensca/internal/enum/language"
-	"opensca/internal/logs"
-	"opensca/internal/srt"
 	"os"
-	"os/exec"
 	"path"
-	"regexp"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
-/**
- * @description: 调用mvn解析项目获取依赖树
- * @param {string} path 项目目录
- * @return {*srt.DepTree} 项目根节点
- */
-func MvnDepTree(path string) (root *srt.DepTree) {
-	root = srt.NewDepTree(nil)
-	pwd, err := os.Getwd()
-	if err != nil {
-		logs.Error(err)
-		return
-	}
-	os.Chdir(path)
-	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
-	out, _ := cmd.CombinedOutput()
-	os.Chdir(pwd)
-	// 统一替换换行符为\n
-	out = bytes.ReplaceAll(out, []byte("\r\n"), []byte("\n"))
-	out = bytes.ReplaceAll(out, []byte("\n\r"), []byte("\n"))
-	out = bytes.ReplaceAll(out, []byte("\r"), []byte("\n"))
-	// 获取mvn解析内容
-	lines := strings.Split(string(out), "\n")
-	for i := range lines {
-		lines[i] = strings.TrimPrefix(lines[i], "[INFO] ")
-	}
-	// 捕获依赖树起始位置
-	title := regexp.MustCompile(`--- [^\n]+ ---`)
-	// 记录依赖树起始位置行号
-	start := 0
-	// 标记是否在依赖范围内树
-	tree := false
-	// 获取mvn依赖树
-	for i, line := range lines {
-		if title.MatchString(line) {
-			tree = true
-			start = i
-			continue
+// DefaultDownloadPom is download pom form mvn repos
+func DefaultDownloadPom(groupId, artifactId, version string) *Pom {
+	local_path := `./.cache/`
+	repo_url := `https://repo.maven.apache.org/maven2/`
+	pom_dir := fmt.Sprintf("%s/%s/%s", strings.ReplaceAll(groupId, ".", "/"), artifactId, version)
+	pom_path := fmt.Sprintf("%s/%s-%s.pom", pom_dir, artifactId, version)
+	if _, err := os.Stat(local_path + pom_path); err == nil {
+		if data, err := os.ReadFile(local_path + pom_path); err == nil {
+			return ReadPom(data)
 		}
-		if tree && strings.Trim(line, "-") == "" {
-			tree = false
-			buildMvnDepTree(root, lines[start+1:i])
-			continue
-		}
-	}
-	return
-}
-
-/**
- * @description: 构建mvn树
- * @param {*srt.DepTree} root 依赖树根节点
- * @param {[]string} lines 依赖树信息
- */
-func buildMvnDepTree(root *srt.DepTree, lines []string) {
-	// 记录当前的顶点节点列表
-	tops := []*srt.DepTree{root}
-	// 上一层级
-	lastLevel := -1
-	for _, line := range lines {
-		// 计算层级
-		level := 0
-		for line[level*3+2] == ' ' {
-			level++
-		}
-		tops = tops[:len(tops)-lastLevel+level-1]
-		root = tops[len(tops)-1]
-		tags := strings.Split(line[level*3:], ":")
-		if len(tags) < 4 {
-			logs.Error(errors.New("mvn parse error"))
-			break
-		}
-		dep := srt.NewDepTree(root)
-		dep.Vendor = tags[0]
-		dep.Name = tags[1]
-		dep.Version = srt.NewVersion(tags[3])
-		dep.Language = language.Java
-		tops = append(tops, dep)
-		lastLevel = level
-	}
-}
-
-/**
- * @description: 下载pom文件
- * @param {srt.Dependency} dep 依赖信息
- * @param {...string} repos 仓库地址
- * @return {[]byte} pom文件数据
- * @return {error} 错误
- */
-func downloadPom(dep srt.Dependency, repos ...string) (data []byte, err error) {
-	if repos == nil {
-		repos = []string{}
-	}
-	tags := strings.Split(dep.Vendor, ".")
-	tags = append(tags, dep.Name)
-	tags = append(tags, dep.Version.Org)
-	tags = append(tags, fmt.Sprintf("%s-%s.pom", dep.Name, dep.Version.Org))
-	// 遍历仓库地址, 默认maven仓库
-	for i, repo := range append(repos, `https://repo.maven.apache.org/maven2/`) {
-		// 是否是最后一个仓库(默认的maven仓库)
-		last := i == len(repos)
-		// 拼接完整的pom下载地址
-		url := repo + strings.Join(tags, "/")
-		if rep, err := http.Get(url); err != nil {
-			if last {
-				return nil, err
-			} else {
-				continue
-			}
-		} else {
-			defer rep.Body.Close()
-			if rep.StatusCode != 200 {
-				if last {
-					return ioutil.ReadAll(rep.Body)
-				} else {
-					continue
-				}
-			} else {
-				return ioutil.ReadAll(rep.Body)
-			}
-		}
-	}
-	// 应该走不到这里
-	return nil, fmt.Errorf("download failure")
-}
-
-/**
- * @description: 获取pom文件
- * @param {srt.Dependency} dep 依赖组件信息
- * @param {string} dirpath 当前依赖所在目录路径
- * @param {[]string} repos mvn仓库地址
- * @param {bool} isimport 是否是import组件
- * @return {*PomXml} Pom结构
- */
-func (a Analyzer) getpom(dep srt.Dependency, dirpath string, repos []string, isimport bool) *PomXml {
-	if dep.Vendor == "" || dep.Name == "" || !dep.Version.Ok() {
-		return nil
-	}
-	dep.Language = language.Java
-	data := cache.LoadCache(dep)
-	if len(data) != 0 {
-		return a.parsePomXml(dirpath, data, isimport)
 	} else {
-		// 无本地缓存下载pom文件
-		if data, err := downloadPom(dep, repos...); err == nil {
-			// 保存pom文件
-			cache.SaveCache(dep, data)
-			return a.parsePomXml(dirpath, data, isimport)
-		} else {
-			logs.Warn(err)
+		fmt.Println(repo_url + pom_path)
+		if rep, err := http.Get(repo_url + pom_path); err == nil {
+			defer rep.Body.Close()
+			if data, err := ioutil.ReadAll(rep.Body); err == nil {
+				os.MkdirAll(local_path+pom_dir, os.ModeDir)
+				if f, err := os.Create(local_path + pom_path); err == nil {
+					defer f.Close()
+					f.Write(data)
+				} else {
+					fmt.Println(err)
+				}
+				if rep.StatusCode == 200 {
+					return ReadPom(data)
+				}
+			}
 		}
 	}
 	return nil
 }
 
-/**
- * @description: 获取子依赖
- * @param {*srt.DepTree} root 依赖组件信息
- */
-func (a Analyzer) mavenSimulation(node *srt.DepTree) []*srt.DepTree {
-	deps := []*srt.DepTree{}
-	// 获取mvn仓库地址
-	repos := []string{}
-	if node.Parent != nil {
-		if reps, ok := a.repos[node.Parent.ID]; ok {
-			repos = reps
+// copyMap is copy map[string]map[string]struct{}
+func copyMap(dst, src map[string]map[string]struct{}) {
+	for k1, v1 := range src {
+		if _, ok := dst[k1]; !ok {
+			dst[k1] = map[string]struct{}{}
+		}
+		v := dst[k1]
+		for k2, v2 := range v1 {
+			v[k2] = v2
 		}
 	}
-	// 获取组件pom文件并解析子依赖
-	pom := a.getpom(node.Dependency, path.Dir(node.Path), repos, false)
-	if pom != nil {
-		for _, dep := range pom.Dependencies {
-			if dep.Scope == "test" || dep.Scope == "provided" || dep.Optional {
-				continue
-			}
-			// 检查组件信息是否完整
-			ver := srt.NewVersion(dep.Version)
-			if dep.GroupId == "" || dep.ArtifactId == "" || !ver.Ok() {
-				continue
-			}
-			sub := srt.NewDepTree(node)
-			sub.Vendor = dep.GroupId
-			sub.Name = dep.ArtifactId
-			sub.Version = ver
-			deps = append(deps, sub)
-			for _, exclusion := range dep.Exclusions {
-				key := strings.ToLower(fmt.Sprintf("%s+%s", exclusion.GroupId, exclusion.ArtifactId))
-				sub.Exclusions[key] = struct{}{}
+}
+
+func transferProperties(src, dst *Pom) {
+	// transfer properties
+	if src.Properties == nil {
+		src.Properties = PomProperties{}
+	}
+	if dst.Properties == nil {
+		dst.Properties = PomProperties{}
+	}
+	for k, v := range src.Properties {
+		if _, ok := dst.Properties[k]; !ok {
+			dst.Properties[k] = v
+		}
+	}
+}
+
+func transferManagement(src, dst *Pom) {
+	// parent dependency map
+	pdm := map[string]string{}
+	// module dependency map
+	mdm := map[string]string{}
+	for _, dm := range src.DependencyManagement {
+		pdm[dm.Index2()] = dm.Version
+	}
+	for _, dm := range dst.DependencyManagement {
+		mdm[dm.Index2()] = dm.Version
+	}
+	// parent cover module
+	for i, dm := range dst.DependencyManagement {
+		if version, exist := pdm[dm.Index2()]; exist {
+			dst.DependencyManagement[i].Version = version
+		}
+	}
+	// module append parent
+	for _, dm := range src.DependencyManagement {
+		if _, exist := mdm[dm.Index2()]; !exist {
+			(*dst).DependencyManagement = append((*dst).DependencyManagement, dm)
+			mdm[dm.Index2()] = dm.Version
+		}
+	}
+}
+
+// Mvn is maven
+type Mvn struct {
+	pomMap      map[string]*Pom
+	poms        []*Pom
+	downloadPom func(groupId, artifactId, version string) *Pom
+	transMap    map[string]struct{}
+}
+
+// NewMvn is create a *Mvn
+func NewMvn() *Mvn {
+	return &Mvn{
+		pomMap:      map[string]*Pom{},
+		poms:        []*Pom{},
+		downloadPom: getpom,
+		transMap:    map[string]struct{}{},
+	}
+}
+
+// getPom is get pom from pomMap if exist else download pom
+func (m *Mvn) getPom(p PomDependency) *Pom {
+	if par, exist := m.pomMap[p.Index2()]; exist {
+		if par.Properties == nil {
+			par.Properties = PomProperties{}
+		}
+		return par
+	} else {
+		par = m.downloadPom(p.GroupId, p.ArtifactId, p.Version)
+		if par == nil {
+			par = &Pom{Properties: PomProperties{}, PomDependency: p}
+		}
+		if par.Properties == nil {
+			par.Properties = PomProperties{}
+		}
+		return par
+	}
+}
+
+// transferAll is transferParent and transferImport
+func (m *Mvn) transferAll(p *Pom) {
+	if _, exist := m.transMap[p.Index2()]; exist {
+		return
+	} else {
+		m.transMap[p.Index2()] = struct{}{}
+	}
+	if p.Parent.ArtifactId != "" {
+		par := m.getPom(p.Parent)
+		if par != nil && par.ArtifactId != "" {
+			m.pomMap[par.Index2()] = par
+			m.transferAll(par)
+			transferProperties(par, p)
+			transferManagement(par, p)
+		}
+	}
+	for i := range p.DependencyManagement {
+		p.Complete(&p.DependencyManagement[i])
+		dm := p.DependencyManagement[i]
+		if dm.Scope == "import" {
+			// import pom
+			imp := m.getPom(dm)
+			if imp != nil && imp.ArtifactId != "" {
+				m.pomMap[imp.Index2()] = imp
+				m.transferAll(imp)
+				transferProperties(imp, p)
+				transferManagement(imp, p)
 			}
 		}
 	}
-	return deps
+}
+
+// AppendPom is Append pom to mvn
+func (m *Mvn) AppendPom(p *Pom) {
+	m.poms = append(m.poms, p)
+	m.pomMap[p.Index2()] = p
+}
+
+// ReadPom is parse a pom file retuen Pom pointer
+func (m *Mvn) ReadPom(data []byte) {
+	m.AppendPom(ReadPom(data))
+}
+
+// MvnSimulation is simulation maven project
+func (m *Mvn) MvnSimulation() []*Pom {
+	poms := m.poms
+	// complete dependencies by level each
+	queue := make([]*Pom, len(poms))
+	copy(queue, poms)
+	// save exist dependency
+	exist := map[string]struct{}{}
+	for len(queue) > 0 {
+		p := queue[0]
+		p.Complete(&p.PomDependency)
+		if _, ok := exist[p.Index2()]; !ok {
+			exist[p.Index2()] = struct{}{}
+		}
+		// transfer pom self
+		m.transferAll(p)
+		// complete management
+		dm := map[string]*PomDependency{}
+		p.Complete(&p.PomDependency)
+		for i := range p.DependencyManagement {
+			pd := &p.DependencyManagement[i]
+			p.Complete(pd)
+			dm[pd.Index2()] = pd
+		}
+		for i := range p.Dependencies {
+			dp := &p.Dependencies[i]
+			if dp.Scope == "provided" {
+				continue
+			}
+			if (dp.Scope == "test" || dp.Optional == "true") && p.Deep() > 0 {
+				continue
+			}
+			p.Complete(dp)
+			if _, ok := exist[dp.Index2()]; ok {
+				continue
+			} else {
+				exist[dp.Index2()] = struct{}{}
+			}
+			if pdm, exist := dm[dp.Index2()]; exist {
+				dp.Version = pdm.Version
+				p.Complete(dp)
+				if pdm.Scope == "provided" || pdm.Scope == "test" {
+					dp.Scope = pdm.Scope
+				}
+				if pdm.Optional == "true" {
+					dp.Optional = pdm.Optional
+				}
+				if dp.Scope == "provided" || dp.Scope == "test" || dp.Optional == "true" {
+					continue
+				}
+			}
+			// download indirect
+			dpom := m.downloadPom(dp.GroupId, dp.ArtifactId, dp.Version)
+			if dpom == nil {
+				dpom = &Pom{}
+			}
+			transferManagement(p, dpom)
+			dpom.PomDependency = *dp
+			dpom.ParentPom = p
+			p.DependenciesPom = append(p.DependenciesPom, dpom)
+		}
+		queue = append(queue[1:], p.DependenciesPom...)
+	}
+	// each stack
+	stack := make([]*Pom, len(poms))
+	copy(stack, poms)
+	// exclusion dependencies
+	for len(stack) > 0 {
+		// current pom
+		p := stack[len(stack)-1]
+		// exclusion
+		if exc, ok := p.Exclusion[p.Index2()]; ok {
+			savePom := []*Pom{}
+			saveDep := []PomDependency{}
+			for _, d := range p.DependenciesPom {
+				if _, ok := exc[d.Index2()]; !ok {
+					savePom = append(savePom, d)
+				}
+			}
+			for _, d := range p.Dependencies {
+				if _, ok := exc[d.Index2()]; !ok {
+					saveDep = append(saveDep, d)
+				}
+			}
+			p.DependenciesPom = savePom
+			p.Dependencies = saveDep
+		}
+		// save exclusion
+		if p.Exclusion == nil {
+			p.Exclusion = map[string]map[string]struct{}{}
+		}
+		for _, dep := range p.Dependencies {
+			for _, exc := range dep.Exclusions {
+				if _, ok := p.Exclusion[dep.Index2()]; !ok {
+					p.Exclusion[dep.Index2()] = map[string]struct{}{}
+				}
+				p.Exclusion[dep.Index2()][exc.Index2()] = struct{}{}
+			}
+		}
+		for _, child := range p.DependenciesPom {
+			if child.Exclusion == nil {
+				child.Exclusion = map[string]map[string]struct{}{}
+			}
+			copyMap(child.Exclusion, p.Exclusion)
+		}
+		stack = append(stack[:len(stack)-1], p.DependenciesPom...)
+		p = nil
+	}
+	return poms
+}
+
+// ReadPomsFromDir is build maven
+func (m *Mvn) ReadPomsFromDir(filepath string) {
+	files, err := ioutil.ReadDir(filepath)
+	if err != nil {
+		fmt.Println(err)
+		data, err := ioutil.ReadFile(filepath)
+		if err != nil {
+			fmt.Println(err)
+		}
+		m.ReadPom(data)
+	}
+	for _, f := range files {
+		fp := path.Join(filepath, f.Name())
+		if f.IsDir() {
+			m.ReadPomsFromDir(fp)
+		} else if strings.HasSuffix(f.Name(), "pom.xml") {
+			data, err := ioutil.ReadFile(fp)
+			if err != nil {
+				fmt.Println(err)
+			}
+			m.ReadPom(data)
+		}
+	}
+}
+
+// SetDownloadPomFunc is use custom pom download function
+func (m *Mvn) SetDownloadPomFunc(f func(groupId, artifactId, version string) *Pom) {
+	m.downloadPom = f
 }

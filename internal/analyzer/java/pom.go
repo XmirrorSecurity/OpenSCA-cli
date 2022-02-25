@@ -1,119 +1,144 @@
-/*
- * @Descripation: 解析Pom文件相关
- * @Date: 2021-11-04 09:40:33
- */
-
 package java
 
 import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"opensca/internal/bar"
-	"opensca/internal/filter"
-	"opensca/internal/srt"
 	"regexp"
 	"strings"
 )
 
-var (
-	// 存储property信息 map[dirpath]map[property-key]property-value
-	properties = map[string]map[string]string{}
-)
-
-// Pom文件
-type PomXml struct {
+// Pom is Project Object Model
+type Pom struct {
 	PomDependency
+	Path                 string
+	ParentPom            *Pom
+	DependenciesPom      []*Pom
 	Parent               PomDependency   `xml:"parent"`
 	Dependencies         []PomDependency `xml:"dependencies>dependency"`
 	DependencyManagement []PomDependency `xml:"dependencyManagement>dependencies>dependency"`
+	Properties           PomProperties   `xml:"properties"`
 	Repositories         []string        `xml:"repositories>repository>url"`
 	Licenses             []string        `xml:"licenses>license>name"`
+	Exclusion            map[string]map[string]struct{}
 }
 
-// Pom文件Dependency标签
+// PomDependency is dependency tag
 type PomDependency struct {
 	ArtifactId string          `xml:"artifactId"`
 	GroupId    string          `xml:"groupId"`
 	Version    string          `xml:"version"`
 	Scope      string          `xml:"scope"`
-	Optional   bool            `xml:"optional"`
+	Optional   string          `xml:"optional"`
 	Exclusions []PomDependency `xml:"exclusions>exclusion"`
 }
 
-/**
- * @description: 解析pom.xml文件
- * @param {string} dirpath 当前所在目录树路径
- * @param {[]byte} data 文件数据
- * @param {bool} isimport 是否是import解析的组件
- * @return {*PomXml} *PomXml结构
- */
-func (a Analyzer) parsePomXml(dirpath string, data []byte, isimport bool) *PomXml {
-
-	// 检测是否是无效数据
-	invalid := func(v string) bool {
-		return strings.Contains(v, "$") || len(v) == 0
+// Deep is now pom in dependency tree level
+func (p *Pom) Deep() int {
+	deep := 0
+	for p.ParentPom != nil {
+		p = p.ParentPom
+		deep++
 	}
+	return deep
+}
 
-	properties = a.properties
-
-	// 解析pom.xml
-	pom := &PomXml{}
-	data = regexp.MustCompile(`xml version="1.0" encoding="\S+"`).ReplaceAll(data, []byte(`xml version="1.0" encoding="UTF-8"`))
-	err := xml.Unmarshal(data, pom)
-	if err != nil && err != io.EOF {
-		return pom
-	}
-
-	// 解析property
-	if _, ok := properties[dirpath]; !ok {
-		properties[dirpath] = map[string]string{}
-	}
-	// 当前目录的property
-	dirProperty := properties[dirpath]
-	propertiesTag := regexp.MustCompile(`<properties>([\s\S\n]*)</properties>`).FindSubmatch(data)
-	if len(propertiesTag) == 2 {
-		for _, tags := range regexp.MustCompile(`<(\S+)>(\S+)<\S+>`).FindAllSubmatch(propertiesTag[1], -1) {
-			dirProperty[string(tags[1])] = string(tags[2])
+// String is dependency tree when this pom top
+func (pt *Pom) String() string {
+	stack := []*Pom{pt}
+	infos := []string{}
+	for len(stack) > 0 {
+		now := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		infos = append(infos, fmt.Sprintf("%s%s\n", strings.Repeat("\t", now.Deep()), now.Index3()))
+		for i := len(now.DependenciesPom) - 1; i >= 0; i-- {
+			c := now.DependenciesPom[i]
+			stack = append(stack, c)
 		}
 	}
+	return strings.Join(infos, "")
+}
 
-	// 当前property集合
-	property := map[string]string{}
-	// 获取parent的property
-	parent := pom.Parent
-	if _, ok := a.poms[dirpath]; !ok {
-		a.poms[dirpath] = map[string]struct{}{}
+// Index2 is groupId:artifactId
+func (pd PomDependency) Index2() string {
+	return fmt.Sprintf("%s:%s", pd.GroupId, pd.ArtifactId)
+}
+
+// Index3 is groupId:artifactId:version
+func (pd PomDependency) Index3() string {
+	return fmt.Sprintf("%s:%s:%s", pd.GroupId, pd.ArtifactId, pd.Version)
+}
+
+// Complete is complete dependency index by pom property
+func (p *Pom) Complete(pd *PomDependency) {
+	if strings.HasPrefix(pd.GroupId, "$") {
+		pd.GroupId = p.GetProperty(pd.GroupId)
 	}
-	for parent.ArtifactId != "" && parent.GroupId != "" && parent.Version != "" {
-		key := strings.ToLower(fmt.Sprintf("%s:%s:%s", parent.GroupId, parent.ArtifactId, parent.Version))
-		if _, ok := a.poms[dirpath][key]; !ok {
-			a.poms[dirpath][key] = struct{}{}
-			p := a.getpom(srt.Dependency{Vendor: parent.GroupId, Name: parent.ArtifactId, Version: srt.NewVersion(parent.Version)}, dirpath, pom.Repositories, false)
-			if p != nil {
-				parent = p.Parent
-			}
-		} else {
+	if strings.HasPrefix(pd.ArtifactId, "$") {
+		pd.ArtifactId = p.GetProperty(pd.ArtifactId)
+	}
+	if strings.HasPrefix(pd.Version, "$") {
+		pd.Version = p.GetProperty(pd.Version)
+	}
+}
+
+// PomProperties is properties tag
+type PomProperties map[string]string
+
+// Implement the Unmarshaler interface
+func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
+	*pp = PomProperties{}
+	for {
+		e := struct {
+			XMLName xml.Name
+			Value   string `xml:",chardata"`
+		}{}
+		err := d.Decode(&e)
+		if err == io.EOF {
 			break
+		} else if err != nil {
+			return err
 		}
+		(*pp)[e.XMLName.Local] = e.Value
 	}
-	// 计算根目录到当前目录的所有property并集
-	paths := strings.Split(dirpath, "/")
-	for i := range paths {
-		// 必须保证新属性覆盖旧属性，因此从根目录向当前目录遍历
-		if m, ok := properties[strings.Join(paths[:i+1], "/")]; ok {
-			for k, v := range m {
-				property[k] = v
-			}
-		}
-	}
+	return nil
+}
 
-	// 存储属性值
-	getValue := func(key string) string {
+// ReadPom is parse a pom file retuen Pom pointer
+func ReadPom(data []byte) (p *Pom) {
+	data = regexp.MustCompile(`xml version="1.0" encoding="\S+"`).ReplaceAll(data, []byte(`xml version="1.0" encoding="UTF-8"`))
+	p = &Pom{Properties: PomProperties{}}
+	xml.Unmarshal(data, &p)
+	if p.GroupId == "" && p.Parent.GroupId != "" {
+		p.GroupId = p.Parent.GroupId
+	}
+	if p.Version == "" && p.Parent.Version != "" {
+		p.Version = p.Parent.Version
+	}
+	p.GroupId = strings.TrimSpace(p.GroupId)
+	p.ArtifactId = strings.TrimSpace(p.ArtifactId)
+	p.Version = strings.TrimSpace(p.Version)
+	p.Complete(&p.PomDependency)
+	return
+}
+
+// GetProperty is get property from pom properties
+func (p *Pom) GetProperty(key string) string {
+	switch key {
+	case "${project.version}", "${version}", "${pom.version}":
+		return p.Version
+	case "${project.groupId}", "${groupId}", "${pom.groupId}":
+		return p.GroupId
+	case "${project.artifactId}":
+		return p.ArtifactId
+	case "${project.parent.version}", "${parent.version}":
+		return p.Parent.Version
+	case "${project.parent.groupId}", "${parent.groupId}":
+		return p.Parent.GroupId
+	default:
 		return regexp.MustCompile(`\$\{[^{}]*\}`).ReplaceAllStringFunc(key,
 			func(s string) string {
 				exist := map[string]struct{}{}
-				// 递归搜索版本号
 				for strings.HasPrefix(s, "$") {
 					if _, ok := exist[s]; ok {
 						break
@@ -121,7 +146,7 @@ func (a Analyzer) parsePomXml(dirpath string, data []byte, isimport bool) *PomXm
 						exist[s] = struct{}{}
 					}
 					k := s[2 : len(s)-1]
-					if v, ok := property[k]; ok {
+					if v, ok := p.Properties[k]; ok {
 						if len(v) > 0 {
 							s = v
 						} else {
@@ -134,171 +159,4 @@ func (a Analyzer) parsePomXml(dirpath string, data []byte, isimport bool) *PomXm
 				return s
 			})
 	}
-
-	// 检查当前pom的无效数据
-	if groupId, ok := property["groupId"]; ok && len(pom.GroupId) == 0 {
-		pom.GroupId = groupId
-	}
-	if version, ok := property["version"]; ok && len(pom.Version) == 0 {
-		pom.Version = version
-	}
-	if invalid(pom.GroupId) {
-		pom.GroupId = getValue(pom.GroupId)
-	}
-	if invalid(pom.ArtifactId) {
-		pom.ArtifactId = getValue(pom.ArtifactId)
-	}
-	if invalid(pom.Version) {
-		pom.Version = getValue(pom.Version)
-	}
-
-	if invalid(pom.GroupId) && pom.Parent.GroupId != "" {
-		pom.GroupId = pom.Parent.GroupId
-	}
-	if invalid(pom.Version) && pom.Parent.Version != "" {
-		pom.Version = pom.Parent.Version
-	}
-
-	// 设置属性
-	setProperty := func(key, value string) {
-		if value != "" {
-			property[key] = value
-		}
-	}
-
-	// 模拟预定义property
-	setProperty("pom.groupId", pom.Parent.GroupId)
-	setProperty("pom.artifactId", pom.Parent.ArtifactId)
-	setProperty("pom.version", pom.Parent.Version)
-	setProperty("parent.groupId", pom.Parent.GroupId)
-	setProperty("parent.artifactId", pom.Parent.ArtifactId)
-	setProperty("parent.version", pom.Parent.Version)
-	setProperty("project.parent.groupId", pom.Parent.GroupId)
-	setProperty("project.parent.artifactId", pom.Parent.ArtifactId)
-	setProperty("project.parent.version", pom.Parent.Version)
-	setProperty("project.groupId", pom.GroupId)
-	setProperty("project.artifactId", pom.ArtifactId)
-	setProperty("project.version", pom.Version)
-
-	// 存储DependencyManagement的值
-	for _, dep := range pom.DependencyManagement {
-		ver := getValue(dep.Version)
-		property[fmt.Sprintf("%s|%s", dep.GroupId, dep.ArtifactId)] = ver
-		a.properties[dirpath][fmt.Sprintf("%s|%s", dep.GroupId, dep.ArtifactId)] = ver
-		// 检查scope标签是否为import
-		if dep.Scope == "import" {
-			d := srt.NewDependency()
-			d.Vendor = dep.GroupId
-			d.Name = dep.ArtifactId
-			d.Version = srt.NewVersion(ver)
-			a.getpom(d, dirpath, pom.Repositories, true)
-		}
-	}
-
-	// 修正Dependencies的无效数据
-	for i, dep := range pom.Dependencies {
-		if invalid(dep.GroupId) {
-			pom.Dependencies[i].GroupId = getValue(dep.GroupId)
-		}
-		if invalid(dep.ArtifactId) {
-			pom.Dependencies[i].ArtifactId = getValue(dep.ArtifactId)
-		}
-		if invalid(dep.Version) {
-			pom.Dependencies[i].Version = getValue(dep.Version)
-			if invalid(pom.Dependencies[i].Version) {
-				if v, ok := property[fmt.Sprintf("%s|%s", pom.Dependencies[i].GroupId, pom.Dependencies[i].ArtifactId)]; ok {
-					pom.Dependencies[i].Version = v
-				}
-			}
-		}
-	}
-	return pom
-}
-
-/**
- * @description: 解析pom.properties文件
- * @param {[]byte} data 文件数据
- */
-func (a Analyzer) parsePomProperties(dirpath string, data []byte) {
-	properties = a.properties
-	if _, ok := properties[dirpath]; !ok {
-		properties[dirpath] = map[string]string{}
-	}
-	for _, match := range regexp.MustCompile(`(\S+)=(\S+)`).FindAllSubmatch(data, -1) {
-		properties[dirpath][string(match[1])] = string(match[2])
-	}
-}
-
-/**
- * @description: parse pom.xml
- * @param {*srt.DirTree} dirRoot dir tree node
- * @param {*srt.DepTree} depRoot dependency tree node
- * @param {*srt.FileData} file pom.xml file data
- * @return {[]*srt.DepTree} dependencies list
- */
-func (a Analyzer) parsePom(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
-	// 解析pom.xml
-	pomXml := a.parsePomXml(dirRoot.Path, file.Data, false)
-	pomRoot := srt.NewDepTree(depRoot)
-	// 记录仓库
-	a.repos[pomRoot.ID] = pomXml.Repositories
-	// 更新依赖信息
-	pomRoot.Vendor = pomXml.GroupId
-	pomRoot.Name = pomXml.ArtifactId
-	pomRoot.Version = srt.NewVersion(pomXml.Version)
-	// 检查是否是顶点
-	top := true
-	parent := pomRoot.Parent
-	for parent != nil {
-		if parent.Name != "" && filter.Jar(parent.Path) {
-			top = false
-			break
-		}
-		parent = parent.Parent
-	}
-	// 添加许可证
-	for _, licName := range pomXml.Licenses {
-		pomRoot.AddLicense(licName)
-	}
-	for _, dep := range pomXml.Dependencies {
-		// 排除scope为provided的组件
-		if dep.Scope == "provided" {
-			continue
-		}
-		// 排除直接依赖的scope为test或optional为true的组件
-		if !top && (dep.Scope == "test" || dep.Optional) {
-			continue
-		}
-		sub := srt.NewDepTree(pomRoot)
-		sub.Vendor = dep.GroupId
-		sub.Name = dep.ArtifactId
-		// provied组件不记录版本
-		// if dep.Scope != "provied" {
-		sub.Version = srt.NewVersion(dep.Version)
-		// }
-		// 添加exclusion
-		for _, exc := range dep.Exclusions {
-			key := strings.ToLower(fmt.Sprintf("%s+%s", exc.GroupId, exc.ArtifactId))
-			sub.Exclusions[key] = struct{}{}
-		}
-	}
-	// maven simulation
-	exist := map[string]struct{}{}
-	exist[pomRoot.Name] = struct{}{}
-	q := srt.NewQueue()
-	for _, child := range pomRoot.Children {
-		exist[child.Name] = struct{}{}
-		q.Push(child)
-	}
-	for !q.Empty() {
-		node := q.Pop().(*srt.DepTree)
-		for _, child := range a.mavenSimulation(node) {
-			if _, ok := exist[child.Name]; !ok {
-				bar.Maven.Add(1)
-				exist[child.Name] = struct{}{}
-				q.Push(child)
-			}
-		}
-	}
-	return []*srt.DepTree{pomRoot}
 }

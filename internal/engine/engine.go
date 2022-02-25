@@ -26,7 +26,8 @@ import (
 )
 
 type Engine struct {
-	Analyzers []analyzer.Analyzer
+	javaAnalyzer java.Analyzer
+	Analyzers    []analyzer.Analyzer
 }
 
 /**
@@ -34,9 +35,11 @@ type Engine struct {
  * @return {engine.Engine} 解析引擎
  */
 func NewEngine() Engine {
+	j := java.New()
 	return Engine{
+		javaAnalyzer: j,
 		Analyzers: []analyzer.Analyzer{
-			java.New(),
+			j,
 			javascript.New(),
 			php.New(),
 			ruby.New(),
