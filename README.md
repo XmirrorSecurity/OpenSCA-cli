@@ -14,6 +14,17 @@
 
 ---
 
+## 检测能力
+`OpenSCA`现已支持以下编程语言相关的配置文件解析及对应的包管理器，后续会逐步支持更多的编程语言，丰富相关配置文件的解析。
+
+|支持语言|包管理器|解析文件|
+|-|-|-|
+|`Java`|`Maven`|`pom.xml`|
+|`JavaScript`|`Npm`|`package-lock.json`</br>`package.json`</br>`yarn.lock`|
+|`PHP`|`Composer`|`composer.json`|
+|`Ruby`|`gem`|`gemfile.lock`|
+|`Golang`|`gomod`|`go.mod`</br>`go.sum`|
+
 ## 下载安装
 
 1. 从 [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
