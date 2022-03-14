@@ -1,5 +1,7 @@
+
+
 <p align="center">
-	<img alt="logo" src="https://opensca-test.xmirror.cn/static/media/OpenSCAlogo.e980a0f9.svg">
+	<img alt="logo" src="https://opensca.xmirror.cn/static/media/OpenSCAlogo.e980a0f9.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
 
@@ -8,85 +10,85 @@
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
 </p>
 
-## 项目介绍
 
-**OpenSCA** 用来扫描项目的第三方组件依赖及漏洞信息。
 
----
+## Introduction
 
-## 检测能力
-`OpenSCA`现已支持以下编程语言相关的配置文件解析及对应的包管理器，后续会逐步支持更多的编程语言，丰富相关配置文件的解析。
+OpenSCA is intended for scanning the third-party component dependencies and vulnerabilities.
 
-|支持语言|包管理器|解析文件|
-|-|-|-|
-|`Java`|`Maven`|`pom.xml`|
-|`JavaScript`|`Npm`|`package-lock.json`</br>`package.json`</br>`yarn.lock`|
-|`PHP`|`Composer`|`composer.json`|
-|`Ruby`|`gem`|`gemfile.lock`|
-|`Golang`|`gomod`|`go.mod`</br>`go.sum`|
+------
 
-## 下载安装
+## Detection Ability
 
-1. 从 [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
+OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The project team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
 
-2. 或者下载源码编译(需要 `go 1.11` 及以上版本)
+| LANGUAGE     | PACKAGE MANAGER | FILE                                           |
+| ------------ | --------------- | ---------------------------------------------- |
+| `Java`       | `Maven`         | `pom.xml`                                      |
+| `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock` |
+| `PHP`        | `Composer`      | `composer.json`                                |
+| `Ruby`       | `gem`           | `gemfile.lock`                                 |
+| `Golang`     | `gomod`         | `go.mod` `go.sum`                              |
 
-   ```shell
+## Download and Deployment
+
+1. Download the appropriate executable file according to your system architecture from [release](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).  
+
+2. Or download the source code and compile (go 1.11 and above is needed)
+
+   ```
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git
    cd opensca-cli
    go build cmd/opensca-cli
    ```
 
-   默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
+   The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
 
-   - 禁用`CGO_ENABLED`
-     `CGO_ENABLED=0`
-   - 指定操作系统
-     `GOOS=${OS} \\ darwin,freebsd,liunx,windows`
-   - 指定体系架构
-     `GOARCH=${arch} \\ 386,amd64,arm`
+   - Disable `CGO_ENABLED` `CGO_ENABLED=0`
+   - Set the operating system `GOOS=${OS} \\ darwin,freebsd,liunx,windows`
+   - Set the architecture `GOARCH=${arch} \\ 386,amd64,arm`
 
-## 使用样例
+## Samples
 
-仅检测组件信息
+For detecting the component information only:
 
-```shell
+```
 opensca-cli -path ${project_path}
 ```
 
-连接云平台
+For connecting to the cloud platform:
 
-```shell
+```
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
-或使用本地漏洞库
+Or for using the local vulnerability database:
 
-```shell
+```
 opensca-cli -db db.json -path ${project_path}
 ```
 
-## 参数说明
+## Parameters
 
-**可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
+**You can either configure the parameters in configuration files or input the parameters in the command-line. When the two conflict with each other, the input parameters will be prioritized.**
 
-| 参数       | 类型     | 描述                                                                                                                                            | 使用样例                          |
-| ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数                                      | `-config config.json`             |
-| `path`     | `string` | 指定要检测的文件或目录路径                                                                                                                      | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                             | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                                                                 | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下                         | `-cache`                          |
-| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                                                                    | `-vuln`                           |
-| `out`      | `string` | 将检测结果保存到指定文件，检测结果为 json 格式                                                                                                  | `-out output.json`                |
-| `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 json 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
-| `progress` | `bool`   | 显示进度条                                                                                                                                      | `-progress`                       |
+| PARAMETER  | TYPE     | DESCRIPTION                                                  | SAMPLE                            |
+| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
+| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken. | `-config config.json`             |
+| `path`     | `string` | Set the file or directory path to be detected.               | `-path ./foo`                     |
+| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database, set the address of the cloud service. It needs to be used with the `token` parameter. | `-url https://opensca.xmirror.cn` |
+| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter. | `-token xxxxxxx`                  |
+| `cache`    | `bool`   | This option is recommended. It can cache the downloaded files, for example, the `.pom` file, and save your time when detecting the same component next time. The downloaded files are saved in `.cache` under the same directory as opensca-cli. | `-cache`                          |
+| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result. | `-vuln`                           |
+| `out`      | `string` | Set the output file. The result is json format.              | `-out output.json`                |
+| `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                     |
+| `progress` | `bool`   | Show the progress bar.                                       | `-progress`                       |
 
----
+------
 
-### 漏洞库文件格式
+### The Format of the Vulnerability Database File
 
-```json
+```
 [
   {
     "vendor": "org.apache.logging.log4j",
@@ -111,24 +113,34 @@ opensca-cli -db db.json -path ${project_path}
 ]
 ```
 
-#### 漏洞库字段说明
+#### Explanations of Vulnerability Database Fields
 
-| 字段                | 描述                              | 是否必填 |
-| :------------------ | :-------------------------------- | :------- |
-| `vendor`            | 组件厂商                          | 否       |
-| `product`           | 组件名                            | 是       |
-| `version`           | 漏洞影响版本                      | 是       |
-| `language`          | 组件语言                          | 是       |
-| `name`              | 漏洞名                            | 否       |
-| `id`                | 自定义编号                        | 是       |
-| `cve_id`            | cve 编号                          | 否       |
-| `cnnvd_id`          | cnnvd 编号                        | 否       |
-| `cnvd_id`           | cnvd 编号                         | 否       |
-| `cwe_id`            | cwe 编号                          | 否       |
-| `description`       | 漏洞描述                          | 否       |
-| `description_en`    | 漏洞英文描述                      | 否       |
-| `suggestion`        | 漏洞修复建议                      | 否       |
-| `attack_type`       | 攻击方式                          | 否       |
-| `release_date`      | 漏洞发布日期                      | 否       |
-| `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
-| `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
+| FIELD               | DESCRIPTION                                                  | REQUIRED OR NOT |
+| ------------------- | ------------------------------------------------------------ | --------------- |
+| `vendor`            | the manufacturer of the component                            | N               |
+| `product`           | the name of the component                                    | Y               |
+| `version`           | the versions of the component affected by the vulnerability  | Y               |
+| `language`          | the programming language of the component                    | Y               |
+| `name`              | the name of the vulnerability                                | N               |
+| `id`                | custom identifier                                            | Y               |
+| `cve_id`            | cve identifier                                               | N               |
+| `cnnvd_id`          | cnnvd identifier                                             | N               |
+| `cnvd_id`           | cnvd identifier                                              | N               |
+| `cwe_id`            | cwe identifier                                               | N               |
+| `description`       | the description of the vulnerability                         | N               |
+| `description_en`    | the description of the vulnerability in English              | N               |
+| `suggestion`        | the suggestion for fixing the vulnerability                  | N               |
+| `attack_type`       | the type of attack                                           | N               |
+| `release_date`      | the release date of the vulnerability                        | N               |
+| `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
+| `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)   | N               |
+
+## Contributing 
+
+OpenSCA is an open source project, we appreciate your help!
+
+To contribute, please read our [Contributing Guideline](./docs/Contributing%20Guideline-en%20v1.0.md). 
+
+
+
+*For the Chinese version of this document, please check [README](./README-CN.md).
