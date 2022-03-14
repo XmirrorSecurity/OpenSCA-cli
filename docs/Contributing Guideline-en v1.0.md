@@ -100,6 +100,6 @@ We will reach out and invite you to sign our CLA (Contributor License Agreement)
 
 We appreciate all the contributions to OpenSCA.
 
-Thanks again for your interest in OpenSCA and your support for our solution.
+Thanks again for your interest in OpenSCA and your support for our solution to open source vulnerabilities.
 
 For the Chinese version of our contributing guideline, please check [贡献指南（中文版）v1.0](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/docs/%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97%EF%BC%88%E4%B8%AD%E6%96%87%E7%89%88%EF%BC%89v1.0.md)。
