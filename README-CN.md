@@ -132,3 +132,9 @@ opensca-cli -db db.json -path ${project_path}
 | `release_date`      | 漏洞发布日期                      | 否       |
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
+
+## 向我们贡献
+
+**OpenSCA** 是一款开源的软件成分分析工具，项目成员期待您的贡献。
+
+如果您对此有兴趣，请参考我们的[贡献指南](./docs/贡献指南（中文版）v1.0.md)。
