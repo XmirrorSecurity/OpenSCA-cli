@@ -17,7 +17,7 @@ import (
 	"opensca/internal/srt"
 	"sort"
 
-	"github.com/Masterminds/semver"
+	"github.com/Masterminds/semver/v3"
 )
 
 // package.json 文件结构
