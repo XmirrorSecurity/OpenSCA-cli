@@ -37,8 +37,10 @@ func parsePackageLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.Dep
 	}
 	// 记录每个依赖的信息
 	depMap := map[string]*srt.DepTree{}
+	// 记录是否为直接依赖
+	directSet := map[string]struct{}{}
 	// 记录每个组件的依赖
-	reqMap := map[string]map[string]struct{}{}
+	reqMap := map[string][]string{}
 	// 记录组件名
 	nameMap := map[string]struct{}{}
 	q := srt.NewQueue()
@@ -48,55 +50,64 @@ func parsePackageLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.Dep
 		for name, depmap := range depmaps {
 			// 统计当前组件名
 			nameMap[name] = struct{}{}
+			directSet[name] = struct{}{}
 			// 统计当前组件信息
-			if _, ok := depMap[name]; !ok {
+			if d, ok := depMap[name]; !ok {
 				dep := srt.NewDepTree(nil)
 				dep.Name = name
 				dep.Version = srt.NewVersion(depmap.Version)
 				depMap[name] = dep
+			} else {
+				newver := srt.NewVersion(depmap.Version)
+				if d.Version.Less(newver) {
+					d.Version = newver
+				} else {
+					continue
+				}
 			}
 			// 统计当前子依赖
 			if len(depmap.Requires) > 0 && reqMap[name] == nil {
-				reqMap[name] = map[string]struct{}{}
+				reqMap[name] = []string{}
 			}
+			ns := []string{}
 			for n := range depmap.Requires {
-				reqMap[name][n] = struct{}{}
+				ns = append(ns, n)
 			}
+			reqMap[name] = ns
 			// 将孙依赖添加到队列
 			if len(depmap.SubDeps) > 0 {
 				q.Push(depmap.SubDeps)
 			}
 		}
 	}
-	// 按组件名升序遍历每个依赖
+	// 去掉被依赖的组件
+	for _, subs := range reqMap {
+		for _, sub := range subs {
+			delete(directSet, sub)
+		}
+	}
 	names := []string{}
-	for name := range nameMap {
+	for name := range directSet {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		// 按组件名升序遍历当前依赖的子依赖
-		ns := []string{}
-		for n := range reqMap[name] {
-			ns = append(ns, n)
-		}
-		sort.Strings(ns)
-		for _, n := range ns {
-			// 将子依赖对应的依赖节点迁移到当前节点下
-			if sub, ok := depMap[n]; ok && sub.Parent == nil {
-				dep := depMap[name]
+		dep := depMap[name]
+		depRoot.Children = append(depRoot.Children, dep)
+		dep.Parent = depRoot
+		deps = append(deps, dep)
+		q.Push(dep)
+	}
+	for !q.Empty() {
+		dep := q.Pop().(*srt.DepTree)
+		subs := reqMap[dep.Name]
+		sort.Strings(subs)
+		for _, name := range subs {
+			if sub, ok := depMap[name]; ok && sub.Parent == nil {
 				sub.Parent = dep
 				dep.Children = append(dep.Children, sub)
+				q.Push(sub)
 			}
-		}
-	}
-	// 找出根节点并作为当前依赖节点的子依赖
-	for _, name := range names {
-		dep := depMap[name]
-		if dep.Parent == nil {
-			depRoot.Children = append(depRoot.Children, dep)
-			dep.Parent = depRoot
-			deps = append(deps, dep)
 		}
 	}
 	return

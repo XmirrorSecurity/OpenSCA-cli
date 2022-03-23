@@ -9,7 +9,6 @@ import (
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
 	"opensca/internal/srt"
-	"sort"
 )
 
 type Analyzer struct{}
@@ -55,12 +54,12 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 	for _, f := range dirRoot.Files {
 		if a.CheckFile(f.Name) {
 			files = append(files, f)
-			if filter.JavaScriptPackageLock(f.Name) {
+			if filter.JavaScriptPackageLock(f.Name) || filter.JavaScriptYarnLock(f.Name) {
 				lock = true
 			}
 		}
 	}
-	// 存在package-lock.json文件则不解析package.json文件
+	// 存在 yarn.lock 或 package-lock.json 文件则不解析package.json文件
 	if lock {
 		for i := 0; i < len(files); {
 			if filter.JavaScriptPackage(files[i].Name) {
@@ -70,11 +69,6 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 			}
 		}
 	}
-	// 文件排序
-	sort.Slice(files, func(i, j int) bool {
-		// 优先解析package-lock.json文件
-		return filter.JavaScriptPackageLock(files[i].Name) && !filter.JavaScriptPackageLock(files[j].Name)
-	})
 	return files
 }
 

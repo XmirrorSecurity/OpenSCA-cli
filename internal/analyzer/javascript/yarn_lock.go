@@ -26,12 +26,20 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 	subMap := map[string][]string{}
 	// save direct dependencies name
 	directSet := map[string]struct{}{}
-	depRe := regexp.MustCompile(`"([^"\s]+)@[^"\s]+"`)
-	verRe := regexp.MustCompile(`"version" "([^"\s]+)"`)
-	subRe := regexp.MustCompile(`"([^"\s]+)" "[^"\s]+"`)
+	depRe := regexp.MustCompile(`"?([^"\s]+)@[^"\s]+"?`)
+	verRe := regexp.MustCompile(`"?version"? "?([^"\s]+)"?`)
+	subRe := regexp.MustCompile(`"?([^"\s]+)"? "?[^"\s]+"?`)
 	// traverse block
 	for _, block := range strings.Split(string(file.Data), "\n\n") {
 		lines := strings.Split(block, "\n")
+		for i := 0; i < len(lines); {
+			lines[i] = strings.TrimSpace(lines[i])
+			if lines[i] == "" {
+				lines = append(lines[:i], lines[i+1:]...)
+			} else {
+				i++
+			}
+		}
 		if len(lines) < 2 {
 			continue
 		}
@@ -50,13 +58,24 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 		if len(match) == 2 {
 			version = match[1]
 		}
-		dep := srt.NewDepTree(nil)
-		dep.Name = name
-		dep.Version = srt.NewVersion(version)
+		directSet[name] = struct{}{}
+		if d, ok := depMap[name]; !ok {
+			dep := srt.NewDepTree(nil)
+			depMap[name] = dep
+			dep.Name = name
+			dep.Version = srt.NewVersion(version)
+		} else {
+			newver := srt.NewVersion(version)
+			if d.Version.Less(newver) {
+				d.Version = newver
+			} else {
+				continue
+			}
+		}
 		// indrect dependencies name list
 		sub := []string{}
 		for i, line := range lines {
-			if strings.EqualFold(strings.TrimSpace(line), `dependencies:`) {
+			if strings.EqualFold(line, `dependencies:`) {
 				for _, l := range lines[i+1:] {
 					match = subRe.FindStringSubmatch(l)
 					if len(match) == 2 {
@@ -66,9 +85,7 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 				break
 			}
 		}
-		depMap[dep.Name] = dep
-		subMap[dep.Name] = sub
-		directSet[dep.Name] = struct{}{}
+		subMap[name] = sub
 	}
 	// find direct dependencies
 	for _, subs := range subMap {
@@ -94,7 +111,9 @@ func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) 
 	// indirecrt dependencies
 	for !q.Empty() {
 		dep := q.Pop().(*srt.DepTree)
-		for _, name := range subMap[dep.Name] {
+		subDeps := subMap[dep.Name]
+		sort.Strings(subDeps)
+		for _, name := range subDeps {
 			if sub, ok := depMap[name]; ok && sub.Parent == nil {
 				sub.Parent = dep
 				dep.Children = append(dep.Children, sub)

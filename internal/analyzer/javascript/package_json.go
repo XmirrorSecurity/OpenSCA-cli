@@ -131,6 +131,9 @@ func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	latestVersion := ""
 	// 当前最大版本
 	var max *semver.Version
+	if dep.Version.Org == "" || dep.Version.Org == "latest" {
+		dep.Version.Org = "x"
+	}
 	if constraint, err := semver.NewConstraint(dep.Version.Org); err == nil {
 		for ver := range npm.Time {
 			if v, err := semver.NewVersion(ver); err == nil {
