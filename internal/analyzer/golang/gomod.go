@@ -19,7 +19,7 @@ import (
  */
 func parseGomod(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
-	for _, match := range regexp.MustCompile(`(\S*)\s+(v[\d\w\-+.]*)[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
+	for _, match := range regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
 		if len(match) != 3 {
 			continue
 		}
@@ -43,7 +43,7 @@ func parseGosum(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	for _, dep := range deps {
 		exist[dep.Name] = struct{}{}
 	}
-	for _, match := range regexp.MustCompile(`(\S*)\s+(v[\d\w\-+.]*)/go.mod[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
+	for _, match := range regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)/go.mod[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
 		if len(match) != 3 {
 			continue
 		}
