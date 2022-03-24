@@ -5,7 +5,10 @@
 
 package args
 
-import "flag"
+import (
+	"flag"
+	"strings"
+)
 
 var (
 	// 配置文件路径
@@ -50,4 +53,5 @@ func Parse() {
 		Url = IP
 	}
 	loadConfigFile()
+	Url = strings.TrimSuffix(Url, "/")
 }
