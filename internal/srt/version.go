@@ -31,11 +31,11 @@ func (ver *Version) weight() (weight int) {
 			// 后缀在后缀列表中取对应后缀权重
 			weight = w
 		} else {
-			// 后缀不在后缀列表中权重为5
-			weight = 5
+			// 后缀不在后缀列表中
+			weight = 8
 		}
 	} else {
-		// 不存在后缀权重为4
+		// 不存在后缀
 		weight = 6
 	}
 	return weight

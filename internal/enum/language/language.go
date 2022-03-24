@@ -61,7 +61,7 @@ func (l Type) Vuln() string {
 	case Ruby:
 		return "ruby"
 	case Golang:
-		return "go"
+		return "golang"
 	default:
 		return ""
 	}
