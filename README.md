@@ -32,9 +32,9 @@
 2. 或者下载源码编译(需要 `go 1.11` 及以上版本)
 
    ```shell
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git
-   cd opensca-cli
-   go build cmd/opensca-cli
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
+   cd opensca
+   go build -o opensca-cli cmd/opensca-cli/main.go
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译

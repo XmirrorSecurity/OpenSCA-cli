@@ -37,9 +37,9 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 2. Or download the source code and compile (go 1.11 and above is needed)
 
    ```
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git
-   cd opensca-cli
-   go build cmd/opensca-cli
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
+   cd opensca
+   go build -o opensca-cli cmd/opensca-cli/main.go
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
