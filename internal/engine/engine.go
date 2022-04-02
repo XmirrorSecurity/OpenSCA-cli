@@ -14,6 +14,7 @@ import (
 	"opensca/internal/analyzer/javascript"
 	"opensca/internal/analyzer/php"
 	"opensca/internal/analyzer/ruby"
+	"opensca/internal/analyzer/rust"
 	"opensca/internal/args"
 	"opensca/internal/enum/language"
 	"opensca/internal/filter"
@@ -44,6 +45,7 @@ func NewEngine() Engine {
 			php.New(),
 			ruby.New(),
 			golang.New(),
+			rust.New(),
 		},
 	}
 }

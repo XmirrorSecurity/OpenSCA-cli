@@ -19,6 +19,7 @@ const (
 	Php
 	Ruby
 	Golang
+	Rust
 )
 
 /**
@@ -39,6 +40,8 @@ func (l Type) String() string {
 		return "Ruby"
 	case Golang:
 		return "Golang"
+	case Rust:
+		return "Rust"
 	default:
 		return "None"
 	}
@@ -62,6 +65,8 @@ func (l Type) Vuln() string {
 		return "ruby"
 	case Golang:
 		return "golang"
+	case Rust:
+		return "rust"
 	default:
 		return ""
 	}
@@ -77,7 +82,8 @@ func init() {
 	lm[JavaScript] = []string{"js", "node", "nodejs", "javascript", "npm", "vue", "react"}
 	lm[Php] = []string{"php", "composer"}
 	lm[Ruby] = []string{"ruby"}
-	lm[Golang] = []string{"golang", "go"}
+	lm[Golang] = []string{"golang", "go", "gomod"}
+	lm[Rust] = []string{"rust", "cargo"}
 	for t, ls := range lm {
 		for _, l := range ls {
 			lanMap[l] = t

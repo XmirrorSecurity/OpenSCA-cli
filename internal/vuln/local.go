@@ -46,10 +46,11 @@ func loadVulnDB() {
 				}
 				// 将漏洞信息存到vulnDB中
 				name := strings.ToLower(info.Product)
-				if _, ok := vulnDB[info.Language]; !ok {
-					vulnDB[info.Language] = map[string][]vulnInfo{}
+				language := strings.ToLower(info.Language)
+				if _, ok := vulnDB[language]; !ok {
+					vulnDB[language] = map[string][]vulnInfo{}
 				}
-				vulns := vulnDB[info.Language]
+				vulns := vulnDB[language]
 				vulns[name] = append(vulns[name], info)
 			}
 		}

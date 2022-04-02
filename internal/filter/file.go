@@ -75,3 +75,8 @@ var (
 	GoMod = filterFunc(strings.HasSuffix, "go.mod")
 	GoSum = filterFunc(strings.HasSuffix, "go.sum")
 )
+
+// rust
+var (
+	RustCargoLock = filterFunc(strings.HasSuffix, "Cargo.lock")
+)
