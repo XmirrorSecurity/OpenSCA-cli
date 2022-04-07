@@ -17,13 +17,14 @@
 ## 检测能力
 `OpenSCA`现已支持以下编程语言相关的配置文件解析及对应的包管理器，后续会逐步支持更多的编程语言，丰富相关配置文件的解析。
 
-|支持语言|包管理器|解析文件|
-|-|-|-|
-|`Java`|`Maven`|`pom.xml`|
-|`JavaScript`|`Npm`|`package-lock.json`</br>`package.json`</br>`yarn.lock`|
-|`PHP`|`Composer`|`composer.json`|
-|`Ruby`|`gem`|`gemfile.lock`|
-|`Golang`|`gomod`|`go.mod`</br>`go.sum`|
+| 支持语言     | 包管理器   | 解析文件                                               |
+| ------------ | ---------- | ------------------------------------------------------ |
+| `Java`       | `Maven`    | `pom.xml`                                              |
+| `JavaScript` | `Npm`      | `package-lock.json`</br>`package.json`</br>`yarn.lock` |
+| `PHP`        | `Composer` | `composer.json`                                        |
+| `Ruby`       | `gem`      | `gemfile.lock`                                         |
+| `Golang`     | `gomod`    | `go.mod`</br>`go.sum`                                  |
+| `Rust`       | `cargo`    | `Cargo.lock`                                           |
 
 ## 下载安装
 
@@ -74,7 +75,7 @@ opensca-cli -db db.json -path ${project_path}
 | ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数                                      | `-config config.json`             |
 | `path`     | `string` | 指定要检测的文件或目录路径                                                                                                                      | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                             | `-url https://opensca.xmirror.cn` |
+| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                                                             | `-url https://opensca.xmirror.cn` |
 | `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                                                                 | `-token xxxxxxx`                  |
 | `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下                         | `-cache`                          |
 | `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                                                                    | `-vuln`                           |
