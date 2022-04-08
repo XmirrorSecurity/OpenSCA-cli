@@ -1,5 +1,5 @@
 <p align="center">
-	<img alt="logo" src="https://opensca.xmirror.cn/static/media/OpenSCAlogo.e980a0f9.svg">
+	<img alt="logo" src="./logo.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
 
