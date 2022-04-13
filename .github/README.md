@@ -145,4 +145,4 @@ To contribute, please read our [Contributing Guideline](./docs/Contributing%20Gu
 
 
 
-*For the Chinese version of this document, please check [README](./README-CN.md).
+*For the Chinese version of this document, please check [README](../README.md).
