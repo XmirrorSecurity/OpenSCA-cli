@@ -20,12 +20,10 @@ const (
 	Ruby
 	Golang
 	Rust
+	Erlang
 )
 
-/**
- * @description: 语言类型
- * @return {string} 语言类型
- */
+// String 语言类型
 func (l Type) String() string {
 	switch l {
 	case None:
@@ -42,15 +40,14 @@ func (l Type) String() string {
 		return "Golang"
 	case Rust:
 		return "Rust"
+	case Erlang:
+		return "Erlang"
 	default:
 		return "None"
 	}
 }
 
-/**
- * @description: 漏洞语言类型
- * @return {string} 漏洞语言类型
- */
+// Vuln 漏洞语言类型
 func (l Type) Vuln() string {
 	switch l {
 	case None:
@@ -67,6 +64,8 @@ func (l Type) Vuln() string {
 		return "golang"
 	case Rust:
 		return "rust"
+	case Erlang:
+		return ""
 	default:
 		return ""
 	}
@@ -84,6 +83,7 @@ func init() {
 	lm[Ruby] = []string{"ruby"}
 	lm[Golang] = []string{"golang", "go", "gomod"}
 	lm[Rust] = []string{"rust", "cargo"}
+	lm[Erlang] = []string{"erlang", "rebar"}
 	for t, ls := range lm {
 		for _, l := range ls {
 			lanMap[l] = t
@@ -91,11 +91,7 @@ func init() {
 	}
 }
 
-/**
- * @description: 获取最相似的语言
- * @param {string} language 语言
- * @return {language.Type} 语言类型
- */
+// Type 获取最相似的语言
 func NewLanguage(language string) Type {
 	if language == "" {
 		return None

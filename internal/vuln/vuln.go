@@ -11,11 +11,7 @@ import (
 	"opensca/internal/srt"
 )
 
-/**
- * @description: 查找漏洞
- * @param {*srt.DepTree} root 组件依赖根节点
- * @return {error} 错误信息
- */
+// SearchVuln 查找漏洞
 func SearchVuln(root *srt.DepTree) (err error) {
 	queue := srt.NewQueue()
 	queue.Push(root)

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"opensca/internal/analyzer"
+	"opensca/internal/analyzer/erlang"
 	"opensca/internal/analyzer/golang"
 	"opensca/internal/analyzer/java"
 	"opensca/internal/analyzer/javascript"
@@ -31,10 +32,7 @@ type Engine struct {
 	Analyzers    []analyzer.Analyzer
 }
 
-/**
- * @description: 创建新引擎
- * @return {engine.Engine} 解析引擎
- */
+// NewEngine 创建新引擎
 func NewEngine() Engine {
 	j := java.New()
 	return Engine{
@@ -46,14 +44,12 @@ func NewEngine() Engine {
 			ruby.New(),
 			golang.New(),
 			rust.New(),
+			erlang.New(),
 		},
 	}
 }
 
-/**
- * @description: 解析一个目录或文件
- * @param {string} path 目录或文件路径
- */
+// ParseFile 解析一个目录或文件
 func (e Engine) ParseFile(filepath string) {
 	// 目录树
 	dirRoot := srt.NewDirTree()

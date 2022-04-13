@@ -10,19 +10,14 @@ import (
 	"strings"
 )
 
-/**
- * @description: 组件依赖版本号
- */
+// Version 组件依赖版本号
 type Version struct {
 	Org    string `json:"org"`
 	Nums   []int  `json:"nums,omitempty"`
 	Suffix string `json:"suffix,omitempty"`
 }
 
-/**
- * @description: 获取当前版本的后缀权重
- * @return {int} 后缀权重，权重越大版本越高
- */
+// weight 获取当前版本的后缀权重
 func (ver *Version) weight() (weight int) {
 	if len(ver.Suffix) > 0 {
 		// 后缀权重
@@ -41,11 +36,7 @@ func (ver *Version) weight() (weight int) {
 	return weight
 }
 
-/**
- * @description: 解析版本字符串
- * @param {string} verStr 版本字符串
- * @return {*Version} *Version结构
- */
+// NewVersion 解析版本字符串
 func NewVersion(verStr string) *Version {
 	verStr = strings.TrimSpace(verStr)
 	ver := &Version{Nums: []int{}, Org: verStr}
@@ -78,11 +69,7 @@ func NewVersion(verStr string) *Version {
 	return ver
 }
 
-/**
- * @description: 判断是否严格小于另一个版本号
- * @param {*Version} other 另一个版本号
- * @return {bool} 当前版本小于另一个版本号返回true
- */
+// Less 判断是否严格小于另一个版本号
 func (ver *Version) Less(other *Version) bool {
 	length := len(ver.Nums)
 	if length > len(other.Nums) {
@@ -113,11 +100,7 @@ func (ver *Version) Less(other *Version) bool {
 	}
 }
 
-/**
- * @description: 判断是否等于另一个版本号
- * @param {*Version} other 另一个版本号
- * @return {bool} 两个版本号相等返回true
- */
+// Equal 判断是否等于另一个版本号
 func (ver *Version) Equal(other *Version) bool {
 	if len(ver.Nums) != len(other.Nums) {
 		return false
@@ -133,12 +116,7 @@ func (ver *Version) Equal(other *Version) bool {
 	return vw == ow
 }
 
-/**
- * @description: 判断一个版本是否在一个版本区间内
- * @param {*Version} ver 要判断的版本
- * @param {string} interval 版本区间
- * @return {bool} 在版本区间内返回true
- */
+// InRangeInterval 判断一个版本是否在一个版本区间内
 func InRangeInterval(ver *Version, interval string) bool {
 	// 当前版本
 	// 遍历所有区间
@@ -174,10 +152,7 @@ func InRangeInterval(ver *Version, interval string) bool {
 	return false
 }
 
-/**
- * @description: 检测是否为合法版本号
- * @return {bool} 合法版本号返回true
- */
+// Ok 检测是否为合法版本号
 func (v *Version) Ok() bool {
 	return !strings.Contains(v.Org, "$") && len(v.Nums) > 0
 }

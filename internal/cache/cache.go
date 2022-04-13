@@ -31,11 +31,7 @@ func init() {
 	}
 }
 
-/**
- * @description: save cache file
- * @param {string} filepath cache file path
- * @param {[]byte} cache file data
- */
+// save save cache file
 func save(filepath string, data []byte) {
 	if args.Cache {
 		if err := os.MkdirAll(path.Join(cacheDir, path.Dir(filepath)), os.ModeDir); err == nil {
@@ -47,11 +43,7 @@ func save(filepath string, data []byte) {
 	}
 }
 
-/**
- * @description: load cache file
- * @param {string} filepath cache file path
- * @return {[]byte} cache file data
- */
+// load load cache file
 func load(filepath string) []byte {
 	if args.Cache {
 		if data, err := ioutil.ReadFile(path.Join(cacheDir, filepath)); err == nil {
@@ -76,20 +68,12 @@ func filepath(dep srt.Dependency) string {
 	}
 }
 
-/**
- * @description: save cache file
- * @param {srt.Dependency} dep dependency infomation
- * @param {[]byte} data cache file data
- */
+// SaveCache save cache file
 func SaveCache(dep srt.Dependency, data []byte) {
 	save(filepath(dep), data)
 }
 
-/**
- * @description: load cache file
- * @param {srt.Dependency} dep dependency infomation
- * @return {[]byte} cache file data
- */
+// LoadCache load cache file
 func LoadCache(dep srt.Dependency) []byte {
 	return load(filepath(dep))
 }

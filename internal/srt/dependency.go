@@ -22,10 +22,7 @@ var (
 	idMutex    sync.Mutex
 )
 
-/**
- * @description: 生成一个本地唯一的id
- * @return {int64} 本地唯一的id
- */
+// getId 生成一个本地唯一的id
 func getId() int64 {
 	idMutex.Lock()
 	defer idMutex.Unlock()
@@ -42,9 +39,7 @@ func getId() int64 {
 	return res
 }
 
-/**
- * @description: 组件依赖
- */
+// Dependency 组件依赖
 type Dependency struct {
 	Vendor   string        `json:"vendor,omitempty"`
 	Name     string        `json:"name,omitempty"`
@@ -56,10 +51,7 @@ type Dependency struct {
 	LanguageStr string `json:"language,omitempty"`
 }
 
-/**
- * @description: 创建Dependency
- * @return {Dependency} 空Dependency结构
- */
+// NewDependency 创建Dependency
 func NewDependency() Dependency {
 	dep := Dependency{
 		Vendor:   "",
@@ -70,10 +62,7 @@ func NewDependency() Dependency {
 	return dep
 }
 
-/**
- * @description: 获取用于展示的Dependency字符串
- * @return {string} Dependency字符串
- */
+// String 获取用于展示的Dependency字符串
 func (dep Dependency) String() string {
 	if len(dep.Vendor) == 0 {
 		return fmt.Sprintf("[%s:%s]", dep.Name, dep.Version.Org)
@@ -82,9 +71,7 @@ func (dep Dependency) String() string {
 	}
 }
 
-/**
- * @description: 依赖树
- */
+// DepTree 依赖树
 type DepTree struct {
 	Dependency
 	Vulnerabilities         []*Vuln `json:"vulnerabilities,omitempty"`
@@ -104,11 +91,7 @@ type DepTree struct {
 	Licenses   []string            `json:"licenses,omitempty"`
 }
 
-/**
- * @description: 创建DepTree
- * @param {*DepTree} parent 父组件，可为nil
- * @return {*DepTree} 空DepTree
- */
+// NewDepTree 创建DepTree
 func NewDepTree(parent *DepTree) *DepTree {
 	dep := &DepTree{
 		ID:              getId(),
@@ -127,10 +110,7 @@ func NewDepTree(parent *DepTree) *DepTree {
 	return dep
 }
 
-/**
- * @description: 添加许可证
- * @param {string} licName 许可证名
- */
+// AddLicense 添加许可证
 func (dep *DepTree) AddLicense(licName string) {
 	key := strings.TrimSpace(strings.ToLower(licName))
 	if _, ok := dep.licenseMap[key]; !ok {
@@ -139,10 +119,7 @@ func (dep *DepTree) AddLicense(licName string) {
 	}
 }
 
-/**
- * @description: 将当前节点迁移到另一个节点
- * @param {*DepTree} other 另一个依赖节点
- */
+// Move 将当前节点迁移到另一个节点
 func (dep *DepTree) Move(other *DepTree) {
 	if other == nil {
 		return
@@ -169,9 +146,7 @@ func (dep *DepTree) Move(other *DepTree) {
 	dep.Children = nil
 }
 
-/**
- * @description: 排除Exclusion组件
- */
+// Exclusion 排除Exclusion组件
 func (root *DepTree) Exclusion() {
 	type node struct {
 		Dep *DepTree
@@ -212,10 +187,7 @@ func (root *DepTree) Exclusion() {
 	}
 }
 
-/**
- * @description: 依赖树结构
- * @return {string} 依赖树字符串
- */
+// String 依赖树结构
 func (root *DepTree) String() string {
 	type node struct {
 		Dep  *DepTree
@@ -250,11 +222,7 @@ func (root *DepTree) String() string {
 	return res
 }
 
-/**
- * @description: 获取用于展示结果的json数据
- * @param {string} err 错误信息
- * @return {[]byte} json数据
- */
+// Json 获取用于展示结果的json数据
 func (dep *DepTree) Json(err string) []byte {
 	// 补全依赖json信息
 	q := NewQueue()

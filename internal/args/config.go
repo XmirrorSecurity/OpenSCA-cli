@@ -6,11 +6,7 @@ import (
 	"os"
 )
 
-/**
- * @description: 加载配置文件
- * @param {string} filepath 配置文件路径
- * @return {bool} 读取成功返回true
- */
+// loadConfigFile 加载配置文件
 func loadConfigFile() bool {
 	configFilePath := Config
 	if configFilePath == "" {

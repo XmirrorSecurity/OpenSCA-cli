@@ -24,11 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-/**
- * @description: 调用mvn解析项目获取依赖树
- * @param {string} path 项目目录
- * @return {*srt.DepTree} 项目根节点
- */
+// MvnDepTree 调用mvn解析项目获取依赖树
 func MvnDepTree(path string) (root *srt.DepTree) {
 	root = srt.NewDepTree(nil)
 	pwd, err := os.Getwd()
@@ -71,11 +67,7 @@ func MvnDepTree(path string) (root *srt.DepTree) {
 	return
 }
 
-/**
- * @description: 构建mvn树
- * @param {*srt.DepTree} root 依赖树根节点
- * @param {[]string} lines 依赖树信息
- */
+// buildMvnDepTree 构建mvn树
 func buildMvnDepTree(root *srt.DepTree, lines []string) {
 	// 记录当前的顶点节点列表
 	tops := []*srt.DepTree{root}
@@ -104,13 +96,7 @@ func buildMvnDepTree(root *srt.DepTree, lines []string) {
 	}
 }
 
-/**
- * @description: 下载pom文件
- * @param {srt.Dependency} dep 依赖信息
- * @param {...string} repos 仓库地址
- * @return {[]byte} pom文件数据
- * @return {error} 错误
- */
+// downloadPom 下载pom文件
 func downloadPom(dep srt.Dependency, repos ...string) (data []byte, err error) {
 	if repos == nil {
 		repos = []string{}

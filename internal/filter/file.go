@@ -8,12 +8,7 @@ import (
 	"strings"
 )
 
-/**
- * @description: 文件名过滤函数
- * @param {func(string,string)bool} strFunc 字符串函数，需要两个字符串参数，返回值为bool类型
- * @param {[]string} args 用作strFunc第二个参数的参数列表
- * @return {func(string) bool} 文件名过滤函数，一个字符串参数，返回bool值。
- */
+// filterFunc 文件名过滤函数
 func filterFunc(strFunc func(string, string) bool, args ...string) func(string) bool {
 	return func(filename string) bool {
 		for _, suffix := range args {
@@ -48,8 +43,7 @@ var (
 
 // java相关
 var (
-	JavaPom           = filterFunc(strings.HasSuffix, "pom.xml", ".pom")
-	JavaPomProperties = filterFunc(strings.HasSuffix, "pom.properties")
+	JavaPom = filterFunc(strings.HasSuffix, "pom.xml", ".pom")
 )
 
 // javascript相关
@@ -79,4 +73,9 @@ var (
 // rust
 var (
 	RustCargoLock = filterFunc(strings.HasSuffix, "Cargo.lock")
+)
+
+// erlang
+var (
+	ErlangRebarLock = filterFunc(strings.HasSuffix, "rebar.lock")
 )

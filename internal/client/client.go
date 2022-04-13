@@ -56,10 +56,7 @@ type DetectRequst struct {
 	ClientId string `json:"clientId"`
 }
 
-/**
- * @description: 获取客户端id
- * @return {string} 16位大写字符串
- */
+// GetClientId 获取客户端id
 func GetClientId() string {
 	// 默认id
 	id := "XXXXXXXXXXXXXXXX"
@@ -98,12 +95,7 @@ func GetClientId() string {
 	return id
 }
 
-/**
- * @description: 发送任务解析请求
- * @param {[]byte} reqbody 请求体
- * @return {[]byte} 响应体
- * @return {error} 错误信息
- */
+// Detect 发送任务解析请求
 func Detect(reqbody []byte) (repbody []byte, err error) {
 	repbody = []byte{}
 	// 获取aes-key
@@ -174,11 +166,7 @@ func Detect(reqbody []byte) (repbody []byte, err error) {
 	}
 }
 
-/**
- * @description: 获取aes-key
- * @return {[]byte} aes-key
- * @return {error} 错误消息
- */
+// getAesKey 获取aes-key
 func getAesKey() (key []byte, err error) {
 	u, err := url.Parse(args.Url + "/oss-saas/api-v1/open-sca-client/aes-key")
 	if err != nil {

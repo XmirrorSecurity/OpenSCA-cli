@@ -35,12 +35,7 @@ type NpmJson struct {
 	Versions map[string]PkgJson `json:"versions"`
 }
 
-/**
- * @description: 解析package.json
- * @param {*srt.DepTree} depRoot Dependency tree node
- * @param {*srt.FileData} file 文件数据
- * @return {[]*srt.DepTree} parsed dependency list
- */
+// parsePackage 解析package.json
 func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	pkg := PkgJson{}
@@ -100,11 +95,7 @@ func parsePackage(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree
 	return
 }
 
-/**
- * @description: 模拟npm获取详细依赖信息
- * @param {*srt.DepTree} dep 直接依赖
- * @return {[]*srt.DepTree} 子依赖列表，子依赖的路径及语言字段均已赋值
- */
+// npmSimulation 模拟npm获取详细依赖信息
 func npmSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	subDeps = []*srt.DepTree{}
 	dep.Language = language.JavaScript

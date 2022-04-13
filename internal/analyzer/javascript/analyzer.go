@@ -13,39 +13,24 @@ import (
 
 type Analyzer struct{}
 
-/**
- * @description: 创建javascript解析器
- * @return {javascript.Analyzer} javascript解析器
- */
+// New 创建javascript解析器
 func New() Analyzer {
 	return Analyzer{}
 }
 
-/**
- * @description: Get language of Analyzer
- * @return {language.Type} language type
- */
+// GetLanguage Get language of Analyzer
 func (a Analyzer) GetLanguage() language.Type {
 	return language.JavaScript
 }
 
-/**
- * @description: Check if it is a parsable file
- * @param {string} filename file name
- * @return {bool} is a parseable file returns true
- */
+// CheckFile Check if it is a parsable file
 func (a Analyzer) CheckFile(filename string) bool {
 	return filter.JavaScriptPackageLock(filename) ||
 		filter.JavaScriptPackage(filename) ||
 		filter.JavaScriptYarnLock(filename)
 }
 
-/**
- * @description: filters the files that the current parser needs to parse
- * @param {*srt.DirTree} dirRoot directory tree node
- * @param {*srt.DepTree} depRoot Dependency tree node
- * @return {[]*srt.FileData} List of files to parse
- */
+// FilterFile filters the files that the current parser needs to parse
 func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files []*srt.FileData) {
 	files = []*srt.FileData{}
 	// 标记是否存在lock文件
@@ -72,13 +57,7 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) (files 
 	return files
 }
 
-/**
- * @description: Parse the file
- * @param {*srt.DirTree} dirRoot directory tree node
- * @param {*srt.DepTree} depRoot Dependency tree node
- * @param {*srt.FileData} file data to parse
- * @return {[]*srt.DepTree} parsed dependency list
- */
+// ParseFile Parse the file
 func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
 	deps := []*srt.DepTree{}
 	if filter.JavaScriptPackageLock(file.Name) {

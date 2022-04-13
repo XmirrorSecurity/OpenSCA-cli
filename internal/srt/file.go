@@ -11,20 +11,13 @@ import (
 	"strings"
 )
 
-/**
- * @description: 文件数据
- */
+// FileData 文件数据
 type FileData struct {
 	Name string `json:"name"`
 	Data []byte `json:"-"`
 }
 
-/**
- * @description: 创建FileData
- * @param {string} name 文件名
- * @param {[]byte} data 文件内容
- * @return {*FileData} FileData结构
- */
+// NewFileData 创建FileData
 func NewFileData(name string, data []byte) *FileData {
 	// 统一替换换行符为\n
 	data = bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
@@ -36,9 +29,7 @@ func NewFileData(name string, data []byte) *FileData {
 	}
 }
 
-/**
- * @description: 目录树
- */
+// DirTree 目录树
 type DirTree struct {
 	// 子目录
 	SubDir map[string]*DirTree `json:"subdir"`
@@ -50,28 +41,18 @@ type DirTree struct {
 	Path string `json:"path"`
 }
 
-/**
- * @description: 创建空目录树
- * @return {*DirTree} 空目录树
- */
+// NewDirTree 创建空目录树
 func NewDirTree() *DirTree {
 	return &DirTree{SubDir: map[string]*DirTree{}, DirList: []string{}, Files: make([]*FileData, 0)}
 }
 
-/**
- * @description: 向目录树添加一个文件
- * @param {*FileData} file 文件内容
- */
+// AddFile 向目录树添加一个文件
 func (root *DirTree) AddFile(file *FileData) {
 	now := root.GetDir(file.Name)
 	now.Files = append(now.Files, file)
 }
 
-/**
- * @description: 获取文件所在目录
- * @param {string} filepath 文件目录
- * @return {*DirTree} 文件所在目录
- */
+// GetDir 获取文件所在目录
 func (root *DirTree) GetDir(filepath string) *DirTree {
 	// 格式化路径
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
@@ -87,9 +68,7 @@ func (root *DirTree) GetDir(filepath string) *DirTree {
 	return now
 }
 
-/**
- * @description: 构建目录路径
- */
+// BuildDirPath 构建目录路径
 func (root *DirTree) BuildDirPath() {
 	queue := NewQueue()
 	queue.Push(root)
@@ -105,10 +84,7 @@ func (root *DirTree) BuildDirPath() {
 	}
 }
 
-/**
- * @description: 目录树结构
- * @return {string} 目录树字符串
- */
+// String 目录树结构
 func (root *DirTree) String() string {
 	type node struct {
 		Dir  *DirTree

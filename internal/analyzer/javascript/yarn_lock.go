@@ -12,12 +12,7 @@ import (
 	"strings"
 )
 
-/**
- * @description: parse yarn.lock file
- * @param {*srt.DepTree} root dependency
- * @param {*srt.FileData} file yarn.lock file data
- * @return {[]*srt.DepTree} dependencies list
- */
+// parseYarnLock parse yarn.lock file
 func parseYarnLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	// map[name]*DepTree

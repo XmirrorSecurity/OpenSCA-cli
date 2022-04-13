@@ -36,12 +36,7 @@ type ComposerRepo struct {
 	} `json:"packages"`
 }
 
-/**
- * @description: parse composer.json
- * @param {*srt.DepTree} depRoot dependency
- * @param {*srt.FileData} file composer.json file data
- * @return {[]*srt.DepTree} dependencies list
- */
+// parseComposer parse composer.json
 func parseComposer(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	composer := Composer{}
@@ -102,11 +97,7 @@ func parseComposer(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTre
 	return
 }
 
-/**
- * @description: composer simulation
- * @param {*srt.DepTree} dep dependency infomation
- * @return {[]*srt.DepTree} indirect dependencies
- */
+// composerSimulation composer simulation
 func composerSimulation(dep *srt.DepTree) (subDeps []*srt.DepTree) {
 	subDeps = []*srt.DepTree{}
 	dep.Language = language.Php

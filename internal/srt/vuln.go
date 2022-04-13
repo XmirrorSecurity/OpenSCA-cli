@@ -5,9 +5,7 @@
 
 package srt
 
-/**
- * @description: 组件漏洞
- */
+// Vuln 组件漏洞
 type Vuln struct {
 	Name            string `json:"name,omitempty"`
 	Id              string `json:"id"`
@@ -24,10 +22,7 @@ type Vuln struct {
 	ExploitLevelId  int    `json:"exploit_level_id"`
 }
 
-/**
- * @description: 创建Vuln
- * @return {*srt.Vuln} 空Vuln
- */
+// NewVuln 创建Vuln
 func NewVuln() *Vuln {
 	return &Vuln{}
 }

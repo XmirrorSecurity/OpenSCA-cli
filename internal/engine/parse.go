@@ -11,12 +11,7 @@ import (
 	"path"
 )
 
-/**
- * @description: 解析依赖
- * @param {*srt.DirTree} dirRoot 目录树根节点
- * @param {*srt.DepTree} depRoot 依赖树根节点
- * @return {*srt.DepTree} 依赖树根节点
- */
+// parseDependency 解析依赖
 func (e Engine) parseDependency(dirRoot *srt.DirTree, depRoot *srt.DepTree) *srt.DepTree {
 	type node struct {
 		Dir *srt.DirTree

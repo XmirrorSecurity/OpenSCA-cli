@@ -22,12 +22,7 @@ type PackageLock struct {
 	Deps map[string]Dependencies `json:"dependencies"`
 }
 
-/**
- * @description: 解析package-lock.json
- * @param {*srt.DepTree} depRoot Dependency tree node
- * @param {*srt.FileData} file 文件数据
- * @return {[]*srt.DepTree} parsed dependency list
- */
+// parsePackageLock 解析package-lock.json
 func parsePackageLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	lock := PackageLock{}

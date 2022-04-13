@@ -12,12 +12,7 @@ import (
 	"strings"
 )
 
-/**
- * @description: 解析Gemfile.lock文件
- * @param {*srt.DepTree} root 依赖节点
- * @param {*srt.FileData} file data to parse
- * @return {[]*srt.DepTree} 依赖列表
- */
+// parseGemfileLock 解析Gemfile.lock文件
 func parseGemfileLock(root *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	data := string(file.Data)

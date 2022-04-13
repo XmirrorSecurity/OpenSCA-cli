@@ -12,12 +12,7 @@ import (
 	"opensca/internal/srt"
 )
 
-/**
- * @description: 从云服务获取漏洞
- * @param {[]srt.Dependency} deps 依赖列表
- * @return {[][]*srt.Vuln} 漏洞列表
- * @return {error} 错误信息
- */
+// GetServerVuln 从云服务获取漏洞
 func GetServerVuln(deps []srt.Dependency) (vulns [][]*srt.Vuln, err error) {
 	vulns = [][]*srt.Vuln{}
 	data, err := json.Marshal(deps)

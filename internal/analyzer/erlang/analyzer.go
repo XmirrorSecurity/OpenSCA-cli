@@ -1,4 +1,4 @@
-package rust
+package erlang
 
 import (
 	"opensca/internal/enum/language"
@@ -12,17 +12,17 @@ func New() Analyzer {
 	return Analyzer{}
 }
 
-// GetLanguage Get language of Analyzer
+// GetLanguage get language of analyzer
 func (a Analyzer) GetLanguage() language.Type {
-	return language.Rust
+	return language.Erlang
 }
 
-// CheckFile Check if it is a parsable file
+// CheckFile check parsable file
 func (a Analyzer) CheckFile(filename string) bool {
-	return filter.RustCargoLock(filename)
+	return filter.ErlangRebarLock(filename)
 }
 
-// FilterFile filters the files that the current parser needs to parse
+// FilterFile filters support files
 func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) []*srt.FileData {
 	files := []*srt.FileData{}
 	for _, f := range dirRoot.Files {
@@ -33,10 +33,11 @@ func (a Analyzer) FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) []*srt.
 	return files
 }
 
-// ParseFile Parse the file
+// ParseFile parse dependency from file
 func (a Analyzer) ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree {
-	if filter.RustCargoLock(file.Name) {
-		return parseCargoLock(dirRoot, depRoot, file)
+	deps := []*srt.DepTree{}
+	if filter.ErlangRebarLock(file.Name) {
+		deps = parseRebarLock(depRoot, file)
 	}
-	return []*srt.DepTree{}
+	return deps
 }

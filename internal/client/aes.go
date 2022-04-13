@@ -14,14 +14,7 @@ import (
 // aes-tag大小
 const tagSize = 16
 
-/**
- * @description: aes-gcm加密
- * @param {[]byte} text 原文
- * @param {[]byte} key aes-key 16子节
- * @param {[]byte} nonce aes-nonce 16子节
- * @return {[]byte} 密文
- * @return {[]byte} aes-tag 16子节
- */
+// encrypt aes-gcm加密
 func encrypt(text, key, nonce []byte) (ciphertext, tag []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -38,14 +31,7 @@ func encrypt(text, key, nonce []byte) (ciphertext, tag []byte) {
 	return res[:tagIndex], res[tagIndex:]
 }
 
-/**
- * @description: aes-gcm解密
- * @param {[]byte} ciphertext 密文
- * @param {[]byte} key aes-key 16子节
- * @param {[]byte} nonce aes-nonce 16子节
- * @param {[]byte} tag aes-tag 16子节
- * @return {[]byte} 原文
- */
+// decrypt aes-gcm解密
 func decrypt(ciphertext, key, nonce, tag []byte) (text []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {

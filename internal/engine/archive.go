@@ -24,11 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-/**
- * @description: 检测是否为可检测的文件
- * @param {string} filename 文件名
- * @return {bool} 可解析的文件返回true
- */
+// checkFile 检测是否为可检测的文件
 func (e Engine) checkFile(filename string) bool {
 	for _, analyzer := range e.Analyzers {
 		if analyzer.CheckFile(filename) {
@@ -38,14 +34,7 @@ func (e Engine) checkFile(filename string) bool {
 	return false
 }
 
-/**
- * @description:
- * 解压压缩包
- * 将其中可解析的压缩包作为依赖返回
- * 可解析的文件放到当前依赖(root)的FileData中
- * @param {string} filepath 文件路径
- * @return {*srt.DirTree} root 目录树
- */
+// unArchiveFile 解压文件获取目录树
 func (e Engine) unArchiveFile(filepath string) (root *srt.DirTree) {
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
 	// 目录树根
@@ -135,15 +124,7 @@ func (e Engine) unArchiveFile(filepath string) (root *srt.DirTree) {
 	return root
 }
 
-/**
- * @description:
- * 打开目录
- * 将其中可解析的文件或压缩包作为依赖返回
- * 可解析的文件放到当前依赖(root)的Files中
- * @param {context.Context} ctx 上下文
- * @param {string} dirpath 目录路径
- * @return {*srt.DirTree} 目录树
- */
+// opendir 读取目录获取目录树
 func (e Engine) opendir(dirpath string) (dir *srt.DirTree) {
 	bar.Dir.Add(1)
 	dir = srt.NewDirTree()

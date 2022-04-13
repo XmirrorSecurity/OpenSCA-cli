@@ -11,12 +11,7 @@ import (
 	"strings"
 )
 
-/**
- * @description: parse go.mod
- * @param {*srt.DepTree} dep dependency node
- * @param {*srt.FileData} file go.mod file data
- * @return {[]*srt.DepTree} dependencies list
- */
+// parseGomod parse go.mod
 func parseGomod(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	for _, match := range regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
@@ -31,12 +26,7 @@ func parseGomod(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	return deps
 }
 
-/**
- * @description: parse go.sum
- * @param {*srt.DepTree} dep dependency node
- * @param {*srt.FileData} file go.sum file data
- * @return {[]*srt.DepTree} dependencies list
- */
+// parseGosum parse go.sum
 func parseGosum(dep *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = parseGomod(dep, file)
 	exist := map[string]struct{}{}

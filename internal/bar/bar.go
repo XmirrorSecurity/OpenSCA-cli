@@ -35,10 +35,7 @@ func newBar(text string) *Bar {
 	}
 }
 
-/**
- * @description: add progress
- * @param {int} n
- */
+// Add add progress
 func (b *Bar) Add(n int) {
 	if !args.ProgressBar {
 		return

@@ -26,9 +26,7 @@ type vulnInfo struct {
 // 漏洞信息 map[language]map[name][]vulninfo
 var vulnDB map[string]map[string][]vulnInfo
 
-/**
- * @description: 加载本地漏洞
- */
+// loadVulnDB 加载本地漏洞
 func loadVulnDB() {
 	vulnDB = map[string]map[string][]vulnInfo{}
 	if args.VulnDB != "" {
@@ -57,11 +55,7 @@ func loadVulnDB() {
 	}
 }
 
-/**
- * @description: 使用本地漏洞库获取漏洞
- * @param {[]srt.Dependency} deps 组件依赖信息列表
- * @return {[][]*srt.Vuln} 组件漏洞列表
- */
+// GetLocalVulns 使用本地漏洞库获取漏洞
 func GetLocalVulns(deps []srt.Dependency) (vulns [][]*srt.Vuln) {
 	if vulnDB == nil {
 		loadVulnDB()

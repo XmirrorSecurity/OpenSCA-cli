@@ -12,33 +12,15 @@ import (
 
 type Analyzer interface {
 
-	/**
-	 * @description: Get language of Analyzer
-	 * @return {language.Type} language type
-	 */
+	// GetLanguage get language of analyzer
 	GetLanguage() language.Type
 
-	/**
-	 * @description: Check if it is a parsable file
-	 * @param {string} filename file name
-	 * @return {bool} is a parseable file returns true
-	 */
+	// CheckFile check parsable file
 	CheckFile(filename string) bool
 
-	/**
-	 * @description: filters the files that the current parser needs to parse
-	 * @param {*srt.DirTree} dirRoot directory tree node
-	 * @param {*srt.DepTree} depRoot Dependency tree node
-	 * @return {[]*srt.FileData} List of files to parse
-	 */
+	// FilterFile filters support files
 	FilterFile(dirRoot *srt.DirTree, depRoot *srt.DepTree) []*srt.FileData
 
-	/**
-	 * @description: Parse the file
-	 * @param {*srt.DirTree} dirRoot directory tree node
-	 * @param {*srt.DepTree} depRoot Dependency tree node
-	 * @param {*srt.FileData} file data to parse
-	 * @return {[]*srt.DepTree} parsed dependency list
-	 */
+	// ParseFile parse dependency from file
 	ParseFile(dirRoot *srt.DirTree, depRoot *srt.DepTree, file *srt.FileData) []*srt.DepTree
 }

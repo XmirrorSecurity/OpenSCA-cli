@@ -20,12 +20,7 @@ type ComposerLock struct {
 	} `json:"packages"`
 }
 
-/**
- * @description: parse composer.lock
- * @param {*srt.DepTree} depRoot dependency
- * @param {*srt.FileData} file composer.lock file data
- * @return {[]*srt.DepTree} dependencies list
- */
+// parseComposerLock parse composer.lock
 func parseComposerLock(depRoot *srt.DepTree, file *srt.FileData) (deps []*srt.DepTree) {
 	deps = []*srt.DepTree{}
 	lock := ComposerLock{}
