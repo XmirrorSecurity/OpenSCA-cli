@@ -50,13 +50,13 @@ func NewEngine() Engine {
 }
 
 // ParseFile 解析一个目录或文件
-func (e Engine) ParseFile(filepath string) {
+func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 	// 目录树
 	dirRoot := model.NewDirTree()
 	depRoot := model.NewDepTree(nil)
 	if f, err := os.Stat(filepath); err != nil {
 		logs.Error(err)
-		return
+		return depRoot, err
 	} else {
 		if f.IsDir() {
 			// 目录
@@ -103,7 +103,7 @@ func (e Engine) ParseFile(filepath string) {
 	// 再次排除exclusion组件
 	depRoot.Exclusion()
 	// 获取漏洞
-	vulnError := vuln.SearchVuln(depRoot)
+	err := vuln.SearchVuln(depRoot)
 	// 是否仅保留漏洞组件
 	if args.OnlyVuln {
 		root := model.NewDepTree(nil)
@@ -140,27 +140,5 @@ func (e Engine) ParseFile(filepath string) {
 			dep.IndirectVulnerabilities = len(vulnExist)
 		}
 	}
-	// 整理错误信息
-	errInfo := ""
-	if vulnError != nil {
-		errInfo = vulnError.Error()
-	}
-	// 记录依赖
-	logs.Debug("\n" + depRoot.String())
-	// 输出结果
-	if args.Out != "" {
-		// 保存到json
-		if f, err := os.Create(args.Out); err != nil {
-			logs.Error(err)
-		} else {
-			defer f.Close()
-			if size, err := f.Write(depRoot.Json(errInfo)); err != nil {
-				logs.Error(err)
-			} else {
-				logs.Info(fmt.Sprintf("size: %d, output: %s", size, args.Out))
-			}
-		}
-	} else {
-		fmt.Println(string(depRoot.Json(errInfo)))
-	}
+	return depRoot, err
 }
