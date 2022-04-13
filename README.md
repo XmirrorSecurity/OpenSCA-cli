@@ -30,12 +30,13 @@
 
 1. 从 [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
 
-2. 或者下载源码编译(需要 `go 1.11` 及以上版本)
+2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
 
    ```shell
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
-   go build -o opensca-cli cmd/opensca-cli/main.go
+   go work init cli analyzer util
+   go build -o opensca-cli cli/main.go
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
