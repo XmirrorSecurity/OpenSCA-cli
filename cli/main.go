@@ -8,10 +8,11 @@ import (
 	"analyzer/engine"
 	"flag"
 	"fmt"
-	"os"
+	"path"
 	"util/args"
 	"util/logs"
 	"util/model"
+	"util/report"
 )
 
 func main() {
@@ -34,18 +35,15 @@ func output(depRoot *model.DepTree, err error) {
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果
 	if args.Out != "" {
-		// 保存到json
-		if f, err := os.Create(args.Out); err != nil {
-			logs.Error(err)
-		} else {
-			defer f.Close()
-			if size, err := f.Write(depRoot.Json(errInfo)); err != nil {
-				logs.Error(err)
-			} else {
-				logs.Info(fmt.Sprintf("size: %d, output: %s", size, args.Out))
-			}
+		switch path.Ext(args.Out) {
+		case ".html":
+			report.SaveHtml(depRoot, errInfo, args.Out)
+		case ".json":
+			report.SaveJson(depRoot, errInfo, args.Out)
+		default:
+			report.SaveJson(depRoot, errInfo, args.Out)
 		}
 	} else {
-		fmt.Println(string(depRoot.Json(errInfo)))
+		fmt.Println(string(report.Json(depRoot, errInfo)))
 	}
 }

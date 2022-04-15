@@ -6,13 +6,11 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 	"util/enum/language"
-	"util/logs"
 )
 
 // 用于id生成
@@ -220,39 +218,4 @@ func (root *DepTree) String() string {
 		}
 	}
 	return res
-}
-
-// Json 获取用于展示结果的json数据
-func (dep *DepTree) Json(err string) []byte {
-	// 补全依赖json信息
-	q := NewQueue()
-	q.Push(dep)
-	for !q.Empty() {
-		node := q.Pop().(*DepTree)
-		for _, child := range node.Children {
-			q.Push(child)
-		}
-		if node.Language != language.None {
-			node.LanguageStr = node.Language.String()
-		}
-		node.VersionStr = node.Version.Org
-		node.Path = node.Path[strings.Index(node.Path, "/")+1:]
-		// 删除数据，不生成json
-		node.Language = language.None
-		node.Version = nil
-	}
-	// 生成json
-	// json序列化
-	if data, err := json.Marshal(struct {
-		*DepTree
-		Error string `json:"error,omitempty"`
-	}{
-		DepTree: dep,
-		Error:   err,
-	}); err != nil {
-		logs.Error(err)
-	} else {
-		return data
-	}
-	return []byte{}
 }

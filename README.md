@@ -80,8 +80,8 @@ opensca-cli -db db.json -path ${project_path}
 | `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                                                                 | `-token xxxxxxx`                  |
 | `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下                         | `-cache`                          |
 | `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                                                                    | `-vuln`                           |
-| `out`      | `string` | 将检测结果保存到指定文件，检测结果为 json 格式                                                                                                  | `-out output.json`                |
-| `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 json 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
+| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式                                                                          | `-out output.json`                |
+| `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
 | `progress` | `bool`   | 显示进度条                                                                                                                                      | `-progress`                       |
 
 ---
