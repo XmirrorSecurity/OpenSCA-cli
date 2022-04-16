@@ -8,8 +8,8 @@ import (
 // parseRebarLock parse rebar.lock file
 func parseRebarLock(dep *model.DepTree, file *model.FileData) []*model.DepTree {
 	deps := []*model.DepTree{}
-	// pkg\s*,\s*<<"(\S+)">>\s*,\s*<<"(\S+)">>
-	reg := regexp.MustCompile(`pkg\s*,\s*<<"(\S+)">>\s*,\s*<<"(\S+)">>`)
+	// <<"([\w\d]+)">>\S*?pkg,<<"[\w\d]+">>,<<"([.\d]+)">>
+	reg := regexp.MustCompile(`<<"([\w\d]+)">>\S*?pkg,<<"[\w\d]+">>,<<"([.\d]+)">>`)
 	for _, match := range reg.FindAllStringSubmatch(string(file.Data), -1) {
 		sub := model.NewDepTree(dep)
 		sub.Name = match[1]
