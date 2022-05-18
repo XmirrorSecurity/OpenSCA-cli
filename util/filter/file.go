@@ -79,3 +79,8 @@ var (
 var (
 	ErlangRebarLock = filterFunc(strings.HasSuffix, "rebar.lock")
 )
+
+// groovy
+var (
+	GroovyFile = filterFunc(strings.HasSuffix, ".groovy")
+)

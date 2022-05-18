@@ -23,8 +23,7 @@ import (
 )
 
 // MvnDepTree 调用mvn解析项目获取依赖树
-func MvnDepTree(path string) (root *model.DepTree) {
-	root = model.NewDepTree(nil)
+func MvnDepTree(path string, root *model.DepTree) {
 	pwd, err := os.Getwd()
 	if err != nil {
 		logs.Error(err)
