@@ -11,19 +11,19 @@ import (
 	"strings"
 )
 
-// FileData 文件数据
-type FileData struct {
+// FileInfo 文件数据
+type FileInfo struct {
 	Name string `json:"name"`
 	Data []byte `json:"-"`
 }
 
 // NewFileData 创建FileData
-func NewFileData(name string, data []byte) *FileData {
+func NewFileData(name string, data []byte) *FileInfo {
 	// 统一替换换行符为\n
 	data = bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n"))
 	data = bytes.ReplaceAll(data, []byte("\n\r"), []byte("\n"))
 	data = bytes.ReplaceAll(data, []byte("\r"), []byte("\n"))
-	return &FileData{
+	return &FileInfo{
 		Name: strings.ReplaceAll(name, `\`, `/`),
 		Data: data,
 	}
@@ -36,18 +36,18 @@ type DirTree struct {
 	// 目录列表
 	DirList []string `json:"-"`
 	// 当前目录下文件
-	Files []*FileData `json:"files"`
+	Files []*FileInfo `json:"files"`
 	// 路径
 	Path string `json:"path"`
 }
 
 // NewDirTree 创建空目录树
 func NewDirTree() *DirTree {
-	return &DirTree{SubDir: map[string]*DirTree{}, DirList: []string{}, Files: make([]*FileData, 0)}
+	return &DirTree{SubDir: map[string]*DirTree{}, DirList: []string{}, Files: make([]*FileInfo, 0)}
 }
 
 // AddFile 向目录树添加一个文件
-func (root *DirTree) AddFile(file *FileData) {
+func (root *DirTree) AddFile(file *FileInfo) {
 	now := root.GetDir(file.Name)
 	now.Files = append(now.Files, file)
 }
@@ -60,7 +60,7 @@ func (root *DirTree) GetDir(filepath string) *DirTree {
 	now := root
 	for _, dirName := range paths[:len(paths)-1] {
 		if _, ok := now.SubDir[dirName]; !ok {
-			now.SubDir[dirName] = &DirTree{SubDir: map[string]*DirTree{}, DirList: []string{}, Files: make([]*FileData, 0)}
+			now.SubDir[dirName] = &DirTree{SubDir: map[string]*DirTree{}, DirList: []string{}, Files: make([]*FileInfo, 0)}
 			now.DirList = append(now.DirList, dirName)
 		}
 		now = now.SubDir[dirName]

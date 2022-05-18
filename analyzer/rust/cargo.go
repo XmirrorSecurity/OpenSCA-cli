@@ -19,7 +19,8 @@ type cargoPkg struct {
 	} `toml:"-"`
 }
 
-func parseCargoLock(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) []*model.DepTree {
+// parseCargoLock 解析cargo.lock文件
+func parseCargoLock(root *model.DepTree, file *model.FileInfo) {
 	cargo := struct {
 		Pkgs []*cargoPkg `toml:"package"`
 	}{}
@@ -66,8 +67,8 @@ func parseCargoLock(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.
 		return directDeps[i].Name < directDeps[j].Name
 	})
 	for _, d := range directDeps {
-		d.Parent = depRoot
-		depRoot.Children = append(depRoot.Children, d)
+		d.Parent = root
+		root.Children = append(root.Children, d)
 	}
 	// 从顶层开始构建
 	q := make([]*model.DepTree, len(directDeps))
@@ -89,5 +90,5 @@ func parseCargoLock(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.
 		}
 		q = append(q[1:], n.Children...)
 	}
-	return directDeps
+	return
 }

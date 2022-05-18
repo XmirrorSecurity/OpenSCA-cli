@@ -13,8 +13,7 @@ import (
 )
 
 // parseYarnLock parse yarn.lock file
-func parseYarnLock(root *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parseYarnLock(root *model.DepTree, file *model.FileInfo) {
 	// map[name]*DepTree
 	depMap := map[string]*model.DepTree{}
 	// map[name][indirect dependencies name list]
@@ -100,7 +99,6 @@ func parseYarnLock(root *model.DepTree, file *model.FileData) (deps []*model.Dep
 		dep.Parent = root
 		root.Children = append(root.Children, dep)
 		q.Push(dep)
-		deps = append(deps, dep)
 	}
 	// build dependency tree
 	// indirecrt dependencies

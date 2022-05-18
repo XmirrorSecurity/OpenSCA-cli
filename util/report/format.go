@@ -15,7 +15,9 @@ func format(dep *model.DepTree) {
 		if node.Language != language.None {
 			node.LanguageStr = node.Language.String()
 		}
-		node.VersionStr = node.Version.Org
+		if node.Version != nil {
+			node.VersionStr = node.Version.Org
+		}
 		node.Path = node.Path[strings.Index(node.Path, "/")+1:]
 		node.Language = language.None
 		node.Version = nil

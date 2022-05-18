@@ -6,7 +6,6 @@
 package golang
 
 import (
-	"sort"
 	"util/enum/language"
 	"util/filter"
 	"util/model"
@@ -30,26 +29,18 @@ func (Analyzer) CheckFile(filename string) bool {
 	return filter.GoMod(filename) || filter.GoSum(filename)
 }
 
-// FilterFile filters the files that the current parser needs to parse
-func (a Analyzer) FilterFile(dirRoot *model.DirTree, depRoot *model.DepTree) []*model.FileData {
-	files := []*model.FileData{}
-	for _, file := range dirRoot.Files {
-		if a.CheckFile(file.Name) {
-			files = append(files, file)
+// ParseFiles Parse the file
+func (Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
+	deps := []*model.DepTree{}
+	for _, f := range files {
+		dep := model.NewDepTree(nil)
+		dep.Path = f.Name
+		if filter.GoMod(f.Name) {
+			parseGomod(dep, f)
+		} else if filter.GoSum(f.Name) {
+			parseGosum(dep, f)
 		}
+		deps = append(deps, dep)
 	}
-	sort.Slice(files, func(i, j int) bool {
-		return filter.GoSum(files[i].Name) && !filter.GoSum(files[j].Name)
-	})
-	return files
-}
-
-// ParseFile Parse the file
-func (Analyzer) ParseFile(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) []*model.DepTree {
-	if filter.GoMod(file.Name) {
-		return parseGomod(depRoot, file)
-	} else if filter.GoSum(file.Name) {
-		return parseGosum(depRoot, file)
-	}
-	return []*model.DepTree{}
+	return deps
 }

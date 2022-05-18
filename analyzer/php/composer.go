@@ -37,20 +37,19 @@ type ComposerRepo struct {
 }
 
 // parseComposer parse composer.json
-func parseComposer(depRoot *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parseComposer(root *model.DepTree, file *model.FileInfo, simulation bool) (direct []string) {
+	direct = []string{}
 	composer := Composer{}
 	if err := json.Unmarshal(file.Data, &composer); err != nil {
 		logs.Warn(err)
 	}
 	// set name
 	if composer.Name != "" {
-		depRoot.Name = composer.Name
-		deps = append(deps, depRoot)
+		root.Name = composer.Name
 	}
 	// add license
 	if composer.License != "" {
-		depRoot.AddLicense(composer.License)
+		root.AddLicense(composer.License)
 	}
 	// parse direct dependency
 	requires := map[string]string{}
@@ -60,27 +59,26 @@ func parseComposer(depRoot *model.DepTree, file *model.FileData) (deps []*model.
 	for name, version := range composer.RequireDev {
 		requires[name] = version
 	}
-	names := []string{}
 	for name := range requires {
-		names = append(names, name)
+		direct = append(direct, name)
 	}
-	sort.Strings(names)
-	for _, name := range names {
+	sort.Strings(direct)
+	if !simulation {
+		return
+	}
+	for _, name := range direct {
 		if strings.EqualFold(name, "php") {
 			continue
 		}
-		dep := model.NewDepTree(depRoot)
+		dep := model.NewDepTree(root)
 		dep.Name = name
 		dep.Version = model.NewVersion(requires[name])
-		if composer.Name == "" {
-			deps = append(deps, dep)
-		}
 	}
 	// composer simulation
 	exist := map[string]struct{}{}
-	exist[depRoot.Name] = struct{}{}
+	exist[root.Name] = struct{}{}
 	q := model.NewQueue()
-	for _, child := range depRoot.Children {
+	for _, child := range root.Children {
 		exist[child.Name] = struct{}{}
 		q.Push(child)
 	}

@@ -6,7 +6,7 @@
 package php
 
 import (
-	"sort"
+	"path"
 	"util/enum/language"
 	"util/filter"
 	"util/model"
@@ -29,28 +29,33 @@ func (Analyzer) CheckFile(filename string) bool {
 	return filter.PhpComposerLock(filename) || filter.PhpComposer(filename)
 }
 
-// FilterFile filters the files that the current parser needs to parse
-func (a Analyzer) FilterFile(dirRoot *model.DirTree, depRoot *model.DepTree) (files []*model.FileData) {
-	files = []*model.FileData{}
-	// 筛选需要解析的文件
-	for _, f := range dirRoot.Files {
-		if a.CheckFile(f.Name) {
-			files = append(files, f)
+// ParseFiles Parse the file
+func (Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
+	deps = []*model.DepTree{}
+	cpsMap := map[string]*model.FileInfo{}
+	lockMap := map[string]*model.FileInfo{}
+	for _, f := range files {
+		if filter.PhpComposer(f.Name) {
+			cpsMap[path.Dir(f.Name)] = f
+		} else if filter.PhpComposerLock(f.Name) {
+			lockMap[path.Dir(f.Name)] = f
 		}
 	}
-	sort.Slice(files, func(i, j int) bool {
-		return filter.PhpComposerLock(files[i].Name) && !filter.PhpComposerLock(files[j].Name)
-	})
-	return files
-}
-
-// ParseFile Parse the file
-func (Analyzer) ParseFile(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
-	if filter.PhpComposerLock(file.Name) {
-		return parseComposerLock(depRoot, file)
-	} else if filter.PhpComposer(file.Name) {
-		return parseComposer(depRoot, file)
+	for _, f := range files {
+		dep := model.NewDepTree(nil)
+		dep.Path = f.Name
+		if filter.PhpComposer(f.Name) {
+			if _, ok := lockMap[path.Dir(f.Name)]; !ok {
+				parseComposer(dep, f, true)
+			}
+		} else if filter.PhpComposerLock(f.Name) {
+			if cps, ok := cpsMap[path.Dir(f.Name)]; !ok {
+				parseComposerLock(dep, f, nil)
+			} else {
+				parseComposerLock(dep, f, parseComposer(dep, cps, false))
+			}
+		}
+		deps = append(deps, dep)
 	}
 	return deps
 }

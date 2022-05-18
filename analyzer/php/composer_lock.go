@@ -7,6 +7,7 @@ package php
 
 import (
 	"encoding/json"
+	"sort"
 	"util/logs"
 	"util/model"
 )
@@ -21,40 +22,69 @@ type ComposerLock struct {
 }
 
 // parseComposerLock parse composer.lock
-func parseComposerLock(depRoot *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parseComposerLock(root *model.DepTree, file *model.FileInfo, direct []string) {
 	lock := ComposerLock{}
 	if err := json.Unmarshal(file.Data, &lock); err != nil {
 		logs.Error(err)
 		return
 	}
-	// dependencies info
-	// map[name]DepTree
+	// 记录尚无Parent的依赖
 	depMap := map[string]*model.DepTree{}
+	// 用来计算未被其他组件依赖的组件
+	directMap := map[string]*model.DepTree{}
 	for _, cps := range lock.Pkgs {
 		dep := model.NewDepTree(nil)
 		dep.Name = cps.Name
 		dep.Version = model.NewVersion(cps.Version)
+		dep.Expand = cps.Require
 		depMap[cps.Name] = dep
+		directMap[cps.Name] = dep
 	}
-	// build dependency tree
-	for _, cps := range lock.Pkgs {
-		for n := range cps.Require {
-			if sub, ok := depMap[n]; ok && sub.Parent == nil {
-				dep := depMap[cps.Name]
-				sub.Parent = dep
-				dep.Children = append(dep.Children, sub)
+	for _, dep := range depMap {
+		if req, ok := dep.Expand.(map[string]string); ok {
+			for n := range req {
+				delete(directMap, n)
 			}
 		}
 	}
-	// move direct dependices under the root
-	for _, cps := range lock.Pkgs {
-		dep := depMap[cps.Name]
-		if dep.Parent == nil {
-			dep.Parent = depRoot
-			depRoot.Children = append(depRoot.Children, dep)
-			deps = append(deps, dep)
+	// 将传入的直接依赖作为根节点的子依赖
+	for _, name := range direct {
+		if dep, ok := depMap[name]; ok {
+			dep.Parent = root
+			root.Children = append(root.Children, dep)
 		}
+		// 避免重复添加
+		delete(depMap, name)
+		delete(directMap, name)
+	}
+	// 将未被其他组件依赖的组件作为根节点的子依赖(直接依赖)
+	for _, dep := range directMap {
+		root.Children = append(root.Children, dep)
+	}
+	sort.Slice(root.Children, func(i, j int) bool {
+		return root.Children[i].Name < root.Children[j].Name
+	})
+	// 按层级构建依赖树
+	q := []*model.DepTree{root}
+	for len(q) > 0 {
+		n := q[0]
+		// 添加子依赖
+		if req, ok := n.Expand.(map[string]string); ok {
+			for name := range req {
+				if dep, ok := depMap[name]; ok {
+					dep.Parent = n
+					n.Children = append(n.Children, dep)
+					// 避免重复添加
+					delete(depMap, name)
+				}
+			}
+			if len(n.Children) > 0 {
+				sort.Slice(n.Children, func(i, j int) bool {
+					return n.Children[i].Name < n.Children[j].Name
+				})
+			}
+		}
+		q = append(q[1:], n.Children...)
 	}
 	return
 }

@@ -12,10 +12,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"strings"
-	"util/bar"
 	"util/cache"
 	"util/enum/language"
 	"util/logs"
@@ -159,25 +157,4 @@ func getpom(groupId, artifactId, version string) (p *Pom) {
 		}
 	}
 	return nil
-}
-
-// BuildTree is build maven tree after all pom file parsed
-func (a Analyzer) BuildTree(root *model.DepTree) {
-	for _, p := range a.mvn.MvnSimulation() {
-		buildTree(p, root)
-	}
-}
-
-func buildTree(p *Pom, root *model.DepTree) {
-	dep := model.NewDepTree(root)
-	dep.Vendor = p.GroupId
-	dep.Name = p.ArtifactId
-	dep.Version = model.NewVersion(p.Version)
-	dep.Language = language.Java
-	dep.Path = path.Join(root.Path, path.Join(p.Path, dep.Dependency.String()))
-	bar.Dependency.Add(1)
-	for _, dp := range p.DependenciesPom {
-		bar.Maven.Add(1)
-		buildTree(dp, dep)
-	}
 }

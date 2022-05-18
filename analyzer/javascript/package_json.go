@@ -36,20 +36,18 @@ type NpmJson struct {
 }
 
 // parsePackage 解析package.json
-func parsePackage(depRoot *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parsePackage(root *model.DepTree, file *model.FileInfo, simulation bool) (direct []string) {
+	direct = []string{}
 	pkg := PkgJson{}
 	if err := json.Unmarshal(file.Data, &pkg); err != nil {
 		logs.Error(err)
 		return
 	}
-	pkgDep := depRoot
-	pkgDep.Version = model.NewVersion(pkg.Version)
-	pkgDep.AddLicense(pkg.License)
 	if pkg.Name != "" {
-		pkgDep.Name = pkg.Name
-		deps = append(deps, pkgDep)
+		root.Name = pkg.Name
 	}
+	root.Version = model.NewVersion(pkg.Version)
+	root.AddLicense(pkg.License)
 	// 依赖列表map[name]version
 	depMap := map[string]string{}
 	for name, version := range pkg.DevDeps {
@@ -59,26 +57,25 @@ func parsePackage(depRoot *model.DepTree, file *model.FileData) (deps []*model.D
 		depMap[name] = version
 	}
 	// 组件名排序后添加到deps
-	names := []string{}
 	for name := range depMap {
-		names = append(names, name)
+		direct = append(direct, name)
 	}
-	sort.Strings(names)
-	for _, name := range names {
+	sort.Strings(direct)
+	if !simulation {
+		return
+	}
+	for _, name := range direct {
 		version := depMap[name]
-		dep := model.NewDepTree(pkgDep)
+		dep := model.NewDepTree(root)
 		dep.Name = name
 		dep.Version = model.NewVersion(version)
-		if pkg.Name == "" {
-			deps = append(deps, dep)
-		}
 	}
 	// 记录出现过的组件
 	exist := map[string]struct{}{}
 	// 搜索子依赖
 	q := model.NewQueue()
-	exist[pkgDep.Name] = struct{}{}
-	for _, child := range pkgDep.Children {
+	exist[root.Name] = struct{}{}
+	for _, child := range root.Children {
 		exist[child.Name] = struct{}{}
 		q.Push(child)
 	}

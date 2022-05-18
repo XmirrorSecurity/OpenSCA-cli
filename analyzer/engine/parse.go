@@ -7,71 +7,88 @@ package engine
 
 import (
 	"path"
-	"util/bar"
+	"util/filter"
 	"util/model"
 )
 
 // parseDependency 解析依赖
 func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) *model.DepTree {
-	type node struct {
-		Dir *model.DirTree
-		Dep *model.DepTree
-	}
-	newNode := func(dirRoot *model.DirTree, depRoot *model.DepTree) *node {
-		return &node{
-			Dir: dirRoot,
-			Dep: depRoot,
-		}
-	}
 	if depRoot == nil {
 		depRoot = model.NewDepTree(nil)
 	}
-	queue := model.NewQueue()
 	for _, analyzer := range e.Analyzers {
-		// 将根目录添加到队列
-		queue.Push(newNode(dirRoot, depRoot))
-		for !queue.Empty() {
-			node := queue.Pop().(*node)
-			// 解析文件
-			for _, file := range analyzer.FilterFile(node.Dir, node.Dep) {
-				q := model.NewQueue()
-				// parse dependencies
-				for _, dep := range analyzer.ParseFile(node.Dir, node.Dep, file) {
-					bar.Dependency.Add(1)
-					dep.Path = path.Join(node.Dir.Path, path.Base(file.Name), dep.Dependency.String())
-					dep.Language = analyzer.GetLanguage()
-					q.Push(dep)
+		// 遍历目录树获取要检测的文件
+		files := []*model.FileInfo{}
+		q := []*model.DirTree{dirRoot}
+		for len(q) > 0 {
+			n := q[0]
+			q = q[1:]
+			for _, dir := range n.DirList {
+				q = append(q, n.SubDir[dir])
+			}
+			for _, f := range n.Files {
+				if analyzer.CheckFile(f.Name) {
+					files = append(files, f)
 				}
-				// add indirect dependencies infomation(path, language)
-				for !q.Empty() {
-					now := q.Pop().(*model.DepTree)
-					for _, child := range now.Children {
-						bar.Dependency.Add(1)
-						child.Path = path.Join(now.Path, child.Dependency.String())
-						child.Language = analyzer.GetLanguage()
-						q.Push(child)
+			}
+		}
+		// 从文件中解析依赖树
+		for _, d := range analyzer.ParseFiles(files) {
+			depRoot.Children = append(depRoot.Children, d)
+			d.Parent = depRoot
+			if d.Name != "" && d.Version.Ok() {
+				d.Path = path.Join(d.Path, d.Dependency.String())
+			}
+			q := []*model.DepTree{d}
+			s := map[int64]struct{}{}
+			for len(q) > 0 {
+				n := q[0]
+				n.Language = analyzer.GetLanguage()
+				if _, ok := s[n.ID]; !ok {
+					s[n.ID] = struct{}{}
+					for _, c := range n.Children {
+						if c.Path == "" {
+							// 路径为空的组件在父组件路径后拼接本身依赖信息
+							c.Path = path.Join(n.Path, c.Dependency.String())
+						} else {
+							// 路径不为空的组件在组件路径后拼接本身依赖信息
+							c.Path = path.Join(c.Path, c.Dependency.String())
+						}
 					}
+					q = append(q[1:], n.Children...)
+				} else {
+					q = q[1:]
 				}
 			}
-			// 将子目录添加到队列
-			for _, dir := range node.Dir.DirList {
-				queue.Push(newNode(node.Dir.SubDir[dir], model.NewDepTree(node.Dep)))
+		}
+	}
+	// 删除依赖树空节点
+	q := []*model.DepTree{depRoot}
+	for len(q) > 0 {
+		n := q[0]
+		q = append(q[1:], n.Children...)
+		if n.Name == "" || !n.Version.Ok() {
+			n.Move(n.Parent)
+		}
+	}
+	// 校对根节点
+	if depRoot.Name == "" {
+		var d *model.DepTree
+		for _, c := range depRoot.Children {
+			if !filter.AllPkg(c.Path) {
+				if d != nil {
+					d = nil
+					break
+				} else {
+					d = c
+				}
 			}
 		}
-	}
-	e.javaAnalyzer.BuildTree(depRoot)
-	// 删除依赖树空节点
-	queue.Push(depRoot)
-	for !queue.Empty() {
-		node := queue.Pop().(*model.DepTree)
-		for _, child := range node.Children {
-			queue.Push(child)
-		}
-		if len(node.Name) == 0 || !node.Version.Ok() {
-			node.Move(node.Parent)
+		if d != nil {
+			depRoot.Dependency = d.Dependency
+			depRoot.Path = d.Path
+			d.Move(depRoot)
 		}
 	}
-	// 排除exlusion组件
-	depRoot.Exclusion()
 	return depRoot
 }
