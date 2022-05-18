@@ -19,6 +19,7 @@ import (
 	"analyzer/analyzer"
 	"analyzer/erlang"
 	"analyzer/golang"
+	"analyzer/groovy"
 	"analyzer/java"
 	"analyzer/javascript"
 	"analyzer/php"
@@ -58,7 +59,9 @@ func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 			// 目录
 			dirRoot = e.opendir(filepath)
 			// 尝试解析mvn依赖
-			depRoot = java.MvnDepTree(filepath)
+			java.MvnDepTree(filepath, depRoot)
+			// 尝试解析gradle依赖
+			groovy.GradleDepTree(filepath, depRoot)
 		} else if filter.AllPkg(filepath) {
 			// 压缩包
 			dirRoot = e.unArchiveFile(filepath)
