@@ -18,9 +18,6 @@ type Analyzer interface {
 	// CheckFile check parsable file
 	CheckFile(filename string) bool
 
-	// FilterFile filters support files
-	FilterFile(dirRoot *model.DirTree, depRoot *model.DepTree) []*model.FileData
-
-	// ParseFile parse dependency from file
-	ParseFile(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) []*model.DepTree
+	// ParseFiles parse dependency from file
+	ParseFiles(files []*model.FileInfo) []*model.DepTree
 }

@@ -6,6 +6,16 @@
 package engine
 
 import (
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
+	"util/args"
+	"util/filter"
+	"util/logs"
+	"util/model"
+	"util/vuln"
+
 	"analyzer/analyzer"
 	"analyzer/erlang"
 	"analyzer/golang"
@@ -14,36 +24,22 @@ import (
 	"analyzer/php"
 	"analyzer/ruby"
 	"analyzer/rust"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
-	"util/args"
-	"util/enum/language"
-	"util/filter"
-	"util/logs"
-	"util/model"
-	"util/vuln"
 )
 
 type Engine struct {
-	javaAnalyzer java.Analyzer
-	Analyzers    []analyzer.Analyzer
+	Analyzers []analyzer.Analyzer
 }
 
 // NewEngine 创建新引擎
 func NewEngine() Engine {
-	j := java.New()
 	return Engine{
-		javaAnalyzer: j,
 		Analyzers: []analyzer.Analyzer{
-			j,
+			java.New(),
 			javascript.New(),
 			php.New(),
 			ruby.New(),
-			golang.New(),
 			rust.New(),
+			golang.New(),
 			erlang.New(),
 		},
 	}
@@ -79,29 +75,6 @@ func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 	dirRoot.BuildDirPath()
 	// 解析目录树获取依赖树
 	e.parseDependency(dirRoot, depRoot)
-	// 同组件去重
-	q := model.NewQueue()
-	q.Push(depRoot)
-	// 用于记录相同组件信息
-	depMap := map[language.Type]map[string]*model.DepTree{}
-	for !q.Empty() {
-		node := q.Pop().(*model.DepTree)
-		for _, child := range node.Children {
-			q.Push(child)
-		}
-		// 保留第一个同语言同厂商同名组件的组件
-		if _, ok := depMap[node.Language]; !ok {
-			depMap[node.Language] = map[string]*model.DepTree{}
-		}
-		key := strings.ToLower(fmt.Sprintf("%s:%s", node.Vendor, node.Name))
-		if dep, ok := depMap[node.Language][key]; ok {
-			node.Move(dep)
-		} else {
-			depMap[node.Language][key] = node
-		}
-	}
-	// 再次排除exclusion组件
-	depRoot.Exclusion()
 	// 获取漏洞
 	err := vuln.SearchVuln(depRoot)
 	// 是否仅保留漏洞组件

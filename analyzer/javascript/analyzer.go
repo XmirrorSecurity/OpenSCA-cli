@@ -6,6 +6,7 @@
 package javascript
 
 import (
+	"path"
 	"util/enum/language"
 	"util/filter"
 	"util/model"
@@ -30,42 +31,37 @@ func (a Analyzer) CheckFile(filename string) bool {
 		filter.JavaScriptYarnLock(filename)
 }
 
-// FilterFile filters the files that the current parser needs to parse
-func (a Analyzer) FilterFile(dirRoot *model.DirTree, depRoot *model.DepTree) (files []*model.FileData) {
-	files = []*model.FileData{}
-	// 标记是否存在lock文件
-	lock := false
-	// 筛选需要解析的文件
-	for _, f := range dirRoot.Files {
-		if a.CheckFile(f.Name) {
-			files = append(files, f)
-			if filter.JavaScriptPackageLock(f.Name) || filter.JavaScriptYarnLock(f.Name) {
-				lock = true
-			}
-		}
-	}
-	// 存在 yarn.lock 或 package-lock.json 文件则不解析package.json文件
-	if lock {
-		for i := 0; i < len(files); {
-			if filter.JavaScriptPackage(files[i].Name) {
-				files = append(files[:i], files[i+1:]...)
-			} else {
-				i++
-			}
-		}
-	}
-	return files
-}
-
 // ParseFile Parse the file
-func (a Analyzer) ParseFile(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) []*model.DepTree {
+func (a Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
 	deps := []*model.DepTree{}
-	if filter.JavaScriptPackageLock(file.Name) {
-		return parsePackageLock(depRoot, file)
-	} else if filter.JavaScriptPackage(file.Name) {
-		return parsePackage(depRoot, file)
-	} else if filter.JavaScriptYarnLock(file.Name) {
-		return parseYarnLock(depRoot, file)
+	pkgMap := map[string]*model.FileInfo{}
+	lockMap := map[string]*model.FileInfo{}
+	for _, f := range files {
+		if filter.JavaScriptPackage(f.Name) {
+			pkgMap[path.Dir(f.Name)] = f
+		} else if filter.JavaScriptPackageLock(f.Name) {
+			lockMap[path.Dir(f.Name)] = f
+		}
+	}
+	for _, f := range files {
+		dep := model.NewDepTree(nil)
+		dep.Path = f.Name
+		if filter.JavaScriptPackage(f.Name) {
+			// 检测同目录下是否有package-lock.json文件
+			if _, ok := lockMap[path.Dir(f.Name)]; !ok {
+				parsePackage(dep, f, true)
+			}
+		} else if filter.JavaScriptPackageLock(f.Name) {
+			// 检测同目录下是否有package.json文件
+			if pkg, ok := pkgMap[path.Dir(f.Name)]; !ok {
+				parsePackageLock(dep, f, nil)
+			} else {
+				parsePackageLock(dep, f, parsePackage(dep, pkg, false))
+			}
+		} else if filter.JavaScriptYarnLock(f.Name) {
+			parseYarnLock(dep, f)
+		}
+		deps = append(deps, dep)
 	}
 	return deps
 }

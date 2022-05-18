@@ -22,22 +22,16 @@ func (a Analyzer) CheckFile(filename string) bool {
 	return filter.ErlangRebarLock(filename)
 }
 
-// FilterFile filters support files
-func (a Analyzer) FilterFile(dirRoot *model.DirTree, depRoot *model.DepTree) []*model.FileData {
-	files := []*model.FileData{}
-	for _, f := range dirRoot.Files {
-		if a.CheckFile(f.Name) {
-			files = append(files, f)
-		}
-	}
-	return files
-}
-
-// ParseFile parse dependency from file
-func (a Analyzer) ParseFile(dirRoot *model.DirTree, depRoot *model.DepTree, file *model.FileData) []*model.DepTree {
+// ParseFiles parse dependency from file
+func (a Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
 	deps := []*model.DepTree{}
-	if filter.ErlangRebarLock(file.Name) {
-		deps = parseRebarLock(depRoot, file)
+	for _, f := range files {
+		dep := model.NewDepTree(nil)
+		dep.Path = f.Name
+		if filter.ErlangRebarLock(f.Name) {
+			parseRebarLock(dep, f)
+		}
+		deps = append(deps, dep)
 	}
 	return deps
 }

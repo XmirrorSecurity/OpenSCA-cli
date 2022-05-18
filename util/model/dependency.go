@@ -82,11 +82,10 @@ type DepTree struct {
 	Parent *DepTree `json:"-"`
 	// 子组件
 	Children []*DepTree `json:"children,omitempty"`
-	// 要排除的组件信息
-	Exclusions map[string]struct{} `json:"-"`
 	// 许可证列表
 	licenseMap map[string]struct{} `json:"-"`
 	Licenses   []string            `json:"licenses,omitempty"`
+	Expand     interface{}         `json:"-"`
 }
 
 // NewDepTree 创建DepTree
@@ -100,7 +99,6 @@ func NewDepTree(parent *DepTree) *DepTree {
 		Children:        []*DepTree{},
 		licenseMap:      map[string]struct{}{},
 		Licenses:        []string{},
-		Exclusions:      map[string]struct{}{},
 	}
 	if parent != nil {
 		parent.Children = append(parent.Children, dep)
@@ -137,52 +135,7 @@ func (dep *DepTree) Move(other *DepTree) {
 		child.Parent = other
 		other.Children = append(other.Children, child)
 	}
-	// 合并Exclusion组件信息
-	for exclusion := range dep.Exclusions {
-		other.Exclusions[exclusion] = struct{}{}
-	}
 	dep.Children = nil
-}
-
-// Exclusion 排除Exclusion组件
-func (root *DepTree) Exclusion() {
-	type node struct {
-		Dep *DepTree
-		Exc map[language.Type]map[string]struct{}
-	}
-	new := func(dep *DepTree, exc map[language.Type]map[string]struct{}) node {
-		return node{
-			Dep: dep,
-			Exc: exc,
-		}
-	}
-	q := NewQueue()
-	q.Push(new(root, map[language.Type]map[string]struct{}{}))
-	for !q.Empty() {
-		node := q.Pop().(node)
-		dep := node.Dep
-		exc := node.Exc
-		// 合并当前层的exclusion
-		if _, ok := exc[dep.Language]; !ok {
-			exc[dep.Language] = map[string]struct{}{}
-		}
-		for key := range dep.Exclusions {
-			exc[dep.Language][key] = struct{}{}
-		}
-		now_exc := exc[dep.Language]
-		for i := 0; i < len(dep.Children); {
-			child := dep.Children[i]
-			// 排除在exclusion中的组件
-			key := strings.ToLower(fmt.Sprintf("%s+%s", child.Vendor, child.Name))
-			if _, ok := now_exc[key]; ok && child.Language == dep.Language {
-				dep.Children = append(dep.Children[:i], dep.Children[i+1:]...)
-				child = nil
-			} else {
-				q.Push(new(child, exc))
-				i++
-			}
-		}
-	}
 }
 
 // String 依赖树结构

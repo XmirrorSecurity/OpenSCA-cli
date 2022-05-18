@@ -12,8 +12,7 @@ import (
 )
 
 // parseGomod parse go.mod
-func parseGomod(dep *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parseGomod(dep *model.DepTree, file *model.FileInfo) {
 	for _, match := range regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
 		if len(match) != 3 {
 			continue
@@ -21,16 +20,14 @@ func parseGomod(dep *model.DepTree, file *model.FileData) (deps []*model.DepTree
 		sub := model.NewDepTree(dep)
 		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = model.NewVersion(match[2])
-		deps = append(deps, sub)
 	}
-	return deps
 }
 
 // parseGosum parse go.sum
-func parseGosum(dep *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = parseGomod(dep, file)
+func parseGosum(dep *model.DepTree, file *model.FileInfo) {
+	parseGomod(dep, file)
 	exist := map[string]struct{}{}
-	for _, dep := range deps {
+	for _, dep := range dep.Children {
 		exist[dep.Name] = struct{}{}
 	}
 	for _, match := range regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)/go.mod[\s\n]`).FindAllStringSubmatch(string(file.Data), -1) {
@@ -44,7 +41,5 @@ func parseGosum(dep *model.DepTree, file *model.FileData) (deps []*model.DepTree
 		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = model.NewVersion(match[2])
 		exist[sub.Name] = struct{}{}
-		deps = append(deps, sub)
 	}
-	return deps
 }

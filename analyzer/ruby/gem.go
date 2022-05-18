@@ -13,8 +13,7 @@ import (
 )
 
 // parseGemfileLock 解析Gemfile.lock文件
-func parseGemfileLock(root *model.DepTree, file *model.FileData) (deps []*model.DepTree) {
-	deps = []*model.DepTree{}
+func parseGemfileLock(root *model.DepTree, file *model.FileInfo) {
 	data := string(file.Data)
 	subreg := regexp.MustCompile(`[ ]{6}(\S+)`)
 	reg := regexp.MustCompile(`[ ]{4}(\S+) \(([\d.]+)\)`)
@@ -69,7 +68,6 @@ func parseGemfileLock(root *model.DepTree, file *model.FileData) (deps []*model.
 		dep := depMap[name]
 		dep.Parent = root
 		root.Children = append(root.Children, dep)
-		deps = append(deps, dep)
 		q.Push(dep)
 	}
 	// 层级遍历添加间接依赖
