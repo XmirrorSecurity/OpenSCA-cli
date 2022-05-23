@@ -39,6 +39,12 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 			if d.Name != "" && d.Version.Ok() {
 				d.Path = path.Join(d.Path, d.Dependency.String())
 			}
+			// 标识为直接依赖
+			d.Direct = true
+			for _, c := range d.Children {
+				c.Direct = true
+			}
+			// 填充路径
 			q := []*model.DepTree{d}
 			s := map[int64]struct{}{}
 			for len(q) > 0 {

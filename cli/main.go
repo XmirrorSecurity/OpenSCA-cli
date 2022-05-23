@@ -25,25 +25,22 @@ func main() {
 }
 
 // output 输出结果
-func output(depRoot *model.DepTree, err error) {
-	// 整理错误信息
-	errInfo := ""
-	if err != nil {
-		errInfo = err.Error()
-	}
+func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 	// 记录依赖
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果
+	var reportFunc func(*model.DepTree, report.TaskInfo) []byte
+	switch path.Ext(args.Out) {
+	case ".html":
+		reportFunc = report.Html
+	case ".json":
+		reportFunc = report.Json
+	default:
+		reportFunc = report.Json
+	}
 	if args.Out != "" {
-		switch path.Ext(args.Out) {
-		case ".html":
-			report.SaveHtml(depRoot, errInfo, args.Out)
-		case ".json":
-			report.SaveJson(depRoot, errInfo, args.Out)
-		default:
-			report.SaveJson(depRoot, errInfo, args.Out)
-		}
+		report.Save(reportFunc(depRoot, taskInfo), args.Out)
 	} else {
-		fmt.Println(string(report.Json(depRoot, errInfo)))
+		fmt.Println(string(reportFunc(depRoot, taskInfo)))
 	}
 }

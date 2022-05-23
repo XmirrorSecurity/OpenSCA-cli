@@ -10,10 +10,12 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 	"util/args"
 	"util/filter"
 	"util/logs"
 	"util/model"
+	"util/report"
 	"util/vuln"
 
 	"analyzer/analyzer"
@@ -47,13 +49,23 @@ func NewEngine() Engine {
 }
 
 // ParseFile 解析一个目录或文件
-func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
+func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo report.TaskInfo) {
 	// 目录树
 	dirRoot := model.NewDirTree()
-	depRoot := model.NewDepTree(nil)
+	depRoot = model.NewDepTree(nil)
+	taskInfo = report.TaskInfo{
+		AppName:   filepath,
+		StartTime: time.Now().Format("2006-01-02 03:04:05"),
+	}
+	s := time.Now()
+	defer func() {
+		taskInfo.CostTime = time.Since(s).Seconds()
+		taskInfo.EndTime = time.Now().Format("2006-01-02 03:04:05")
+	}()
 	if f, err := os.Stat(filepath); err != nil {
+		taskInfo.Error = err
 		logs.Error(err)
-		return depRoot, err
+		return depRoot, taskInfo
 	} else {
 		if f.IsDir() {
 			// 目录
@@ -63,6 +75,11 @@ func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 			// 尝试解析gradle依赖
 			groovy.GradleDepTree(filepath, depRoot)
 		} else if filter.AllPkg(filepath) {
+			if f, err := os.Stat(filepath); err != nil {
+				logs.Warn(err)
+			} else {
+				taskInfo.Size = f.Size()
+			}
 			// 压缩包
 			dirRoot = e.unArchiveFile(filepath)
 		} else if e.checkFile(filepath) {
@@ -79,7 +96,7 @@ func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 	// 解析目录树获取依赖树
 	e.parseDependency(dirRoot, depRoot)
 	// 获取漏洞
-	err := vuln.SearchVuln(depRoot)
+	taskInfo.Error = vuln.SearchVuln(depRoot)
 	// 是否仅保留漏洞组件
 	if args.OnlyVuln {
 		root := model.NewDepTree(nil)
@@ -116,5 +133,5 @@ func (e Engine) ParseFile(filepath string) (*model.DepTree, error) {
 			dep.IndirectVulnerabilities = len(vulnExist)
 		}
 	}
-	return depRoot, err
+	return depRoot, taskInfo
 }
