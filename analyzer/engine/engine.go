@@ -55,12 +55,12 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	depRoot = model.NewDepTree(nil)
 	taskInfo = report.TaskInfo{
 		AppName:   filepath,
-		StartTime: time.Now().Format("2006-01-02 03:04:05"),
+		StartTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	s := time.Now()
 	defer func() {
 		taskInfo.CostTime = time.Since(s).Seconds()
-		taskInfo.EndTime = time.Now().Format("2006-01-02 03:04:05")
+		taskInfo.EndTime = time.Now().Format("2006-01-02 15:04:05")
 	}()
 	if f, err := os.Stat(filepath); err != nil {
 		taskInfo.Error = err
