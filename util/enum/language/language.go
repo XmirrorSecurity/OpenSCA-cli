@@ -21,7 +21,6 @@ const (
 	Golang
 	Rust
 	Erlang
-	Groovy
 )
 
 // String 语言类型
@@ -43,8 +42,6 @@ func (l Type) String() string {
 		return "Rust"
 	case Erlang:
 		return "Erlang"
-	case Groovy:
-		return "Groovy"
 	default:
 		return "None"
 	}
@@ -55,7 +52,7 @@ func (l Type) Vuln() string {
 	switch l {
 	case None:
 		return ""
-	case Java, Groovy:
+	case Java:
 		return "java"
 	case JavaScript:
 		return "js"
@@ -80,14 +77,13 @@ var (
 
 func init() {
 	lm := map[Type][]string{}
-	lm[Java] = []string{"java", "maven"}
+	lm[Java] = []string{"java", "maven", "groovy", "gradle"}
 	lm[JavaScript] = []string{"js", "node", "nodejs", "javascript", "npm", "vue", "react"}
 	lm[Php] = []string{"php", "composer"}
 	lm[Ruby] = []string{"ruby"}
 	lm[Golang] = []string{"golang", "go", "gomod"}
 	lm[Rust] = []string{"rust", "cargo"}
 	lm[Erlang] = []string{"erlang", "rebar"}
-	lm[Groovy] = []string{"groovy", "gradle"}
 	for t, ls := range lm {
 		for _, l := range ls {
 			lanMap[l] = t

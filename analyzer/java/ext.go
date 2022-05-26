@@ -48,6 +48,7 @@ func MvnDepTree(path string, root *model.DepTree) {
 	start := 0
 	// 标记是否在依赖范围内树
 	tree := false
+	root.Direct = true
 	// 获取mvn依赖树
 	for i, line := range lines {
 		if title.MatchString(line) {
@@ -58,6 +59,9 @@ func MvnDepTree(path string, root *model.DepTree) {
 		if tree && strings.Trim(line, "-") == "" {
 			tree = false
 			buildMvnDepTree(root, lines[start+1:i])
+			for _, c := range root.Children {
+				c.Direct = true
+			}
 			continue
 		}
 	}

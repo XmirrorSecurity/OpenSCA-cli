@@ -21,7 +21,6 @@ import (
 	"analyzer/analyzer"
 	"analyzer/erlang"
 	"analyzer/golang"
-	"analyzer/groovy"
 	"analyzer/java"
 	"analyzer/javascript"
 	"analyzer/php"
@@ -73,7 +72,7 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 			// 尝试解析mvn依赖
 			java.MvnDepTree(filepath, depRoot)
 			// 尝试解析gradle依赖
-			groovy.GradleDepTree(filepath, depRoot)
+			java.GradleDepTree(filepath, depRoot)
 		} else if filter.AllPkg(filepath) {
 			if f, err := os.Stat(filepath); err != nil {
 				logs.Warn(err)

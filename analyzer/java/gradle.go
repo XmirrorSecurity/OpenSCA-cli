@@ -1,4 +1,4 @@
-package groovy
+package java
 
 import (
 	"bytes"
@@ -45,6 +45,7 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 	// 获取 gradle 解析内容
 	startTag := `ossDepStart`
 	endTag := `ossDepEnd`
+	root.Direct = true
 	for {
 		startIndex, endIndex := bytes.Index(out, []byte(startTag)), bytes.Index(out, []byte(endTag))
 		if startIndex > -1 && endIndex > -1 {
@@ -62,11 +63,14 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 				d.Vendor = n.GroupId
 				d.Name = n.ArtifactId
 				d.Version = model.NewVersion(n.Version)
-				d.Language = language.Groovy
+				d.Language = language.Java
 				for _, c := range n.Children {
 					c.MapDep = model.NewDepTree(d)
 				}
 				q = append(q[1:], n.Children...)
+			}
+			for _, c := range gdep.MapDep.Children {
+				c.Direct = true
 			}
 		} else {
 			break

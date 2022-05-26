@@ -65,8 +65,8 @@ func GetLocalVulns(deps []model.Dependency) (vulns [][]*model.Vuln) {
 		vulns[i] = []*model.Vuln{}
 		if vs, ok := vulnDB[dep.Language.Vuln()][strings.ToLower(dep.Name)]; ok {
 			for _, v := range vs {
-				switch dep.Language {
-				case language.Java:
+				switch dep.Language.Vuln() {
+				case language.Java.Vuln():
 					if !strings.EqualFold(v.Vendor, dep.Vendor) {
 						continue
 					}
