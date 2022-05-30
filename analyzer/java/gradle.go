@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"util/enum/language"
 	"util/logs"
 	"util/model"
@@ -74,4 +76,29 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 		}
 	}
 	return
+}
+
+// parseGradle parse *.gradle or *.gradle.kts
+func parseGradle(root *model.DepTree, file *model.FileInfo) {
+	regexs := []*regexp.Regexp{
+		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?name: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?module: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+		regexp.MustCompile(`['"]([^\s:]+):([^\s:]+):([^\s:]+)['"]`),
+	}
+	for _, line := range strings.Split(string(file.Data), "\n") {
+		for _, re := range regexs {
+			match := re.FindStringSubmatch(line)
+			// 有捕获内容且不以注释开头
+			if len(match) == 4 && !strings.HasPrefix(strings.TrimSpace(line), "/") {
+				ver := model.NewVersion(match[3])
+				if ver.Ok() {
+					dep := model.NewDepTree(root)
+					dep.Vendor = match[1]
+					dep.Name = match[2]
+					dep.Version = ver
+					break
+				}
+			}
+		}
+	}
 }

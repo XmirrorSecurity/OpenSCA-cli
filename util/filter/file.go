@@ -82,7 +82,8 @@ var (
 
 // groovy
 var (
-	GroovyFile = filterFunc(strings.HasSuffix, ".groovy")
+	GroovyFile   = filterFunc(strings.HasSuffix, ".groovy")
+	GroovyGradle = filterFunc(strings.HasSuffix, ".gradle", ".gradle.kts")
 )
 
 // python
