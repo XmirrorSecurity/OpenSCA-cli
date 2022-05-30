@@ -29,9 +29,9 @@ var vulnDB map[string]map[string][]vulnInfo
 // loadVulnDB 加载本地漏洞
 func loadVulnDB() {
 	vulnDB = map[string]map[string][]vulnInfo{}
-	if args.VulnDB != "" {
+	if args.Config.VulnDB != "" {
 		// 读取本地漏洞数据
-		if data, err := ioutil.ReadFile(args.VulnDB); err != nil {
+		if data, err := ioutil.ReadFile(args.Config.VulnDB); err != nil {
 			logs.Error(err)
 		} else {
 			// 解析本地漏洞

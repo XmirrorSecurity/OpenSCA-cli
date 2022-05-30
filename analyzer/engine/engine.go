@@ -97,7 +97,7 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	// 获取漏洞
 	taskInfo.Error = vuln.SearchVuln(depRoot)
 	// 是否仅保留漏洞组件
-	if args.OnlyVuln {
+	if args.Config.OnlyVuln {
 		root := model.NewDepTree(nil)
 		q := model.NewQueue()
 		q.Push(depRoot)

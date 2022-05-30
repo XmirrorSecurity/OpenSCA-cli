@@ -37,7 +37,7 @@ func newBar(text string) *Bar {
 
 // Add add progress
 func (b *Bar) Add(n int) {
-	if !args.ProgressBar {
+	if !args.Config.Bar {
 		return
 	}
 	if b.id == -1 {

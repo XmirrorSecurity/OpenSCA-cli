@@ -33,7 +33,7 @@ func init() {
 
 // save save cache file
 func save(filepath string, data []byte) {
-	if args.Cache {
+	if args.Config.Cache {
 		if err := os.MkdirAll(path.Join(cacheDir, path.Dir(filepath)), os.ModeDir); err == nil {
 			if f, err := os.Create(path.Join(cacheDir, filepath)); err == nil {
 				defer f.Close()
@@ -45,7 +45,7 @@ func save(filepath string, data []byte) {
 
 // load load cache file
 func load(filepath string) []byte {
-	if args.Cache {
+	if args.Config.Cache {
 		if data, err := ioutil.ReadFile(path.Join(cacheDir, filepath)); err == nil {
 			return data
 		} else {
