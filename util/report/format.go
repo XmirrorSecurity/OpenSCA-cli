@@ -1,8 +1,9 @@
 package report
 
 import (
+	"fmt"
 	"os"
-	"strings"
+	"util/args"
 	"util/enum/language"
 	"util/logs"
 	"util/model"
@@ -22,18 +23,52 @@ type TaskInfo struct {
 // format 按照输出内容格式化(不可逆)
 func format(dep *model.DepTree) {
 	q := []*model.DepTree{dep}
+	// 保留要导出的数据
 	for len(q) > 0 {
-		node := q[0]
-		q = append(q[1:], node.Children...)
-		if node.Language != language.None {
-			node.LanguageStr = node.Language.String()
+		n := q[0]
+		q = append(q[1:], n.Children...)
+		if n.Language != language.None {
+			n.LanguageStr = n.Language.String()
 		}
-		if node.Version != nil {
-			node.VersionStr = node.Version.Org
+		if n.Version != nil {
+			n.VersionStr = n.Version.Org
 		}
-		node.Path = node.Path[strings.Index(node.Path, "/")+1:]
-		node.Language = language.None
-		node.Version = nil
+		if n.Path != "" {
+			n.Paths = []string{n.Path}
+		}
+		n.Language = language.None
+		n.Version = nil
+	}
+	// 去重
+	if args.Config.Dedup {
+		q = []*model.DepTree{dep}
+		dm := map[string]*model.DepTree{}
+		for len(q) > 0 {
+			n := q[0]
+			q = append(q[1:], n.Children...)
+			// 去重
+			k := fmt.Sprintf("%s:%s@%s#%s", n.Vendor, n.Name, n.VersionStr, n.LanguageStr)
+			if d, ok := dm[k]; !ok {
+				dm[k] = n
+			} else {
+				// 已存在相同组件
+				d.Paths = append(d.Paths, n.Path)
+				// 从父组件中移除当前组件
+				if n.Parent != nil {
+					for i, c := range n.Parent.Children {
+						if c.ID == n.ID {
+							n.Parent.Children = append(n.Parent.Children[:i], n.Parent.Children[i+1:]...)
+							break
+						}
+					}
+				}
+				// 将当前组件的子组件转移到已存在组件的子依赖中
+				d.Children = append(d.Children, n.Children...)
+				for _, c := range n.Children {
+					c.Parent = d
+				}
+			}
+		}
 	}
 }
 

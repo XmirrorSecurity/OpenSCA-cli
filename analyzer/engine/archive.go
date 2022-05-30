@@ -40,7 +40,6 @@ func (e Engine) unArchiveFile(filepath string) (root *model.DirTree) {
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
 	// 目录树根
 	root = model.NewDirTree()
-	root.Path = path.Base(filepath)
 	var walker archiver.Walker
 	if filter.Tar(filepath) {
 		walker = archiver.NewTar()

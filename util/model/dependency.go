@@ -75,7 +75,8 @@ type DepTree struct {
 	// 是否为直接依赖
 	Direct bool `json:"direct"`
 	// 依赖路径
-	Path string `json:"path,omitempty"`
+	Path  string   `json:"-"`
+	Paths []string `json:"paths,omitempty"`
 	// 唯一的组件id，用来标识不同组件
 	ID int64 `json:"-"`
 	// 父组件
@@ -97,6 +98,7 @@ func NewDepTree(parent *DepTree) *DepTree {
 		Dependency:      NewDependency(),
 		Vulnerabilities: []*Vuln{},
 		Path:            "",
+		Paths:           nil,
 		Parent:          parent,
 		Children:        []*DepTree{},
 		licenseMap:      map[string]struct{}{},

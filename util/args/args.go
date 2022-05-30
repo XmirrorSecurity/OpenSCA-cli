@@ -10,7 +10,9 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"strings"
+	"util/temp"
 )
 
 var (
@@ -22,6 +24,7 @@ var (
 		Cache    bool   `json:"cache"`
 		Bar      bool   `json:"progress"`
 		OnlyVuln bool   `json:"vuln"`
+		Dedup    bool   `json:"dedup"`
 		// remote vuldb
 		Url   string `json:"url"`
 		Token string `json:"token"`
@@ -40,6 +43,7 @@ func init() {
 	flag.StringVar(&Config.Out, "out", Config.Out, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,默认为json格式,例: -out output.json")
 	flag.StringVar(&Config.VulnDB, "db", Config.VulnDB, "(可选) 指定本地漏洞库文件,希望使用自己漏洞库时可用,漏洞库文件为json格式,具体格式会在开源项目文档中给出;若同时使用云端漏洞库与本地漏洞库,漏洞查询结果取并集,例: -db db.json")
 	flag.BoolVar(&Config.Bar, "progress", Config.Bar, "(可选) 显示进度条")
+	flag.BoolVar(&Config.Dedup, "dedup", Config.Dedup, "(可选) 相同组件去重")
 }
 
 func Parse() {
@@ -52,8 +56,14 @@ func Parse() {
 				fmt.Printf("parse config file error: %s\n", err)
 			}
 		}
-		// 再次调用Parse, 优先使用cli参数
-		flag.Parse()
+	} else {
+		// 默认读取目录下的config.json文件
+		if data, err := ioutil.ReadFile(path.Join(temp.GetPwd(), "config.json")); err == nil {
+			// 不处理错误
+			json.Unmarshal(data, &Config)
+		}
 	}
+	// 再次调用Parse, 优先使用cli参数
+	flag.Parse()
 	Config.Url = strings.TrimSuffix(Config.Url, "/")
 }

@@ -184,6 +184,7 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 		}
 		if filter.GroovyGradle(f.Name) {
 			dep := model.NewDepTree(nil)
+			dep.Path = f.Name
 			parseGradle(dep, f)
 			deps = append(deps, dep)
 		}
