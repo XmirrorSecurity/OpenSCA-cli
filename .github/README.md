@@ -26,7 +26,7 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 | ------------ | --------------- | ---------------------------------------------- |
 | `Java`       | `Maven`         | `pom.xml`                                      |
 | `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock` |
-| `PHP`        | `Composer`      | `composer.json`                                |
+| `PHP`        | `Composer`      | `composer.json`  `composer.lock`               |
 | `Ruby`       | `gem`           | `gemfile.lock`                                 |
 | `Golang`     | `gomod`         | `go.mod` `go.sum`                              |
 | `Rust`       | `cargo`         | `Cargo.lock`                                   |

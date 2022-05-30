@@ -72,20 +72,22 @@ func (dep Dependency) String() string {
 // DepTree 依赖树
 type DepTree struct {
 	Dependency
-	Vulnerabilities         []*Vuln `json:"vulnerabilities,omitempty"`
-	IndirectVulnerabilities int     `json:"indirect_vulnerabilities,omitempty"`
+	// 是否为直接依赖
+	Direct bool `json:"direct"`
 	// 依赖路径
 	Path string `json:"path,omitempty"`
 	// 唯一的组件id，用来标识不同组件
 	ID int64 `json:"-"`
 	// 父组件
-	Parent *DepTree `json:"-"`
-	// 子组件
-	Children []*DepTree `json:"children,omitempty"`
+	Parent                  *DepTree `json:"-"`
+	Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty"`
+	IndirectVulnerabilities int      `json:"indirect_vulnerabilities,omitempty"`
 	// 许可证列表
 	licenseMap map[string]struct{} `json:"-"`
 	Licenses   []string            `json:"licenses,omitempty"`
-	Expand     interface{}         `json:"-"`
+	// 子组件
+	Children []*DepTree  `json:"children,omitempty"`
+	Expand   interface{} `json:"-"`
 }
 
 // NewDepTree 创建DepTree
