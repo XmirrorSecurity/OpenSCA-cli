@@ -10,12 +10,13 @@ import (
 
 // 任务检查信息
 type TaskInfo struct {
-	AppName   string  `json:"app_name"`
-	Size      int64   `json:"size"`
-	StartTime string  `json:"start_time"`
-	EndTime   string  `json:"end_time"`
-	CostTime  float64 `json:"cost_time"`
-	Error     error   `json:"error,omitempty"`
+	AppName     string  `json:"app_name"`
+	Size        int64   `json:"size"`
+	StartTime   string  `json:"start_time"`
+	EndTime     string  `json:"end_time"`
+	CostTime    float64 `json:"cost_time"`
+	Error       error   `json:"-"`
+	ErrorString string  `json:"error,omitempty"`
 }
 
 // format 按照输出内容格式化(不可逆)
