@@ -24,6 +24,7 @@ import (
 	"analyzer/java"
 	"analyzer/javascript"
 	"analyzer/php"
+	"analyzer/python"
 	"analyzer/ruby"
 	"analyzer/rust"
 )
@@ -43,6 +44,9 @@ func NewEngine() Engine {
 			rust.New(),
 			golang.New(),
 			erlang.New(),
+			// 暂不解析groovy文件
+			// groovy.New(),
+			python.New(),
 		},
 	}
 }

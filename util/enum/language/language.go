@@ -21,6 +21,7 @@ const (
 	Golang
 	Rust
 	Erlang
+	Python
 )
 
 // String 语言类型
@@ -42,6 +43,8 @@ func (l Type) String() string {
 		return "Rust"
 	case Erlang:
 		return "Erlang"
+	case Python:
+		return "Python"
 	default:
 		return "None"
 	}
@@ -66,6 +69,8 @@ func (l Type) Vuln() string {
 		return "rust"
 	case Erlang:
 		return ""
+	case Python:
+		return "python"
 	default:
 		return ""
 	}
@@ -84,6 +89,7 @@ func init() {
 	lm[Golang] = []string{"golang", "go", "gomod"}
 	lm[Rust] = []string{"rust", "cargo"}
 	lm[Erlang] = []string{"erlang", "rebar"}
+	lm[Python] = []string{"python", "pip", "pipy"}
 	for t, ls := range lm {
 		for _, l := range ls {
 			lanMap[l] = t

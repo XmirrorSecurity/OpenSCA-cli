@@ -40,7 +40,7 @@ func (ver *Version) weight() (weight int) {
 func NewVersion(verStr string) *Version {
 	verStr = strings.TrimSpace(verStr)
 	ver := &Version{Nums: []int{}, Org: verStr}
-	verStr = strings.TrimLeft(verStr, "vV^")
+	verStr = strings.TrimLeft(verStr, "vV^~=<>")
 	// 获取后缀
 	index := strings.Index(verStr, "-")
 	if index != -1 {

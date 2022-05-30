@@ -84,3 +84,10 @@ var (
 var (
 	GroovyFile = filterFunc(strings.HasSuffix, ".groovy")
 )
+
+// python
+var (
+	PythonSetup       = filterFunc(strings.HasSuffix, "setup.py")
+	PythonPipfile     = filterFunc(strings.HasSuffix, "Pipfile")
+	PythonPipfileLock = filterFunc(strings.HasSuffix, "Pipfile.lock")
+)

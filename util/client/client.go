@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"util/args"
 	"util/logs"
+	"util/temp"
 
 	"github.com/pkg/errors"
 )
@@ -60,35 +61,31 @@ type DetectRequst struct {
 func GetClientId() string {
 	// 默认id
 	id := "XXXXXXXXXXXXXXXX"
-	if pwd, err := os.Getwd(); err != nil {
-		logs.Error(err)
-	} else {
-		// 尝试读取.key文件
-		idFile := path.Join(pwd, ".key")
-		if _, err := os.Stat(idFile); err != nil {
-			// 文件不存在则生成随机ID并保存
-			if f, err := os.Create(idFile); err != nil {
-				logs.Error(err)
-			} else {
-				defer f.Close()
-				const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-				idbyte := []byte(id)
-				for i := range idbyte {
-					idbyte[i] = chars[mrand.Intn(26)]
-				}
-				f.Write(idbyte)
-				id = string(idbyte)
-			}
+	// 尝试读取.key文件
+	idFile := path.Join(temp.GetPwd(), ".key")
+	if _, err := os.Stat(idFile); err != nil {
+		// 文件不存在则生成随机ID并保存
+		if f, err := os.Create(idFile); err != nil {
+			logs.Error(err)
 		} else {
-			// 文件存在则读取ID
-			idbyte, err := os.ReadFile(idFile)
-			if err != nil {
-				logs.Error(err)
+			defer f.Close()
+			const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			idbyte := []byte(id)
+			for i := range idbyte {
+				idbyte[i] = chars[mrand.Intn(26)]
 			}
-			if len(idbyte) == 16 {
-				if ok, err := regexp.Match(`[A-Z]{16}`, idbyte); ok && err == nil {
-					id = string(idbyte)
-				}
+			f.Write(idbyte)
+			id = string(idbyte)
+		}
+	} else {
+		// 文件存在则读取ID
+		idbyte, err := os.ReadFile(idFile)
+		if err != nil {
+			logs.Error(err)
+		}
+		if len(idbyte) == 16 {
+			if ok, err := regexp.Match(`[A-Z]{16}`, idbyte); ok && err == nil {
+				id = string(idbyte)
 			}
 		}
 	}
