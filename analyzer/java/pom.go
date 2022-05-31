@@ -129,7 +129,7 @@ func (p *Pom) GetProperty(key string) string {
 		return p.Version
 	case "${project.groupId}", "${groupId}", "${pom.groupId}":
 		return p.GroupId
-	case "${project.artifactId}":
+	case "${project.artifactId}", "${artifactId}", "${pom.artifactId}":
 		return p.ArtifactId
 	case "${project.parent.version}", "${parent.version}":
 		return p.Parent.Version

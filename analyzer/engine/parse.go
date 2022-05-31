@@ -7,6 +7,7 @@ package engine
 
 import (
 	"path"
+	"strings"
 	"util/filter"
 	"util/model"
 )
@@ -36,7 +37,7 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 		for _, d := range analyzer.ParseFiles(files) {
 			depRoot.Children = append(depRoot.Children, d)
 			d.Parent = depRoot
-			if d.Name != "" && d.Version.Ok() {
+			if d.Name != "" && !strings.ContainsAny(d.Vendor+d.Name, "${}") && d.Version.Ok() {
 				d.Path = path.Join(d.Path, d.Dependency.String())
 			}
 			// 标识为直接依赖
@@ -73,7 +74,7 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 	for len(q) > 0 {
 		n := q[0]
 		q = append(q[1:], n.Children...)
-		if n.Name == "" || !n.Version.Ok() {
+		if n.Name == "" || strings.ContainsAny(n.Vendor+n.Name, "${}") || !n.Version.Ok() {
 			n.Move(n.Parent)
 		}
 	}

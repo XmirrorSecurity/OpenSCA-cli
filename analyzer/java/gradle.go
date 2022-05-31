@@ -83,7 +83,7 @@ func parseGradle(root *model.DepTree, file *model.FileInfo) {
 	regexs := []*regexp.Regexp{
 		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?name: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
 		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?module: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
-		regexp.MustCompile(`['"]([^\s:]+):([^\s:]+):([^\s:]+)['"]`),
+		regexp.MustCompile(`['"]([^\s:'"]+):([^\s:'"]+):([^\s:'"]+)['"]`),
 	}
 	for _, line := range strings.Split(string(file.Data), "\n") {
 		for _, re := range regexs {
