@@ -88,9 +88,16 @@ func parseGradle(root *model.DepTree, file *model.FileInfo) {
 	for _, line := range strings.Split(string(file.Data), "\n") {
 		for _, re := range regexs {
 			match := re.FindStringSubmatch(line)
-			// 有捕获内容且不以注释开头
-			if len(match) == 4 && !strings.HasPrefix(strings.TrimSpace(line), "/") {
+			// 有捕获内容
+			if len(match) == 4 &&
+				// 不以注释开头
+				!strings.HasPrefix(strings.TrimSpace(line), "/") &&
+				// 不是测试组件
+				!strings.Contains(strings.ToLower(line), "testimplementation") &&
+				// 去掉非组件内容
+				!strings.Contains(line, "//") {
 				ver := model.NewVersion(match[3])
+				// 版本号正常
 				if ver.Ok() {
 					dep := model.NewDepTree(root)
 					dep.Vendor = match[1]
