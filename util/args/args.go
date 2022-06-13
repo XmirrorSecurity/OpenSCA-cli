@@ -34,7 +34,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&ConfigPath, "config", "config.json", "(可选) 指定配置文件路径,指定后启动程序时将默认使用配置参数，配置参数与命令行输入参数冲突时优先使用输入参数")
+	flag.StringVar(&ConfigPath, "config", "", "(可选) 指定配置文件路径,指定后启动程序时将默认使用配置参数，配置参数与命令行输入参数冲突时优先使用输入参数")
 	flag.StringVar(&Config.Path, "path", Config.Path, "(必须) 指定要检测的文件或目录路径,例: -path ./foo 或 -path ./foo.zip")
 	flag.StringVar(&Config.Url, "url", Config.Url, "(可选,与token需一起使用) 从云漏洞库查询漏洞,指定要连接云服务的地址,例:-url https://opensca.xmirror.cn")
 	flag.StringVar(&Config.Token, "token", Config.Token, "(可选,与url需一起使用) 云服务验证token,需要在云服务平台申请")
