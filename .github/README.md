@@ -143,7 +143,7 @@ opensca-cli -db db.json -path ${project_path}
 
 OpenSCA is an open source project, we appreciate your help!
 
-To contribute, please read our [Contributing Guideline](./docs/Contributing%20Guideline-en%20v1.0.md). 
+To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md). 
 
 
 
