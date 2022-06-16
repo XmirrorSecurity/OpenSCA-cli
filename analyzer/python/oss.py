@@ -1,3 +1,4 @@
+import re
 import sys
 import json
 
@@ -17,10 +18,16 @@ def parse_setup_py(setup_py_path):
 			pass
 		# 获取setup参数
 		args = {}
-		exec(f.read().replace("setup(", "args=setup("), args)
+		code = re.sub('(?<!\w)setup\(','args=setup(',f.read())
+		code = code.replace('__file__','"{}"'.format(setup_py_path))
+		exec(code, args)
 		if 'args' in args:
-			js = json.dumps(args["args"])
-			print('oss_start<<{}>>oss_end'.format(js))
+			data = args['args']
+			info = {}
+			for k in ['name','version','license','packages','install_requires','requires']:
+				if k in data:
+					info[k] = data[k]
+			print('oss_start<<{}>>oss_end'.format(json.dumps(info)))
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
