@@ -11,6 +11,7 @@ import (
 
 // 任务检查信息
 type TaskInfo struct {
+	ToolVersion string  `json:"tool_version"`
 	AppName     string  `json:"app_name"`
 	Size        int64   `json:"size"`
 	StartTime   string  `json:"start_time"`

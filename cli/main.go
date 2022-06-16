@@ -15,6 +15,8 @@ import (
 	"util/report"
 )
 
+var version string
+
 func main() {
 	args.Parse()
 	if len(args.Config.Path) > 0 {
@@ -26,6 +28,7 @@ func main() {
 
 // output 输出结果
 func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
+	taskInfo.ToolVersion = version
 	// 记录依赖
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果
