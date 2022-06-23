@@ -8,7 +8,7 @@ import (
 	"util/model"
 )
 
-//go:embed index.html
+//go:embed html_tpl
 var index []byte
 
 // Html 获取html格式报告数据
