@@ -35,7 +35,7 @@ func (Analyzer) GetLanguage() language.Type {
 
 // CheckFile Check if it is a parsable file
 func (Analyzer) CheckFile(filename string) bool {
-	return filter.JavaPom(filename)
+	return filter.JavaPom(filename) || filter.GroovyGradle(filename)
 }
 
 // pomTree pom文件树
@@ -182,9 +182,15 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 			p.Path = f.Name
 			poms = append(poms, p)
 		}
+		if filter.GroovyGradle(f.Name) {
+			dep := model.NewDepTree(nil)
+			dep.Path = f.Name
+			parseGradle(dep, f)
+			deps = append(deps, dep)
+		}
 	}
 	// 构建jar树
-	deps = buildJarTree(jarMap)
+	deps = append(deps, buildJarTree(jarMap)...)
 	// 构建pom树
 	deps = append(deps, buildPomTree(poms).parsePomTree(jarMap)...)
 	return

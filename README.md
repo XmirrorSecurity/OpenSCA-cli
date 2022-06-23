@@ -84,6 +84,7 @@ opensca-cli -db db.json -path ${project_path}
 | `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式                                                                          | `-out output.json`                |
 | `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
 | `progress` | `bool`   | 显示进度条                                                                                                                                        | `-progress`                       |
+| `dedup` | `bool`   | 相同组件去重                                                                                                                                        | `-dedup`                       |
 
 ---
 

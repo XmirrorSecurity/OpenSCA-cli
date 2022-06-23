@@ -17,6 +17,7 @@ import (
 	"util/filter"
 	"util/logs"
 	"util/model"
+	"util/temp"
 
 	"github.com/axgle/mahonia"
 	"github.com/mholt/archiver"
@@ -39,7 +40,6 @@ func (e Engine) unArchiveFile(filepath string) (root *model.DirTree) {
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
 	// 目录树根
 	root = model.NewDirTree()
-	root.Path = path.Base(filepath)
 	var walker archiver.Walker
 	if filter.Tar(filepath) {
 		walker = archiver.NewTar()
@@ -86,35 +86,27 @@ func (e Engine) unArchiveFile(filepath string) (root *model.DirTree) {
 				// 支持解析的文件
 				root.AddFile(model.NewFileData(fileName, data))
 			} else if filter.AllPkg(fileName) {
-				// 支持检测的压缩包
-				rootPath, _ := os.Executable()
-				rootPath = path.Dir(strings.ReplaceAll(rootPath, `\`, `/`))
-				tempPath := path.Join(rootPath, ".temp_path")
-				// 创建临时文件夹
-				os.Mkdir(tempPath, os.ModeDir)
-				targetPath := path.Join(tempPath, path.Base(fileName))
 				// 将压缩包解压到本地
-				if out, err := os.Create(targetPath); err == nil {
-					_, err = out.Write(data)
-					out.Close()
-					if err != nil {
-						return errors.WithStack(err)
-					}
-					// 获取当前目录树
-					dir := root.GetDir(fileName)
-					name := path.Base(fileName)
-					if _, ok := dir.SubDir[name]; !ok {
-						// 将压缩包的内容添加到当前目录树
-						dir.DirList = append(dir.DirList, name)
-						dir.SubDir[name] = e.unArchiveFile(targetPath)
-					}
-					// 删除压缩包
-					if err = os.Remove(targetPath); err != nil {
+				temp.DoInTempDir(func(tempdir string) {
+					targetPath := path.Join(tempdir, path.Base(fileName))
+					if out, err := os.Create(targetPath); err == nil {
+						_, err = out.Write(data)
+						out.Close()
+						if err != nil {
+							logs.Error(err)
+						}
+						// 获取当前目录树
+						dir := root.GetDir(fileName)
+						name := path.Base(fileName)
+						if _, ok := dir.SubDir[name]; !ok {
+							// 将压缩包的内容添加到当前目录树
+							dir.DirList = append(dir.DirList, name)
+							dir.SubDir[name] = e.unArchiveFile(targetPath)
+						}
+					} else {
 						logs.Error(err)
 					}
-				} else {
-					logs.Error(err)
-				}
+				})
 			}
 		}
 		return nil

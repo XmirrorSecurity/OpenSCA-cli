@@ -13,11 +13,11 @@ func Json(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		taskInfo.ErrorString = taskInfo.Error.Error()
 	}
 	if data, err := json.Marshal(struct {
-		*model.DepTree
 		TaskInfo TaskInfo `json:"task_info"`
+		*model.DepTree
 	}{
-		DepTree:  dep,
 		TaskInfo: taskInfo,
+		DepTree:  dep,
 	}); err != nil {
 		logs.Error(err)
 	} else {

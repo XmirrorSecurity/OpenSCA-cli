@@ -24,6 +24,7 @@ import (
 	"analyzer/java"
 	"analyzer/javascript"
 	"analyzer/php"
+	"analyzer/python"
 	"analyzer/ruby"
 	"analyzer/rust"
 )
@@ -43,6 +44,9 @@ func NewEngine() Engine {
 			rust.New(),
 			golang.New(),
 			erlang.New(),
+			// 暂不解析groovy文件
+			// groovy.New(),
+			python.New(),
 		},
 	}
 }
@@ -97,7 +101,7 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	// 获取漏洞
 	taskInfo.Error = vuln.SearchVuln(depRoot)
 	// 是否仅保留漏洞组件
-	if args.OnlyVuln {
+	if args.Config.OnlyVuln {
 		root := model.NewDepTree(nil)
 		q := model.NewQueue()
 		q.Push(depRoot)

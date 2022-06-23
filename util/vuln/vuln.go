@@ -29,14 +29,14 @@ func SearchVuln(root *model.DepTree) (err error) {
 	for i, d := range deps {
 		ds[i] = d.Dependency
 	}
-	if args.VulnDB != "" {
+	if args.Config.VulnDB != "" {
 		localVulns = GetLocalVulns(ds)
 	}
-	if args.Url != "" && args.Token != "" {
+	if args.Config.Url != "" && args.Config.Token != "" {
 		serverVulns, err = GetServerVuln(ds)
-	} else if args.VulnDB == "" && args.Url == "" && args.Token != "" {
+	} else if args.Config.VulnDB == "" && args.Config.Url == "" && args.Config.Token != "" {
 		err = errors.New("url is null")
-	} else if args.VulnDB == "" && args.Url != "" && args.Token == "" {
+	} else if args.Config.VulnDB == "" && args.Config.Url != "" && args.Config.Token == "" {
 		err = errors.New("token is null")
 	}
 	for i, dep := range deps {

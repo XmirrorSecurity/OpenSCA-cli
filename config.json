@@ -6,5 +6,6 @@
 	"out": "output.json",
 	"cache": true,
 	"vuln": false,
-	"progress": true
+	"progress": true,
+	"dedup": true
 }

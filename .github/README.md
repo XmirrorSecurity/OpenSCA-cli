@@ -86,6 +86,7 @@ opensca-cli -db db.json -path ${project_path}
 | `out`      | `string` | Set the output file. The result defaults to json format.                                                                                                                                                                                                                   | `-out output.json`                |
 | `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                     |
 | `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                       |
+| `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                          |
 
 ------
 
@@ -142,7 +143,7 @@ opensca-cli -db db.json -path ${project_path}
 
 OpenSCA is an open source project, we appreciate your help!
 
-To contribute, please read our [Contributing Guideline](./docs/Contributing%20Guideline-en%20v1.0.md). 
+To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md). 
 
 
 

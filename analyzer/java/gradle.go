@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"util/enum/language"
 	"util/logs"
 	"util/model"
+	"util/temp"
 )
 
 //go:embed oss.gradle
@@ -26,14 +29,10 @@ type gradleDep struct {
 
 // GradleDepTree 尝试获取 gradle 依赖树
 func GradleDepTree(dirpath string, root *model.DepTree) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		logs.Error(err)
-		return
-	}
+	pwd := temp.GetPwd()
 	os.Chdir(dirpath)
 	// 复制 oss.gradle
-	if err = os.WriteFile("oss.gradle", ossGradle, 0444); err != nil {
+	if err := os.WriteFile("oss.gradle", ossGradle, 0444); err != nil {
 		logs.Warn(err)
 		return
 	}
@@ -52,7 +51,7 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 			data := out[startIndex+len(startTag) : endIndex]
 			out = out[endIndex+1:]
 			gdep := &gradleDep{MapDep: model.NewDepTree(root)}
-			err = json.Unmarshal(data, &gdep.Children)
+			err := json.Unmarshal(data, &gdep.Children)
 			if err != nil {
 				logs.Warn(err)
 			}
@@ -77,4 +76,36 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 		}
 	}
 	return
+}
+
+// parseGradle parse *.gradle or *.gradle.kts
+func parseGradle(root *model.DepTree, file *model.FileInfo) {
+	regexs := []*regexp.Regexp{
+		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?name: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+		regexp.MustCompile(`group: ?['"]([^\s"']+)['"], ?module: ?['"]([^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+		regexp.MustCompile(`['"]([^\s:'"]+):([^\s:'"]+):([^\s:'"]+)['"]`),
+	}
+	for _, line := range strings.Split(string(file.Data), "\n") {
+		for _, re := range regexs {
+			match := re.FindStringSubmatch(line)
+			// 有捕获内容
+			if len(match) == 4 &&
+				// 不以注释开头
+				!strings.HasPrefix(strings.TrimSpace(line), "/") &&
+				// 不是测试组件
+				!strings.Contains(strings.ToLower(line), "testimplementation") &&
+				// 去掉非组件内容
+				!strings.Contains(line, "//") {
+				ver := model.NewVersion(match[3])
+				// 版本号正常
+				if ver.Ok() {
+					dep := model.NewDepTree(root)
+					dep.Vendor = match[1]
+					dep.Name = match[2]
+					dep.Version = ver
+					break
+				}
+			}
+		}
+	}
 }
