@@ -38,6 +38,8 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 		reportFunc = report.Html
 	case ".json":
 		reportFunc = report.Json
+	case ".spdx":
+		reportFunc = report.Spdx
 	default:
 		reportFunc = report.Json
 	}
