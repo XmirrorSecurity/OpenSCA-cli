@@ -15,17 +15,20 @@
 ---
 
 ## 检测能力
+
 `OpenSCA`现已支持以下编程语言相关的配置文件解析及对应的包管理器，后续会逐步支持更多的编程语言，丰富相关配置文件的解析。
 
 | 支持语言     | 包管理器   | 解析文件                                       |
 | ------------ | ---------- | ---------------------------------------------- |
 | `Java`       | `Maven`    | `pom.xml`                                      |
+| `Java`       | `Gradle`   | `.gradle` `.gradle.kts`                        |
 | `JavaScript` | `Npm`      | `package-lock.json` `package.json` `yarn.lock` |
 | `PHP`        | `Composer` | `composer.json` `composer.lock`                |
 | `Ruby`       | `gem`      | `gemfile.lock`                                 |
 | `Golang`     | `gomod`    | `go.mod` `go.sum`                              |
 | `Rust`       | `cargo`    | `Cargo.lock`                                   |
 | `Erlang`     | `Rebar`    | `rebar.lock`                                   |
+| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py`            |
 
 ## 下载安装
 
@@ -84,7 +87,7 @@ opensca-cli -db db.json -path ${project_path}
 | `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式                                                                          | `-out output.json`                |
 | `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
 | `progress` | `bool`   | 显示进度条                                                                                                                                        | `-progress`                       |
-| `dedup` | `bool`   | 相同组件去重                                                                                                                                        | `-dedup`                       |
+| `dedup`    | `bool`   | 相同组件去重                                                                                                                                      | `-dedup`                          |
 
 ---
 

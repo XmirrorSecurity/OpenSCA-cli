@@ -25,12 +25,14 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 | LANGUAGE     | PACKAGE MANAGER | FILE                                           |
 | ------------ | --------------- | ---------------------------------------------- |
 | `Java`       | `Maven`         | `pom.xml`                                      |
+| `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                        |
 | `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock` |
 | `PHP`        | `Composer`      | `composer.json`  `composer.lock`               |
 | `Ruby`       | `gem`           | `gemfile.lock`                                 |
 | `Golang`     | `gomod`         | `go.mod` `go.sum`                              |
 | `Rust`       | `cargo`         | `Cargo.lock`                                   |
 | `Erlang`     | `Rebar`         | `rebar.lock`                                   |
+| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py`            |
 
 ## Download and Deployment
 
