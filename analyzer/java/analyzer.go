@@ -198,13 +198,12 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 
 // buildTree 构建依赖树
 func buildTree(p *Pom, root *model.DepTree) {
-	dep := model.NewDepTree(root)
-	dep.Vendor = p.GroupId
-	dep.Name = p.ArtifactId
-	dep.Version = model.NewVersion(p.Version)
+	root.Vendor = p.GroupId
+	root.Name = p.ArtifactId
+	root.Version = model.NewVersion(p.Version)
 	bar.Dependency.Add(1)
 	for _, dp := range p.DependenciesPom {
 		bar.Maven.Add(1)
-		buildTree(dp, dep)
+		buildTree(dp, model.NewDepTree(root))
 	}
 }
