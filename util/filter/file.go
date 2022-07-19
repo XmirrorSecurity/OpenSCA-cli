@@ -5,6 +5,9 @@
 package filter
 
 import (
+	"fmt"
+	"path"
+	"regexp"
 	"strings"
 )
 
@@ -88,7 +91,29 @@ var (
 
 // python
 var (
-	PythonSetup       = filterFunc(strings.HasSuffix, "setup.py")
-	PythonPipfile     = filterFunc(strings.HasSuffix, "Pipfile")
-	PythonPipfileLock = filterFunc(strings.HasSuffix, "Pipfile.lock")
+	PythonSetup        = filterFunc(strings.HasSuffix, "setup.py")
+	PythonPipfile      = filterFunc(strings.HasSuffix, "Pipfile")
+	PythonPipfileLock  = filterFunc(strings.HasSuffix, "Pipfile.lock")
+	PythonRequirements = filterFunc(strings.HasSuffix, "requirements.txt")
 )
+
+// 用于筛选可能有copyright信息的文件
+var (
+	LicenseFileNames = []string{
+		"li[cs]en[cs]e(s?)",
+		"legal",
+		"copy(left|right|ing)",
+		"unlicense",
+		"l?gpl([-_ v]?)(\\d\\.?\\d)?",
+		"bsd",
+		"mit",
+		"apache",
+	}
+	LicenseFileRe = regexp.MustCompile(
+		fmt.Sprintf("^(|.*[-_. ])(%s)(|[-_. ].*)$",
+			strings.Join(LicenseFileNames, "|")))
+)
+
+func CheckLicense(name string) bool {
+	return LicenseFileRe.MatchString(strings.ToLower(path.Base(name)))
+}

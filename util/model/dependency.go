@@ -86,9 +86,18 @@ type DepTree struct {
 	// 许可证列表
 	licenseMap map[string]struct{} `json:"-"`
 	Licenses   []string            `json:"licenses,omitempty"`
+	// spdx相关字段
+	CopyrightText    string `json:"copyrightText,omitempty"`
+	HomePage         string `json:"-"`
+	DownloadLocation string `json:"-"`
+	CheckSum         string `json:"-"`
 	// 子组件
 	Children []*DepTree  `json:"children,omitempty"`
 	Expand   interface{} `json:"-"`
+}
+type CheckSum struct {
+	Algorithm string `json:"algorithm,omitempty"`
+	Value     string `json:"value,omitempty"`
 }
 
 // NewDepTree 创建DepTree
@@ -103,6 +112,7 @@ func NewDepTree(parent *DepTree) *DepTree {
 		Children:        []*DepTree{},
 		licenseMap:      map[string]struct{}{},
 		Licenses:        []string{},
+		CopyrightText:   "",
 	}
 	if parent != nil {
 		parent.Children = append(parent.Children, dep)
@@ -123,6 +133,9 @@ func (dep *DepTree) AddLicense(licName string) {
 func (dep *DepTree) Move(other *DepTree) {
 	if other == nil {
 		return
+	}
+	if other.CopyrightText == "" {
+		other.CopyrightText = dep.CopyrightText
 	}
 	// 从父节点中删除当前节点
 	if dep.Parent != nil {

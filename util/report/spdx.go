@@ -2,6 +2,8 @@ package report
 
 import (
 	"bytes"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"path"
 	"strings"
@@ -15,7 +17,7 @@ import (
 var nodePkg = make(map[*model.DepTree]Package)
 
 func init() {
-	replacers := []string{"/", ".", "_", "-", `\`, "."}
+	replacers := []string{"_", "-", "/", "."}
 	replacer = strings.NewReplacer(replacers...)
 }
 func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
@@ -32,9 +34,39 @@ func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	templateBuffer := new(bytes.Buffer)
 	err = tmpl.Execute(templateBuffer, doc)
 	if err != nil {
-		logs.Warn(err)
+		logs.Error(err)
 	}
 	return templateBuffer.Bytes()
+}
+func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
+	format(dep)
+	doc := buildDocument(dep, taskInfo)
+	addPkgToDoc(dep, doc)
+	addRelation(dep, doc)
+	type D struct {
+		Document `json:"document"`
+	}
+	d := D{*doc}
+	res, err := json.Marshal(d.Document)
+	if err != nil {
+		logs.Error(err)
+	}
+	return res
+}
+func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
+	format(dep)
+	doc := buildDocument(dep, taskInfo)
+	addPkgToDoc(dep, doc)
+	addRelation(dep, doc)
+	type D struct {
+		Document `xml:"document"`
+	}
+	d := D{*doc}
+	res, err := xml.Marshal(d.Document)
+	if err != nil {
+		logs.Error(err)
+	}
+	return res
 }
 
 // 为document添加relationship字段
@@ -82,22 +114,22 @@ func addPkgToDoc(root *model.DepTree, doc *Document) {
 // 构建package
 func buildPkg(dep *model.DepTree) Package {
 	pkg := Package{
-		PackageName:             dep.Name,
+		PackageName:             setpkgName(dep),
 		SPDXID:                  "",
-		PackageVersion:          dep.VersionStr,
-		PackageSupplier:         dep.Vendor,
-		PackageDownloadLocation: "NOASSERTION",
-		FilesAnalyzed:           false,
-		PackageChecksums:        []PackageChecksum{{}},
-		PackageHomePage:         "NOASSERTION",
-		PackageLicenseConcluded: "NOASSERTION",
-		PackageLicenseDeclared:  "NOASSERTION",
-		PackageCopyrightText:    "NOASSERTION",
-		PackageLicenseComments:  "NOASSERTION",
-		PackageComment:          "NOASSERTION",
-		RootPackage:             len(dep.Children) > 0,
+		PackageVersion:          setPkgVer(dep),
+		PackageSupplier:         setPkgSup(dep),
+		PackageDownloadLocation: setPkgDownloadLoc(dep),
+		// FilesAnalyzed:           false,
+		//PackageChecksums:        nil,
+		PackageHomePage:         setHomePage(dep),
+		PackageLicenseConcluded: setPkgLicenseCon(dep),
+		PackageLicenseDeclared:  setPkgLicenseDec(dep),
+		PackageCopyrightText:    setCopyrightCont(dep),
+		PackageLicenseComments:  setPkgLicenseComments(dep),
+		PackageComment:          setPkgComments(dep),
+		RootPackage:             isParent(dep),
 	}
-	pkg.SPDXID = setPkgSPDXID(dep.Name, dep.VersionStr, pkg.RootPackage)
+	pkg.SPDXID = setPkgSPDXID(dep.Name, dep.VersionStr)
 	nodePkg[dep] = pkg
 	return pkg
 }
@@ -106,13 +138,13 @@ func buildPkg(dep *model.DepTree) Package {
 func buildDocument(root *model.DepTree, taskInfo TaskInfo) *Document {
 	return &Document{
 		SPDXVersion:       "SPDX-2.2",
-		DataLicense:       "CC0-1.0",
+		DataLicense:       "",
 		SPDXID:            "SPDXRef-DOCUMENT",
 		DocumentName:      path.Base(taskInfo.AppName),
 		DocumentNamespace: "",
 		CreationInfo: CreationInfo{
-			Creators: []string{},
-			Created:  time.Now().UTC().Format(time.RFC3339),
+			Creators: []string{"OpenSCA-Cli"},
+			Created:  time.Now().Format("2006-01-02 15:04:05"),
 		},
 		Packages:                []Package{},
 		Relationships:           []Relationship{},
@@ -120,10 +152,71 @@ func buildDocument(root *model.DepTree, taskInfo TaskInfo) *Document {
 	}
 }
 
-// 设置package的SPDXID
-func setPkgSPDXID(s, v string, flag bool) string {
-	if flag {
+func setPkgSPDXID(s, v string) string {
+	if v == "" {
 		return fmt.Sprintf("SPDXRef-Package-%s", replacer.Replace(s))
 	}
 	return fmt.Sprintf("SPDXRef-Package-%s-%s", replacer.Replace(s), v)
+}
+func setpkgName(dep *model.DepTree) string {
+	if dep.Name != "" {
+		return dep.Name
+	}
+	return ""
+}
+func setPkgVer(dep *model.DepTree) string {
+	if dep.VersionStr != "" {
+		return dep.VersionStr
+	}
+	return "NOASSERTION"
+}
+func setPkgSup(dep *model.DepTree) string {
+	if dep.Vendor != "" {
+		return dep.Vendor
+	}
+	return "NOASSERTION"
+}
+func setPkgDownloadLoc(dep *model.DepTree) string {
+	if dep.DownloadLocation != "" {
+		return dep.DownloadLocation
+	}
+	return "NOASSERTION"
+}
+func setHomePage(dep *model.DepTree) string {
+	if dep.HomePage != "" {
+		return dep.HomePage
+	}
+	return "NOASSERTION"
+}
+func setPkgLicenseCon(dep *model.DepTree) string {
+	if len(dep.Licenses) > 0 {
+		lic := ""
+		for _, v := range dep.Licenses {
+			if lic == "" {
+				lic = v
+				continue
+			}
+			lic = lic + " OR " + v
+		}
+		return lic
+	}
+	return "NOASSERTION"
+}
+func setPkgLicenseDec(dep *model.DepTree) string {
+	return "NOASSERTION"
+}
+func setCopyrightCont(dep *model.DepTree) string {
+	if dep.CopyrightText != "" {
+		return dep.CopyrightText
+	}
+	return "NOASSERTION"
+}
+func setPkgLicenseComments(dep *model.DepTree) string {
+	return "NOASSERTION"
+}
+func setPkgComments(dep *model.DepTree) string {
+	return "NOASSERTION"
+}
+func isParent(dep *model.DepTree) bool {
+	return len(dep.Children) > 0
 }

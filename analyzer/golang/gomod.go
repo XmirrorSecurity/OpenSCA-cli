@@ -20,6 +20,7 @@ func parseGomod(dep *model.DepTree, file *model.FileInfo) {
 		sub := model.NewDepTree(dep)
 		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = model.NewVersion(match[2])
+		sub.HomePage = "https://" + sub.Name
 	}
 }
 
@@ -40,6 +41,7 @@ func parseGosum(dep *model.DepTree, file *model.FileInfo) {
 		sub := model.NewDepTree(dep)
 		sub.Name = strings.Trim(match[1], `'"`)
 		sub.Version = model.NewVersion(match[2])
+		sub.HomePage = sub.Name
 		exist[sub.Name] = struct{}{}
 	}
 }
