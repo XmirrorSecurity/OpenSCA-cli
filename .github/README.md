@@ -4,7 +4,6 @@
 	<img alt="logo" src="../logo.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
-
 <p align="center">
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
@@ -77,18 +76,18 @@ opensca-cli -db db.json -path ${project_path}
 
 **You can either configure the parameters in configuration files or input the parameters in the command-line. When the two conflict with each other, the input parameters will be prioritized.**
 
-| PARAMETER  | TYPE     | DESCRIPTION                                                                                                                                                                                                                                                                | SAMPLE                            |
-| ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken.                          | `-config config.json`             |
-| `path`     | `string` | Set the file or directory path to be detected.                                                                                                                                                                                                                             | `-path ./foo`                     |
-| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database, set the address of the cloud service. It needs to be used with the `token` parameter.                                                                                                                     | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter.                                                                                                                                                    | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | This option is recommended. It can cache the downloaded files, for example, the `.pom` file, and save your time when detecting the same component next time. The downloaded files are saved in `.cache` under the same directory as opensca-cli.                           | `-cache`                          |
-| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result.                                                                                                                                  | `-vuln`                           |
-| `out`      | `string` | Set the output file. The result defaults to json format.                                                                                                                                                                                                                   | `-out output.json`                |
+| PARAMETER  | TYPE     | DESCRIPTION                                                  | SAMPLE                            |
+| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
+| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken. | `-config config.json`             |
+| `path`     | `string` | Set the file or directory path to be detected.               | `-path ./foo`                     |
+| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database, set the address of the cloud service. It needs to be used with the `token` parameter. | `-url https://opensca.xmirror.cn` |
+| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter. | `-token xxxxxxx`                  |
+| `cache`    | `bool`   | This option is recommended. It can cache the downloaded files, for example, the `.pom` file, and save your time when detecting the same component next time. The downloaded files are saved in `.cache` under the same directory as opensca-cli. | `-cache`                          |
+| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result. | `-vuln`                           |
+| `out`      | `string` | Set the output file. The result defaults to json format.Support the output of SBOM list in spdx format. | `-out output.json`                |
 | `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                     |
-| `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                       |
-| `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                          |
+| `progress` | `bool`   | Show the progress bar.                                       | `-progress`                       |
+| `dedup`    | `bool`   | Same result deduplication                                    | `-dedup`                          |
 
 ------
 

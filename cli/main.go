@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"path"
+	"strings"
 	"util/args"
 	"util/logs"
 	"util/model"
@@ -33,11 +34,23 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果
 	var reportFunc func(*model.DepTree, report.TaskInfo) []byte
-	switch path.Ext(args.Config.Out) {
+	out := args.Config.Out
+	switch path.Ext(out) {
 	case ".html":
 		reportFunc = report.Html
 	case ".json":
+		if strings.HasSuffix(out, ".spdx.json") {
+			reportFunc = report.SpdxJson
+			break
+		}
 		reportFunc = report.Json
+	case ".spdx":
+		reportFunc = report.Spdx
+	case ".xml":
+		if strings.HasSuffix(out, ".spdx.xml") {
+			reportFunc = report.SpdxXml
+			break
+		}
 	default:
 		reportFunc = report.Json
 	}

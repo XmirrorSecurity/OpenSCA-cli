@@ -45,7 +45,7 @@ func parsePackageLock(root *model.DepTree, file *model.FileInfo, direct []string
 	}{}
 	if err := json.Unmarshal(file.Data, &lock); err != nil {
 		logs.Error(err)
-		return
+		//return
 	}
 	if lock.Name != "" {
 		root.Name = lock.Name

@@ -8,6 +8,7 @@ package php
 import (
 	"encoding/json"
 	"sort"
+	"strings"
 	"util/logs"
 	"util/model"
 )
@@ -15,9 +16,11 @@ import (
 // composer.lock
 type ComposerLock struct {
 	Pkgs []struct {
-		Name    string            `json:"name"`
-		Version string            `json:"version"`
-		Require map[string]string `json:"require"`
+		Name     string            `json:"name"`
+		Version  string            `json:"version"`
+		Require  map[string]string `json:"require"`
+		HomePage string            `json:"homepage"`
+		Source   map[string]string `json:"source"`
 	} `json:"packages"`
 }
 
@@ -26,7 +29,7 @@ func parseComposerLock(root *model.DepTree, file *model.FileInfo, direct []strin
 	lock := ComposerLock{}
 	if err := json.Unmarshal(file.Data, &lock); err != nil {
 		logs.Error(err)
-		return
+		//return
 	}
 	// 记录尚无Parent的依赖
 	depMap := map[string]*model.DepTree{}
@@ -37,6 +40,8 @@ func parseComposerLock(root *model.DepTree, file *model.FileInfo, direct []strin
 		dep.Name = cps.Name
 		dep.Version = model.NewVersion(cps.Version)
 		dep.Expand = cps.Require
+		dep.HomePage = cps.HomePage
+		dep.DownloadLocation = strings.ReplaceAll(cps.Source["url"], ".git", "")
 		depMap[cps.Name] = dep
 		directMap[cps.Name] = dep
 	}

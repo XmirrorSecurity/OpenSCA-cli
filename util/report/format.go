@@ -52,6 +52,12 @@ func format(dep *model.DepTree) {
 			if d, ok := dm[k]; !ok {
 				dm[k] = n
 			} else {
+				// 临时解决部分组件homepage字段不显示问题
+				// 因为去重时刚好把解析到homepage字段的组件去掉了
+				// 其他字段可能也需要类似操作
+				if n.HomePage != "" {
+					d.HomePage = n.HomePage
+				}
 				// 已存在相同组件
 				d.Paths = append(d.Paths, n.Path)
 				// 从父组件中移除当前组件

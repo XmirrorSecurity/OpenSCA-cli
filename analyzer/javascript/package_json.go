@@ -22,11 +22,13 @@ import (
 
 // package.json 文件结构
 type PkgJson struct {
-	Name    string            `json:"name"`
-	Version string            `json:"version"`
-	License string            `json:"license"`
-	DevDeps map[string]string `json:"devDependencies"`
-	Deps    map[string]string `json:"dependencies"`
+	Name       string            `json:"name"`
+	Version    string            `json:"version"`
+	License    string            `json:"license"`
+	DevDeps    map[string]string `json:"devDependencies"`
+	Deps       map[string]string `json:"dependencies"`
+	HomePage   string            `json:"homepage"`
+	Repository map[string]string `json:"repository,omitempty"`
 }
 
 // npm下载文件结构
@@ -41,13 +43,15 @@ func parsePackage(root *model.DepTree, file *model.FileInfo, simulation bool) (d
 	pkg := PkgJson{}
 	if err := json.Unmarshal(file.Data, &pkg); err != nil {
 		logs.Error(err)
-		return
 	}
 	if pkg.Name != "" {
 		root.Name = pkg.Name
 	}
-	root.Version = model.NewVersion(pkg.Version)
+	if pkg.Version != "" {
+		root.Version = model.NewVersion(pkg.Version)
+	}
 	root.AddLicense(pkg.License)
+	root.HomePage = pkg.HomePage
 	// 依赖列表map[name]version
 	depMap := map[string]string{}
 	for name, version := range pkg.DevDeps {
@@ -81,7 +85,7 @@ func parsePackage(root *model.DepTree, file *model.FileInfo, simulation bool) (d
 	}
 	for !q.Empty() {
 		node := q.Pop().(*model.DepTree)
-		for _, sub := range npmSimulation(node) {
+		for _, sub := range npmSimulation(node, exist) {
 			if _, ok := exist[sub.Name]; !ok {
 				bar.Npm.Add(1)
 				exist[sub.Name] = struct{}{}
@@ -93,7 +97,7 @@ func parsePackage(root *model.DepTree, file *model.FileInfo, simulation bool) (d
 }
 
 // npmSimulation 模拟npm获取详细依赖信息
-func npmSimulation(dep *model.DepTree) (subDeps []*model.DepTree) {
+func npmSimulation(dep *model.DepTree, exist map[string]struct{}) (subDeps []*model.DepTree) {
 	subDeps = []*model.DepTree{}
 	dep.Language = language.JavaScript
 	// 获取依赖数据
@@ -149,6 +153,9 @@ func npmSimulation(dep *model.DepTree) (subDeps []*model.DepTree) {
 	}
 	sort.Strings(names)
 	for _, name := range names {
+		if _, ok := exist[name]; ok {
+			continue
+		}
 		sub := model.NewDepTree(dep)
 		sub.Name = name
 		sub.Version = model.NewVersion(info.Deps[name])

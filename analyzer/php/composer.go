@@ -26,6 +26,8 @@ type Composer struct {
 	License    string            `json:"license"`
 	Require    map[string]string `json:"require"`
 	RequireDev map[string]string `json:"require-dev"`
+	HomePage   string            `json:"homepage"`
+	Support    map[string]string `json:"support"`
 }
 
 type ComposerRepo struct {
@@ -47,6 +49,8 @@ func parseComposer(root *model.DepTree, file *model.FileInfo, simulation bool) (
 	if composer.Name != "" {
 		root.Name = composer.Name
 	}
+	root.HomePage = composer.HomePage
+	root.DownloadLocation = composer.Support["source"]
 	// add license
 	if composer.License != "" {
 		root.AddLicense(composer.License)
@@ -84,7 +88,7 @@ func parseComposer(root *model.DepTree, file *model.FileInfo, simulation bool) (
 	}
 	for !q.Empty() {
 		node := q.Pop().(*model.DepTree)
-		for _, sub := range composerSimulation(node) {
+		for _, sub := range composerSimulation(node, exist) {
 			if _, ok := exist[sub.Name]; !ok {
 				bar.Composer.Add(1)
 				exist[sub.Name] = struct{}{}
@@ -96,7 +100,7 @@ func parseComposer(root *model.DepTree, file *model.FileInfo, simulation bool) (
 }
 
 // composerSimulation composer simulation
-func composerSimulation(dep *model.DepTree) (subDeps []*model.DepTree) {
+func composerSimulation(dep *model.DepTree, exist map[string]struct{}) (subDeps []*model.DepTree) {
 	subDeps = []*model.DepTree{}
 	dep.Language = language.Php
 	data := cache.LoadCache(dep.Dependency)
@@ -146,6 +150,9 @@ func composerSimulation(dep *model.DepTree) (subDeps []*model.DepTree) {
 						sort.Strings(names)
 						for _, name := range names {
 							if strings.EqualFold(name, "php") {
+								continue
+							}
+							if _, ok := exist[name]; ok {
 								continue
 							}
 							sub := model.NewDepTree(dep)
