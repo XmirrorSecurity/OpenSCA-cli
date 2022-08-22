@@ -7,5 +7,12 @@
 	"cache": true,
 	"vuln": false,
 	"progress": true,
-	"dedup": true
+	"dedup": true,
+	"maven":[
+		{
+			"repo":"",
+			"user":"",
+			"password":""
+		}
+	]
 }

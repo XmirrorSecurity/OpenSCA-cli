@@ -91,10 +91,15 @@ var (
 
 // python
 var (
-	PythonSetup        = filterFunc(strings.HasSuffix, "setup.py")
-	PythonPipfile      = filterFunc(strings.HasSuffix, "Pipfile")
-	PythonPipfileLock  = filterFunc(strings.HasSuffix, "Pipfile.lock")
-	PythonRequirements = filterFunc(strings.HasSuffix, "requirements.txt")
+	PythonSetup           = filterFunc(strings.HasSuffix, "setup.py")
+	PythonPipfile         = filterFunc(strings.HasSuffix, "Pipfile")
+	PythonPipfileLock     = filterFunc(strings.HasSuffix, "Pipfile.lock")
+	PythonRequirementsTxt = func(filename string) bool {
+		return filterFunc(strings.HasSuffix, ".txt")(filename) &&
+			filterFunc(strings.Contains, "requirements")(path.Base(filename)) && !filterFunc(strings.Contains, "test")(path.Base(filename))
+	}
+	PythonRequirementsIn = filterFunc(strings.HasSuffix, "requirements.in")
+	// PythonSetupCfg       = filterFunc(strings.HasSuffix, "setup.cfg")
 )
 
 // 用于筛选可能有copyright信息的文件

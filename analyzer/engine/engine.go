@@ -56,8 +56,9 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	// 目录树
 	dirRoot := model.NewDirTree()
 	depRoot = model.NewDepTree(nil)
+	filepath = strings.ReplaceAll(filepath, `\`, `/`)
 	taskInfo = report.TaskInfo{
-		AppName:   filepath,
+		AppName:   strings.TrimSuffix(path.Base(filepath), path.Ext(path.Base(filepath))),
 		StartTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	s := time.Now()

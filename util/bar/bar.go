@@ -18,6 +18,7 @@ var (
 	Npm        *Bar = newBar("parse npm indirect dependency")
 	Composer   *Bar = newBar("parse composer indirect dependency")
 	Dependency *Bar = newBar("parse project dependency")
+	PipCompile *Bar = newBar("parse python module")
 )
 
 // mult pargress bar

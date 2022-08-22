@@ -22,7 +22,9 @@ func (Analyzer) GetLanguage() language.Type {
 func (Analyzer) CheckFile(filename string) bool {
 	return filter.PythonSetup(filename) ||
 		filter.PythonPipfile(filename) ||
-		filter.PythonPipfileLock(filename)
+		filter.PythonPipfileLock(filename) ||
+		filter.PythonRequirementsTxt(filename) ||
+		filter.PythonRequirementsIn(filename)
 }
 
 // ParseFiles parse dependency from file
@@ -37,6 +39,8 @@ func (Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
 			parsePipfile(dep, f)
 		} else if filter.PythonPipfileLock(f.Name) {
 			parsePipfileLock(dep, f)
+		} else if filter.PythonRequirementsTxt(f.Name) || filter.PythonRequirementsIn(f.Name) {
+			parseRequirementsin(dep, f)
 		}
 		deps = append(deps, dep)
 	}

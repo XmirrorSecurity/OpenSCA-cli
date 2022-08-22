@@ -17,17 +17,17 @@
 
 `OpenSCA`现已支持以下编程语言相关的配置文件解析及对应的包管理器，后续会逐步支持更多的编程语言，丰富相关配置文件的解析。
 
-| 支持语言     | 包管理器   | 解析文件                                       |
-| ------------ | ---------- | ---------------------------------------------- |
-| `Java`       | `Maven`    | `pom.xml`                                      |
-| `Java`       | `Gradle`   | `.gradle` `.gradle.kts`                        |
-| `JavaScript` | `Npm`      | `package-lock.json` `package.json` `yarn.lock` |
-| `PHP`        | `Composer` | `composer.json` `composer.lock`                |
-| `Ruby`       | `gem`      | `gemfile.lock`                                 |
-| `Golang`     | `gomod`    | `go.mod` `go.sum`                              |
-| `Rust`       | `cargo`    | `Cargo.lock`                                   |
-| `Erlang`     | `Rebar`    | `rebar.lock`                                   |
-| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py`            |
+| 支持语言     | 包管理器   | 解析文件                                                     |
+| ------------ | ---------- | ------------------------------------------------------------ |
+| `Java`       | `Maven`    | `pom.xml`                                                    |
+| `Java`       | `Gradle`   | `.gradle` `.gradle.kts`                                      |
+| `JavaScript` | `Npm`      | `package-lock.json` `package.json` `yarn.lock`               |
+| `PHP`        | `Composer` | `composer.json` `composer.lock`                              |
+| `Ruby`       | `gem`      | `gemfile.lock`                                               |
+| `Golang`     | `gomod`    | `go.mod` `go.sum`                                            |
+| `Rust`       | `cargo`    | `Cargo.lock`                                                 |
+| `Erlang`     | `Rebar`    | `rebar.lock`                                                 |
+| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`（后两者需要pipenv环境，需要联网） |
 
 ## 下载安装
 
@@ -75,18 +75,18 @@ opensca-cli -db db.json -path ${project_path}
 
 **可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
 
-| 参数       | 类型     | 描述                                                                                                                                              | 使用样例                          |
-| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数                                        | `-config config.json`             |
-| `path`     | `string` | 指定要检测的文件或目录路径                                                                                                                        | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                                                               | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                                                                   | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下                           | `-cache`                          |
-| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                                                                      | `-vuln`                           |
-| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式；；支持以`spdx`格式展示`sbom`清单只需更换相应输出文件后缀即可                                     | `-out output.json`                |
+| 参数       | 类型     | 描述                                                         | 使用样例                          |
+| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
+| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数 | `-config config.json`             |
+| `path`     | `string` | 指定要检测的文件或目录路径                                   | `-path ./foo`                     |
+| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用 | `-url https://opensca.xmirror.cn` |
+| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                  |
+| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下 | `-cache`                          |
+| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                           |
+| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式；支持以`spdx`格式展示`sbom`清单只需更换相应输出文件后缀即可 | `-out output.json`                |
 | `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
-| `progress` | `bool`   | 显示进度条                                                                                                                                        | `-progress`                       |
-| `dedup`    | `bool`   | 相同组件去重                                                                                                                                      | `-dedup`                          |
+| `progress` | `bool`   | 显示进度条                                                   | `-progress`                       |
+| `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                          |
 
 ---
 

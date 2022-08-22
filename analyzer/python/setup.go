@@ -56,7 +56,7 @@ func parseSetup(root *model.DepTree, file *model.FileInfo) {
 			logs.Warn(err)
 		}
 		root.Name = dep.Name
-		root.Version = model.NewVersion(formatVer(dep.Version))
+		root.Version = model.NewVersion(dep.Version)
 		root.Licenses = append(root.Licenses, dep.License)
 		for _, pkg := range [][]string{dep.Packages, dep.InstallRequires, dep.Requires} {
 			for _, p := range pkg {
@@ -64,12 +64,11 @@ func parseSetup(root *model.DepTree, file *model.FileInfo) {
 				sub := model.NewDepTree(root)
 				if index > -1 {
 					sub.Name = p[:index]
-					sub.Version = model.NewVersion(formatVer(p[index:]))
+					sub.Version = model.NewVersion(p[index:])
 				} else {
 					sub.Name = p
 				}
 			}
 		}
 	})
-	return
 }

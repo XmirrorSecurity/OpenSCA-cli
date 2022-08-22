@@ -2,7 +2,6 @@ package python
 
 import (
 	"encoding/json"
-	"strings"
 	"util/logs"
 	"util/model"
 
@@ -21,12 +20,12 @@ func parsePipfile(root *model.DepTree, file *model.FileInfo) {
 	for name, version := range pip.Packages {
 		dep := model.NewDepTree(root)
 		dep.Name = name
-		dep.Version = model.NewVersion(formatVer(version))
+		dep.Version = model.NewVersion(version)
 	}
 	for name, version := range pip.DevPackages {
 		dep := model.NewDepTree(root)
 		dep.Name = name
-		dep.Version = model.NewVersion(formatVer(version))
+		dep.Version = model.NewVersion(version)
 	}
 }
 
@@ -50,17 +49,7 @@ func parsePipfileLock(root *model.DepTree, file *model.FileInfo) {
 		if v != "" {
 			dep := model.NewDepTree(root)
 			dep.Name = n
-			dep.Version = model.NewVersion(formatVer(v))
+			dep.Version = model.NewVersion(v)
 		}
 	}
-	return
-}
-
-// 后续使用其他办法确定版本号
-func formatVer(v string) string {
-	res := strings.ReplaceAll(v, "==", "")
-	res = strings.ReplaceAll(res, "~=", "")
-	res = strings.ReplaceAll(res, ">=", "")
-	res = strings.ReplaceAll(res, "<=", "")
-	return res
 }
