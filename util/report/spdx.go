@@ -20,6 +20,7 @@ func init() {
 	replacers := []string{"_", "-", "/", "."}
 	replacer = strings.NewReplacer(replacers...)
 }
+
 func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -38,6 +39,7 @@ func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	}
 	return templateBuffer.Bytes()
 }
+
 func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -53,6 +55,7 @@ func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	}
 	return res
 }
+
 func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -103,7 +106,8 @@ func addPkgToDoc(root *model.DepTree, doc *Document) {
 	if root.Name == "" {
 		root.Name = doc.DocumentName
 	}
-	q := []*model.DepTree{root}
+	q := []*model.DepTree{}
+	q = append(q, root.Children...)
 	for len(q) > 0 {
 		n := q[0]
 		q = append(q[1:], n.Children...)
@@ -129,7 +133,7 @@ func buildPkg(dep *model.DepTree) Package {
 		PackageComment:          setPkgComments(dep),
 		RootPackage:             isParent(dep),
 	}
-	pkg.SPDXID = setPkgSPDXID(dep.Name, dep.VersionStr)
+	pkg.SPDXID = setPkgSPDXID(path.Base(dep.Name), dep.VersionStr)
 	nodePkg[dep] = pkg
 	return pkg
 }
