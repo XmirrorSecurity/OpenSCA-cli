@@ -30,8 +30,16 @@ var (
 		Token string `json:"token"`
 		// local vuldb
 		VulnDB string `json:"db"`
+		// prvate repository
+		Maven []repos `json:"maven"`
 	}{}
 )
+
+type repos struct {
+	Repo     string `json:"repo"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+}
 
 func init() {
 	flag.StringVar(&ConfigPath, "config", "", "(可选) 指定配置文件路径,指定后启动程序时将默认使用配置参数，配置参数与命令行输入参数冲突时优先使用输入参数")
