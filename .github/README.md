@@ -21,17 +21,17 @@ OpenSCA is intended for scanning the third-party component dependencies and vuln
 
 OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The project team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
 
-| LANGUAGE     | PACKAGE MANAGER | FILE                                           |
-| ------------ | --------------- | ---------------------------------------------- |
-| `Java`       | `Maven`         | `pom.xml`                                      |
-| `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                        |
-| `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock` |
-| `PHP`        | `Composer`      | `composer.json`  `composer.lock`               |
-| `Ruby`       | `gem`           | `gemfile.lock`                                 |
-| `Golang`     | `gomod`         | `go.mod` `go.sum`                              |
-| `Rust`       | `cargo`         | `Cargo.lock`                                   |
-| `Erlang`     | `Rebar`         | `rebar.lock`                                   |
-| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py`            |
+| LANGUAGE     | PACKAGE MANAGER | FILE                                                         |
+| ------------ | --------------- | ------------------------------------------------------------ |
+| `Java`       | `Maven`         | `pom.xml`                                                    |
+| `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                                      |
+| `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock`               |
+| `PHP`        | `Composer`      | `composer.json`  `composer.lock`                             |
+| `Ruby`       | `gem`           | `gemfile.lock`                                               |
+| `Golang`     | `gomod`         | `go.mod` `go.sum`                                            |
+| `Rust`       | `cargo`         | `Cargo.lock`                                                 |
+| `Erlang`     | `Rebar`         | `rebar.lock`                                                 |
+| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`(For the latter two, you need to install pipenv in advance) |
 
 ## Download and Deployment
 
