@@ -42,7 +42,7 @@ func init() {
 	filepath := path.Join(path.Dir(strings.ReplaceAll(dir, `\`, `/`)), "opensca.log")
 	logFile, err = os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 	if err != nil {
-		log.Println("log file create fail!")
+		fmt.Println("log file create fail!")
 	} else {
 		// 创建日志
 		logger = log.New(logFile, "", log.Ldate|log.Ltime|log.Lshortfile)
@@ -54,6 +54,9 @@ func GetLogFile() *os.File {
 }
 
 func out(level logLevel, v interface{}) {
+	if logger == nil {
+		return
+	}
 	logger.SetPrefix(fmt.Sprintf("[%s] ", prefixs[level]))
 	logger.Output(3, fmt.Sprint(v))
 }
