@@ -140,6 +140,13 @@ opensca-cli -db db.json -path ${project_path}
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
 | `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
 
+## Authors
+- Tao Zhang
+- Chi Zhang
+- Zhong Chen
+- Enzhi Liu
+- Ge Ning
+
 ## Contributing 
 
 OpenSCA is an open source project, we appreciate your help!
