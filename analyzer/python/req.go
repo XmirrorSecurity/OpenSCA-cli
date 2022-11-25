@@ -165,7 +165,7 @@ func getOutData(file *model.FileInfo, dir string) []string {
 
 // 将组件名与版本号写入requirements.in文件单独调用pip-compile，获取打印数据
 func getSingleModStr(reqpath string, elem string) string {
-	f, err := os.OpenFile(reqpath, os.O_CREATE, 0744)
+	f, err := os.OpenFile(reqpath, os.O_RDWR, 0755)
 	if err != nil {
 		return ""
 	}
