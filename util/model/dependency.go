@@ -6,11 +6,14 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 	"util/enum/language"
+	"util/filter"
+	"util/logs"
 )
 
 // 用于id生成
@@ -75,10 +78,10 @@ type DepTree struct {
 	// 是否为直接依赖
 	Direct bool `json:"direct"`
 	// 依赖路径
-	Path  string   `json:"-"`
+	Path  string   `json:"path,omitempty"`
 	Paths []string `json:"paths,omitempty"`
 	// 唯一的组件id，用来标识不同组件
-	ID int64 `json:"-"`
+	ID int64 `json:"id,omitempty"`
 	// 父组件
 	Parent                  *DepTree `json:"-"`
 	Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty"`
@@ -188,4 +191,116 @@ func (root *DepTree) String() string {
 		}
 	}
 	return res
+}
+
+// ToDetectComponents 转为检测依赖组件的格式
+func (root *DepTree) ToDetectComponents() (comp *CompTree) {
+	// 利用json.Unmarshal来实现深拷贝
+	comp = NewCompTree(nil)
+	if data, err := json.Marshal(root); err != nil {
+		logs.Error(err)
+	} else {
+		err = json.Unmarshal(data, &comp)
+		if err != nil {
+			logs.Error(err)
+		} else {
+			// 参考format，改了下顺序，先去重再转换
+			// 恢复转换后缺失的父节点
+			for _, c := range comp.Children {
+				c.Parent = comp
+			}
+			// 去重
+			q := []*CompTree{comp}
+			dm := map[string]*CompTree{}
+			for len(q) > 0 {
+				n := q[0]
+				q = append(q[1:], n.Children...)
+				// 去重
+				k := fmt.Sprintf("%s:%s@%s#%s", n.Vendor, n.Name, n.Version.Org, strings.ToLower(n.Language.String()))
+				if d, ok := dm[k]; !ok {
+					dm[k] = n
+				} else {
+					// 已存在相同组件，但是某些字段可能不一样
+
+					// 当d.Path为空或者等于n.Path时才进行合并处理
+					if d.Path == "" {
+						if n.Path != "" {
+							d.Path = n.Path
+						}
+						if n.Direct {
+							d.Direct = n.Direct
+						}
+					} else if d.Path != n.Path {
+						continue
+					}
+					// 从父组件中移除当前组件
+					if n.Parent != nil {
+						for i, c := range n.Parent.Children {
+							if c.ID == n.ID {
+								n.Parent.Children = append(n.Parent.Children[:i], n.Parent.Children[i+1:]...)
+								break
+							}
+						}
+					}
+					// 将当前组件的子组件转移到已存在组件的子依赖中
+					d.Children = append(d.Children, n.Children...)
+					for _, c := range n.Children {
+						c.Parent = d
+					}
+				}
+			}
+
+			//应该只有pom的解析存在不需要一级节点这种情况。
+			//先将二级子节点复制到一级，并记录需要删除的索引
+			deleteIndex := make(map[int]int)
+			for i, c := range comp.Children {
+				if filter.JavaPom(strings.TrimSuffix(c.Path, "/"+c.String())) {
+					deleteIndex[i] = i
+					c.Parent.Children = append(c.Parent.Children, c.Children...)
+				}
+			}
+			//再删除对应的一级节点
+			if len(deleteIndex) > 0 {
+				comp.Delete(deleteIndex)
+			}
+
+			// 保留要导出的数据
+			q = []*CompTree{comp}
+			for len(q) > 0 {
+				n := q[0]
+				q = append(q[1:], n.Children...)
+				if n.Language != language.None {
+					n.LanguageStr = strings.ToLower(n.Language.String())
+					n.Language = language.None
+				}
+				if n.Version != nil {
+					n.ComponentVersion = n.Version.Org
+					n.Version = nil
+				}
+				if n.Vendor != "" {
+					n.ComponentAuthor = n.Vendor
+					n.Vendor = ""
+				}
+				if n.Name != "" {
+					n.ComponentName = n.Name
+					n.Name = ""
+				}
+				if n.Path != "" {
+					n.FilePath = n.Path
+					n.Path = ""
+				}
+				//n.ComponentId = n.ID
+				// 不展示的字段置空
+				//n.ID = 0
+				n.Paths = nil
+				n.Licenses = nil
+				n.CopyrightText = ""
+				n.Vulnerabilities = nil
+				n.IndirectVulnerabilities = 0
+			}
+
+		}
+	}
+
+	return comp
 }

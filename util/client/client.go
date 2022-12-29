@@ -18,14 +18,27 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"util/args"
 	"util/logs"
+	"util/model"
 	"util/temp"
 
 	"github.com/pkg/errors"
 )
 
-// 消息响应格式
+const CliType = 10 //新的saas端定义的类型，来自cli的type固定为10
+var PluginType = map[string]int{
+	"idea": 3, //新的saas端定义的类型，来自idea的type固定为3
+}
+var (
+	PackageBasePath string
+	PackageName     string
+	PackageVersion  string
+	PackageHash     string
+)
+
+// SaasReponse 消息响应格式
 type SaasReponse struct {
 	// 错误消息
 	Message string `json:"message"`
@@ -35,7 +48,7 @@ type SaasReponse struct {
 	Data interface{} `json:"data"`
 }
 
-// 检测结果响应格式
+// DetectReponse 检测结果响应格式
 type DetectReponse struct {
 	// 加密后的消息
 	Message string `json:"aesMessage"`
@@ -43,7 +56,7 @@ type DetectReponse struct {
 	Nonce   string `json:"aesNonce"`
 }
 
-// 检测任务请求格式
+// DetectRequst 检测任务请求格式
 type DetectRequst struct {
 	// 16位byte base64编码
 	Tag string `json:"aesTag"`
@@ -55,6 +68,22 @@ type DetectRequst struct {
 	Message string `json:"aesMessage"`
 	// 16位 大写字母
 	ClientId string `json:"clientId"`
+}
+
+// DetectRequstV2 检测任务请求格式 v2
+type DetectRequstV2 struct {
+	// 16位 大写字母
+	//ClientId string `json:"clientId"`
+	// 在saas注册
+	Token                   string            `json:"token"`
+	ComponentInfoAddDTOList []*model.CompTree `json:"componentInfoAddDTOList"`
+	Type                    int               `json:"type"`
+	PackageName             string            `json:"packageName"`
+	PackageVersion          string            `json:"packageVersion"`
+	PackageHash             string            `json:"packageHash"`
+	// 是否需要saas端进行依赖检测，只传直接依赖时才检测，DeepLimit是依赖层数限制
+	//Check     bool `json:"check"`
+	//DeepLimit int  `json:"deepLimit"`
 }
 
 // GetClientId 获取客户端id
@@ -163,6 +192,72 @@ func Detect(reqbody []byte) (repbody []byte, err error) {
 	}
 }
 
+// DetectV2 发送任务解析请求 v2版本
+func DetectV2(root *model.DepTree) (repbody []byte, err error) {
+	repbody = []byte{}
+	// 转为新版本的组件格式
+	dep := root.ToDetectComponents()
+	if len(dep.Children) == 0 {
+		logs.Debug("依赖节点为空")
+	}
+	// 构建请求
+	url := args.Config.Url + "/oss-saas/api-v1/component/task/cli/add"
+	// 添加参数
+	param := DetectRequstV2{}
+	if _, ok := PluginType[args.PluginName]; ok {
+		param.Type = PluginType[args.PluginName]
+	} else {
+		param.Type = CliType
+	}
+	//param.ClientId = GetClientId()
+	param.Token = args.Config.Token
+	param.PackageName = fmt.Sprintf("[%s]%s", PackageBasePath, PackageName)
+	param.PackageVersion = PackageVersion
+	param.PackageHash = PackageHash
+	param.ComponentInfoAddDTOList = dep.Children
+	data, err := json.Marshal(param)
+	if err != nil {
+		return repbody, err
+	}
+	// 发送数据
+	rep, err := http.Post(url, "application/json", bytes.NewReader(data))
+	if err != nil {
+		logs.Error(err)
+		return repbody, err
+	}
+	defer rep.Body.Close()
+	if rep.StatusCode == 200 {
+		repbody, err = ioutil.ReadAll(rep.Body)
+		if err != nil {
+			logs.Error(err)
+			return
+		} else {
+			// 解析响应
+			saasrep := SaasReponse{}
+			err = json.Unmarshal(repbody, &saasrep)
+			if err != nil {
+				logs.Error(err)
+			}
+			if saasrep.Code != 0 {
+				// 出现错误
+				logs.Warn(fmt.Sprintf("url:%s code:%d message: %s", url, saasrep.Code, saasrep.Message))
+				err = errors.New(saasrep.Message)
+				return
+			} else {
+				data, err = json.Marshal(saasrep.Data)
+				if err != nil {
+					logs.Error(err)
+				} else {
+					repbody = data
+				}
+				return
+			}
+		}
+	} else {
+		return repbody, fmt.Errorf("%s status code: %d", url, rep.StatusCode)
+	}
+}
+
 // getAesKey 获取aes-key
 func getAesKey() (key []byte, err error) {
 	u, err := url.Parse(args.Config.Url + "/oss-saas/api-v1/open-sca-client/aes-key")
@@ -174,20 +269,24 @@ func getAesKey() (key []byte, err error) {
 	param.Set("clientId", GetClientId())
 	param.Set("ossToken", args.Config.Token)
 	u.RawQuery = param.Encode()
+	// 日志里尽量避免记录token
+	logUrl := strings.ReplaceAll(u.String(), args.Config.Token, "[TOKEN]")
 	// 发送请求
 	rep, err := http.Get(u.String())
 	if err != nil {
+		err = fmt.Errorf("%s", strings.ReplaceAll(err.Error(), args.Config.Token, "[TOKEN]"))
 		logs.Error(err)
 		return
 	}
 	if rep.StatusCode != 200 {
-		err = fmt.Errorf("url: %s,status code:%d", u.String(), rep.StatusCode)
+		err = fmt.Errorf("url: %s,status code:%d", logUrl, rep.StatusCode)
 		logs.Error(err)
 		return
 	} else {
 		defer rep.Body.Close()
 		data, err := ioutil.ReadAll(rep.Body)
 		if err != nil {
+			err = fmt.Errorf("%s", strings.ReplaceAll(err.Error(), args.Config.Token, "[TOKEN]"))
 			logs.Error(err)
 			return key, err
 		}
@@ -196,7 +295,7 @@ func getAesKey() (key []byte, err error) {
 		json.Unmarshal(data, &saasrep)
 		if saasrep.Code != 0 {
 			// 出现错误
-			logs.Warn(fmt.Sprintf("url:%s code:%d message: %s", u.String(), saasrep.Code, saasrep.Message))
+			logs.Warn(fmt.Sprintf("url:%s code:%d message: %s", logUrl, saasrep.Code, saasrep.Message))
 			err = errors.New(saasrep.Message)
 			return key, err
 		} else {

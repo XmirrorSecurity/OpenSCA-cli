@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	Python            string = "python"
-	PipinstallPiptoos string = "pipenv install pip-tools --skip-lock"
-	PipCompilein      string = "pipenv run pip-compile requirements.in"
-	PipCompileCfg     string = "pipenv run pip-compile setup.cfg -o temp.txt"
-	PipcompileSetup   string = "pipenv run pip-compile setup.py"
-	RemoveVirtualCmd  string = "pipenv --rm"
+	Python             string = "python"
+	PipinstallPiptools string = "pipenv install pip-tools --skip-lock"
+	PipCompilein       string = "pipenv run pip-compile requirements.in"
+	PipCompileCfg      string = "pipenv run pip-compile setup.cfg -o temp.txt"
+	PipcompileSetup    string = "pipenv run pip-compile setup.py"
+	RemoveVirtualCmd   string = "pipenv --rm"
 )
 
 type CmdOpts struct {

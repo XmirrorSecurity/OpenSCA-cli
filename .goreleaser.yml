@@ -19,12 +19,17 @@ builds:
     binary: "opensca-cli"
     main: ./cli/
 archives:
-  - replacements:
+  -
+   replacements:
       darwin: Darwin
       linux: Linux
       windows: Windows
       386: i386
       amd64: x86_64
+   files:
+    - LICENSE
+    - src: '.github/*'
+      strip_parent: true
 checksum:
   name_template: 'checksums.txt'
 snapshot:

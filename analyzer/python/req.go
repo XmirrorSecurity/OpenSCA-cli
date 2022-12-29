@@ -21,7 +21,7 @@ var replacer *strings.Replacer
 func init() {
 	reg1 = regexp.MustCompile(`^\w`)
 	regGit = regexp.MustCompile(`\/([\w-]+)\.git`)
-	replacer =  strings.NewReplacer("# via","","\r",""," ","","#","")
+	replacer = strings.NewReplacer("# via", "", "\r", "", " ", "", "#", "")
 }
 
 func parseRequirementsin(root *model.DepTree, file *model.FileInfo) {
@@ -32,7 +32,7 @@ func parseRequirementsin(root *model.DepTree, file *model.FileInfo) {
 	strArry := []string{}
 	temp.DoInTempDir(func(tempdir string) {
 		// 安装piptools
-		if _, err := ex.Do(ex.PipinstallPiptoos, tempdir); err != nil {
+		if _, err := ex.Do(ex.PipinstallPiptools, tempdir); err != nil {
 			logs.Error(err)
 			return
 		}
@@ -89,7 +89,7 @@ func parseOutData(root *model.DepTree, strs []string) {
 		depMap[cur.Name] = cur
 		nodes = append(nodes, cur.Name)
 		for _, name := range nodes {
-			if _,ok := depMap[name]; !ok {
+			if _, ok := depMap[name]; !ok {
 				continue
 			}
 			parNames := parentsMap[name]
@@ -99,13 +99,13 @@ func parseOutData(root *model.DepTree, strs []string) {
 						directMap[dep.Name] = dep
 					}
 				}
-				if _,ok := depMap[parName]; !ok {
+				if _, ok := depMap[parName]; !ok {
 					continue
 				}
 				parent := depMap[parName]
 				dep := depMap[name]
-				if m,ok := childMap[dep]; ok {
-					if _,ok := m[dep.Name];ok {
+				if m, ok := childMap[dep]; ok {
+					if _, ok := m[dep.Name]; ok {
 						continue
 					}
 					m[dep.Name] = struct{}{}
@@ -115,11 +115,11 @@ func parseOutData(root *model.DepTree, strs []string) {
 			}
 		}
 	}
-	withRoot(root,directMap)
+	withRoot(root, directMap)
 }
 
 // 所有直接依赖连接至root
-func withRoot(root *model.DepTree,directMap map[string]*model.DepTree) {
+func withRoot(root *model.DepTree, directMap map[string]*model.DepTree) {
 	direct := []*model.DepTree{}
 	for _, n := range directMap {
 		direct = append(direct, n)
@@ -154,7 +154,7 @@ func getOutData(file *model.FileInfo, dir string) []string {
 				continue
 			}
 		}
-		// 一般情况下字母开头的行内容都是组件名
+		// 一般情况下非符号开头的都是组件名。
 		if reg1.MatchString(v) {
 			bar.PipCompile.Add(1)
 			strList = append(strList, getSingleModStr(reqpath, v))
@@ -165,6 +165,7 @@ func getOutData(file *model.FileInfo, dir string) []string {
 
 // 将组件名与版本号写入requirements.in文件单独调用pip-compile，获取打印数据
 func getSingleModStr(reqpath string, elem string) string {
+	// windows跟linux这里的权限有差异需要注意。
 	f, err := os.OpenFile(reqpath, os.O_RDWR, 0755)
 	if err != nil {
 		return ""

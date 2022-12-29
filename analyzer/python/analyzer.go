@@ -24,7 +24,8 @@ func (Analyzer) CheckFile(filename string) bool {
 		filter.PythonPipfile(filename) ||
 		filter.PythonPipfileLock(filename) ||
 		filter.PythonRequirementsTxt(filename) ||
-		filter.PythonRequirementsIn(filename)
+		filter.PythonRequirementsIn(filename) ||
+		filter.PythonPyproject(filename)
 }
 
 // ParseFiles parse dependency from file
@@ -34,6 +35,7 @@ func (Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
 		dep := model.NewDepTree(nil)
 		dep.Path = f.Name
 		if filter.PythonSetup(f.Name) {
+			//parseSetupTmp(dep, f)
 			parseSetup(dep, f)
 		} else if filter.PythonPipfile(f.Name) {
 			parsePipfile(dep, f)
@@ -41,6 +43,9 @@ func (Analyzer) ParseFiles(files []*model.FileInfo) []*model.DepTree {
 			parsePipfileLock(dep, f)
 		} else if filter.PythonRequirementsTxt(f.Name) || filter.PythonRequirementsIn(f.Name) {
 			parseRequirementsin(dep, f)
+		} else if filter.PythonPyproject(f.Name) {
+			//暂未支持该文件的依赖解析
+			//parsePythonPyproject(dep, f)
 		}
 		deps = append(deps, dep)
 	}

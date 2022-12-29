@@ -25,6 +25,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// IgnoreDirMap 忽略的目录，用map方便判断
+var IgnoreDirMap = map[string]bool{".git": true, ".idea": true, ".vscode": true, ".svn": true}
+
 // checkFile 检测是否为可检测的文件
 func (e Engine) checkFile(filename string) bool {
 	for _, analyzer := range e.Analyzers {
@@ -130,8 +133,10 @@ func (e Engine) opendir(dirpath string) (dir *model.DirTree) {
 		filename := file.Name()
 		filepath := path.Join(dirpath, filename)
 		if file.IsDir() {
-			dir.DirList = append(dir.DirList, filename)
-			dir.SubDir[filename] = e.opendir(filepath)
+			if _, ok := IgnoreDirMap[filename]; !ok {
+				dir.DirList = append(dir.DirList, filename)
+				dir.SubDir[filename] = e.opendir(filepath)
+			}
 		} else {
 			if filter.AllPkg(filename) {
 				dir.DirList = append(dir.DirList, filename)

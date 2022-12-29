@@ -20,7 +20,6 @@ func init() {
 	replacers := []string{"_", "-", "/", "."}
 	replacer = strings.NewReplacer(replacers...)
 }
-
 func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -39,7 +38,6 @@ func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	}
 	return templateBuffer.Bytes()
 }
-
 func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -55,7 +53,6 @@ func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	}
 	return res
 }
-
 func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	format(dep)
 	doc := buildDocument(dep, taskInfo)
@@ -144,7 +141,7 @@ func buildDocument(root *model.DepTree, taskInfo TaskInfo) *Document {
 		SPDXVersion:       "SPDX-2.2",
 		DataLicense:       "",
 		SPDXID:            "SPDXRef-DOCUMENT",
-		DocumentName:      path.Base(taskInfo.AppName),
+		DocumentName:      taskInfo.AppName,
 		DocumentNamespace: "",
 		CreationInfo: CreationInfo{
 			Creators: []string{"OpenSCA-Cli"},

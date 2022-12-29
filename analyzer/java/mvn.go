@@ -200,10 +200,10 @@ func (m *Mvn) MvnSimulation() []*Pom {
 		}
 		for i := range p.Dependencies {
 			dp := &p.Dependencies[i]
-			if dp.Scope == "provided" {
+			if dp.Scope == "provided" || dp.Scope == "test" {
 				continue
 			}
-			if (dp.Scope == "test" || dp.Optional == "true") && p.Deep() > 0 {
+			if dp.Optional == "true" && p.Deep() > 0 {
 				continue
 			}
 			p.Complete(dp)

@@ -19,7 +19,7 @@ func (a Analyzer) GetLanguage() language.Type {
 
 // CheckFile Check if it is a parsable file
 func (a Analyzer) CheckFile(filename string) bool {
-	return filter.RustCargoLock(filename)
+	return filter.RustCargoLock(filename) || filter.RustCargoToml(filename)
 }
 
 // ParseFiles Parse the file

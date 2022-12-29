@@ -16,11 +16,13 @@ import (
 	"util/report"
 )
 
-var version string
+const VERSION = "v2.0.0"
 
 func main() {
 	args.Parse()
-	if len(args.Config.Path) > 0 {
+	if args.ShowVersion {
+		fmt.Println(VERSION)
+	} else if len(args.Config.Path) > 0 {
 		output(engine.NewEngine().ParseFile(args.Config.Path))
 	} else {
 		flag.PrintDefaults()
@@ -29,7 +31,7 @@ func main() {
 
 // output 输出结果
 func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
-	taskInfo.ToolVersion = version
+	taskInfo.ToolVersion = VERSION
 	// 记录依赖
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果

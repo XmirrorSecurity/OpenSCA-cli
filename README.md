@@ -1,5 +1,5 @@
 <p align="center">
-	<img alt="logo" src="./logo.svg">
+	<img alt="logo" src="https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/logo.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
 <p align="center">
@@ -27,16 +27,16 @@
 | `Golang`     | `gomod`    | `go.mod` `go.sum`                                            |
 | `Rust`       | `cargo`    | `Cargo.lock`                                                 |
 | `Erlang`     | `Rebar`    | `rebar.lock`                                                 |
-| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`（后两者需要pipenv环境，需要联网） |
+| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in` （有的解析会对python版本有要求，后两者的解析需要具备pipenv环境，需要联网。） |
 
 ## 下载安装
 
-1. 从 [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
+1. 从 [releases](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
 
 2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
 
    ```shell
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
    go work init cli analyzer util
    go build -o opensca-cli cli/main.go
@@ -59,36 +59,58 @@
 opensca-cli -path ${project_path}
 ```
 
-连接云平台
+使用本地漏洞库
+
+```shell
+opensca-cli -db db.json -path ${project_path}
+```
+
+仅使用云漏洞库服务
 
 ```shell
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
-或使用本地漏洞库
+使用v2.0.0及以上版本连接SaaS服务，检测漏洞信息、获取资产清单、生成数据看板并进行项目管理
 
 ```shell
-opensca-cli -db db.json -path ${project_path}
+opensca-cli -url ${url} -token ${token} -v2 -path ${project_path}
 ```
 
 ## 参数说明
 
 **可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
 
-| 参数       | 类型     | 描述                                                         | 使用样例                          |
-| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
-| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数 | `-config config.json`             |
-| `path`     | `string` | 指定要检测的文件或目录路径                                   | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用 | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下 | `-cache`                          |
-| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                           |
-| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式；支持以`spdx`格式展示`sbom`清单只需更换相应输出文件后缀即可 | `-out output.json`                |
+| 参数       | 类型     | 描述                                                                                                                                              | 使用样例                          |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数                                        | `-config config.json`             |
+| `path`     | `string` | 指定要检测的文件或目录路径                                                                                                                        | `-path ./foo`                     |
+| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                                                               | `-url https://opensca.xmirror.cn` |
+| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                                                                   | `-token xxxxxxx`                  |
+| `v2`       | `bool`   | 是否使用新的v2版本的云服务接口                                                                                                                    | `-v2`                             |
+| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下                           | `-cache`                          |
+| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                                                                      | `-vuln`                           |
+| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式；支持以`spdx`格式展示`sbom`清单，只需更换相应输出文件后缀即可            | `-out output.json`                |
 | `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
-| `progress` | `bool`   | 显示进度条                                                   | `-progress`                       |
-| `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                          |
+| `progress` | `bool`   | 显示进度条                                                                                                                                        | `-progress`                       |
+| `dedup`    | `bool`   | 相同组件去重                                                                                                                                      | `-dedup`                          |
+| `version`  | `bool`   | 显示客户端版本                                                                                                                                    | `-version`                        |
 
 ---
+
+如果要配置maven私服库，需要在配置文件里进行配置，格式如下：
+
+```json
+{
+    "maven": [
+        {
+            "repo": "url",
+            "user": "user",
+            "password": "password"
+        }
+    ]
+}
+```
 
 ### 漏洞库文件格式
 
@@ -138,6 +160,25 @@ opensca-cli -db db.json -path ${project_path}
 | `release_date`      | 漏洞发布日期                      | 否       |
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
+
+## 贡献者
+
+- 张涛
+- 张弛
+- 陈钟
+- 刘恩炙
+- 宁戈
+
+## 问题反馈&联系我们
+
+微信技术交流群：（扫码添加小助手邀您入群）
+
+<img src="https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/wechat.jpg" />
+
+QQ技术交流群：832039395
+
+官方邮箱：opensca@anpro-tech.com
+
 
 ## 向我们贡献
 

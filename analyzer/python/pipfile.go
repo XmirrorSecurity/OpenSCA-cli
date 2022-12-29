@@ -2,6 +2,7 @@ package python
 
 import (
 	"encoding/json"
+	"strings"
 	"util/logs"
 	"util/model"
 
@@ -20,7 +21,7 @@ func parsePipfile(root *model.DepTree, file *model.FileInfo) {
 	for name, version := range pip.Packages {
 		dep := model.NewDepTree(root)
 		dep.Name = name
-		dep.Version = model.NewVersion(version)
+		dep.Version = model.NewVersion(strings.TrimLeft(version, "vV^=<~>"))
 	}
 	for name, version := range pip.DevPackages {
 		dep := model.NewDepTree(root)
@@ -49,7 +50,7 @@ func parsePipfileLock(root *model.DepTree, file *model.FileInfo) {
 		if v != "" {
 			dep := model.NewDepTree(root)
 			dep.Name = n
-			dep.Version = model.NewVersion(v)
+			dep.Version = model.NewVersion(strings.TrimLeft(v, "vV^=<~>"))
 		}
 	}
 }

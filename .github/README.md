@@ -1,9 +1,10 @@
 
 
 <p align="center">
-	<img alt="logo" src="../logo.svg">
+	<img alt="logo" src="https://github.com/XmirrorSecurity/OpenSCA-cli/raw/master/logo.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
+
 <p align="center">
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
@@ -19,23 +20,23 @@ OpenSCA is intended for scanning the third-party component dependencies and vuln
 
 ## Detection Ability
 
-OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The project team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
+OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The project team is now dedicated to supporting more languages and enriching the parsing of relevant configuration files gradually.
 
 | LANGUAGE     | PACKAGE MANAGER | FILE                                                         |
 | ------------ | --------------- | ------------------------------------------------------------ |
 | `Java`       | `Maven`         | `pom.xml`                                                    |
 | `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                                      |
 | `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock`               |
-| `PHP`        | `Composer`      | `composer.json`  `composer.lock`                             |
+| `PHP`        | `Composer`      | `composer.json` `composer.lock`                              |
 | `Ruby`       | `gem`           | `gemfile.lock`                                               |
 | `Golang`     | `gomod`         | `go.mod` `go.sum`                                            |
 | `Rust`       | `cargo`         | `Cargo.lock`                                                 |
 | `Erlang`     | `Rebar`         | `rebar.lock`                                                 |
-| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`(For the latter two, you need to install pipenv in advance) |
+| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in` （The version of Python may have impacts to the parsing. To parse the latter two, pipenv environment & internet connection is a must.） |
 
 ## Download and Deployment
 
-1. Download the appropriate executable file according to your system architecture from [release](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).  
+1. Download the appropriate executable file according to your system architecture from [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).  
 
 2. Or download the source code and compile (go 1.18 and above is needed)
 
@@ -43,7 +44,7 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
    go work init cli analyzer util
-   go build -o opensca-cli cli
+   go build -o opensca-cli cli/main.go
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
@@ -54,23 +55,31 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 
 ## Samples
 
-For detecting the component information only:
+Detect the component only:
 
 ```
 opensca-cli -path ${project_path}
 ```
 
-For connecting to the cloud platform:
-
-```
-opensca-cli -url ${url} -token ${token} -path ${project_path}
-```
-
-Or for using the local vulnerability database:
+Use the local vulnerability database:
 
 ```
 opensca-cli -db db.json -path ${project_path}
 ```
+
+Connect to the cloud vulnerability database only:
+
+```shell
+opensca-cli -url ${url} -token ${token} -path ${project_path}
+```
+
+Use v2.0.0 and above to connect to OpenSCA SaaS, get vulnerabilities, assets, and dashboard, and manage all the projects:
+
+```shell
+opensca-cli -url ${url} -token ${token} -v2 -path ${project_path}
+```
+
+
 
 ## Parameters
 
@@ -82,14 +91,30 @@ opensca-cli -db db.json -path ${project_path}
 | `path`     | `string` | Set the file or directory path to be detected.               | `-path ./foo`                     |
 | `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database, set the address of the cloud service. It needs to be used with the `token` parameter. | `-url https://opensca.xmirror.cn` |
 | `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter. | `-token xxxxxxx`                  |
+| `v2`       | `bool`   | Connect to the API of OpenSCA SaaS service.                  | `-v2`                             |
 | `cache`    | `bool`   | This option is recommended. It can cache the downloaded files, for example, the `.pom` file, and save your time when detecting the same component next time. The downloaded files are saved in `.cache` under the same directory as opensca-cli. | `-cache`                          |
 | `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result. | `-vuln`                           |
-| `out`      | `string` | Set the output file. The result defaults to json format.Support the output of SBOM list in spdx format. | `-out output.json`                |
+| `out`      | `string` | Set the output file. The result is json format.              | `-out output.json`                |
 | `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                     |
 | `progress` | `bool`   | Show the progress bar.                                       | `-progress`                       |
-| `dedup`    | `bool`   | Same result deduplication                                    | `-dedup`                          |
+| `dedup`    | `bool`   | Deduplicate same components                                  | `-dedup`                          |
+| `version`  | `bool`   | Show the client version                                      | `-version`                        |
 
 ------
+
+Local maven component database can be configured in the following format to configuration files: 
+
+```json
+{
+    "maven": [
+        {
+            "repo": "url",
+            "user": "user",
+            "password": "password"
+        }
+    ]
+}
+```
 
 ### The Format of the Vulnerability Database File
 
@@ -120,39 +145,48 @@ opensca-cli -db db.json -path ${project_path}
 
 #### Explanations of Vulnerability Database Fields
 
-| FIELD               | DESCRIPTION                                                       | REQUIRED OR NOT |
-| ------------------- | ----------------------------------------------------------------- | --------------- |
-| `vendor`            | the manufacturer of the component                                 | N               |
-| `product`           | the name of the component                                         | Y               |
-| `version`           | the versions of the component affected by the vulnerability       | Y               |
-| `language`          | the programming language of the component                         | Y               |
-| `name`              | the name of the vulnerability                                     | N               |
-| `id`                | custom identifier                                                 | Y               |
-| `cve_id`            | cve identifier                                                    | N               |
-| `cnnvd_id`          | cnnvd identifier                                                  | N               |
-| `cnvd_id`           | cnvd identifier                                                   | N               |
-| `cwe_id`            | cwe identifier                                                    | N               |
-| `description`       | the description of the vulnerability                              | N               |
-| `description_en`    | the description of the vulnerability in English                   | N               |
-| `suggestion`        | the suggestion for fixing the vulnerability                       | N               |
-| `attack_type`       | the type of attack                                                | N               |
-| `release_date`      | the release date of the vulnerability                             | N               |
+| FIELD               | DESCRIPTION                                                  | REQUIRED OR NOT |
+| ------------------- | ------------------------------------------------------------ | --------------- |
+| `vendor`            | the manufacturer of the component                            | N               |
+| `product`           | the name of the component                                    | Y               |
+| `version`           | the versions of the component affected by the vulnerability  | Y               |
+| `language`          | the programming language of the component                    | Y               |
+| `name`              | the name of the vulnerability                                | N               |
+| `id`                | custom identifier                                            | Y               |
+| `cve_id`            | cve identifier                                               | N               |
+| `cnnvd_id`          | cnnvd identifier                                             | N               |
+| `cnvd_id`           | cnvd identifier                                              | N               |
+| `cwe_id`            | cwe identifier                                               | N               |
+| `description`       | the description of the vulnerability                         | N               |
+| `description_en`    | the description of the vulnerability in English              | N               |
+| `suggestion`        | the suggestion for fixing the vulnerability                  | N               |
+| `attack_type`       | the type of attack                                           | N               |
+| `release_date`      | the release date of the vulnerability                        | N               |
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
-| `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
+| `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)   | N               |
 
-## Authors
+## Contributors
+
 - Tao Zhang
 - Chi Zhang
 - Zhong Chen
 - Enzhi Liu
 - Ge Ning
 
+## Contact us
+
+Wechat Group: add our assistant to join the group
+
+<img src="https://github.com/XmirrorSecurity/OpenSCA-cli/raw/master/wechat.jpg" />
+
+QQ Group: 832039395
+
+email: opensca@anpro-tech.com
+
 ## Contributing 
 
 OpenSCA is an open source project, we appreciate your help!
 
-To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md). 
+To contribute, please read our [Contributing Guideline](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/docs/Contributing%20Guideline-en%20v1.0.md). 
 
-
-
-*For the Chinese version of this document, please check [README](../README.md).
+*For the Chinese version of this document, please check [README](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/README.md).

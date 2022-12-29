@@ -76,6 +76,6 @@ func Html(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		return []byte{}
 	} else {
 		// 替换模板数据
-		return bytes.Replace(index, []byte("N$}"), append(data, '}'), 1)
+		return bytes.Replace(index, []byte("DATA_REPLACE_HERE"), data, 1)
 	}
 }

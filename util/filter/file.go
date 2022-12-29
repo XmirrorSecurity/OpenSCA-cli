@@ -64,6 +64,7 @@ var (
 
 // ruby相关
 var (
+	RubyGemfile     = filterFunc(strings.HasSuffix, "Gemfile")
 	RubyGemfileLock = filterFunc(strings.HasSuffix, "Gemfile.lock", "gems.locked")
 )
 
@@ -76,6 +77,7 @@ var (
 // rust
 var (
 	RustCargoLock = filterFunc(strings.HasSuffix, "Cargo.lock")
+	RustCargoToml = filterFunc(strings.HasSuffix, "Cargo.toml")
 )
 
 // erlang
@@ -92,11 +94,14 @@ var (
 // python
 var (
 	PythonSetup           = filterFunc(strings.HasSuffix, "setup.py")
+	PythonPyproject       = filterFunc(strings.HasSuffix, "pyproject.toml")
 	PythonPipfile         = filterFunc(strings.HasSuffix, "Pipfile")
 	PythonPipfileLock     = filterFunc(strings.HasSuffix, "Pipfile.lock")
 	PythonRequirementsTxt = func(filename string) bool {
 		return filterFunc(strings.HasSuffix, ".txt")(filename) &&
-			filterFunc(strings.Contains, "requirements")(path.Base(filename)) && !filterFunc(strings.Contains, "test")(path.Base(filename))
+			filterFunc(strings.Contains, "requirements")(path.Base(filename)) &&
+			!filterFunc(strings.Contains, "test")(path.Base(filename)) &&
+			!filterFunc(strings.Contains, "dev")(path.Base(filename))
 	}
 	PythonRequirementsIn = filterFunc(strings.HasSuffix, "requirements.in")
 	// PythonSetupCfg       = filterFunc(strings.HasSuffix, "setup.cfg")

@@ -25,7 +25,7 @@ func (a Analyzer) GetLanguage() language.Type {
 
 // CheckFile Check if it is a parsable file
 func (a Analyzer) CheckFile(filename string) bool {
-	return filter.RubyGemfileLock(filename)
+	return filter.RubyGemfileLock(filename) || filter.RubyGemfile(filename)
 }
 
 // ParseFiles Parse the file
@@ -36,6 +36,8 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 		dep.Path = f.Name
 		if filter.RubyGemfileLock(f.Name) {
 			parseGemfileLock(dep, f)
+		} else if filter.RubyGemfile(f.Name) {
+			//暂不支持
 		}
 		deps = append(deps, dep)
 	}

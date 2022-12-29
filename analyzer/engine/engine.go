@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"util/args"
+	"util/client"
 	"util/filter"
 	"util/logs"
 	"util/model"
@@ -57,10 +58,12 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	dirRoot := model.NewDirTree()
 	depRoot = model.NewDepTree(nil)
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
+	client.PackageBasePath = path.Base(filepath)
 	taskInfo = report.TaskInfo{
-		AppName:   strings.TrimSuffix(path.Base(filepath), path.Ext(path.Base(filepath))),
+		AppName:   strings.TrimSuffix(client.PackageBasePath, path.Ext(client.PackageBasePath)),
 		StartTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
+	client.PackageName = taskInfo.AppName
 	s := time.Now()
 	defer func() {
 		taskInfo.CostTime = time.Since(s).Seconds()
@@ -72,6 +75,9 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 		return depRoot, taskInfo
 	} else {
 		if f.IsDir() {
+			//如果是目录则不用去除后缀
+			taskInfo.AppName = client.PackageBasePath
+			client.PackageName = taskInfo.AppName
 			// 目录
 			dirRoot = e.opendir(filepath)
 			// 尝试解析mvn依赖
