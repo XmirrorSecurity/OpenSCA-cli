@@ -29,6 +29,7 @@ type gradleDep struct {
 
 // GradleDepTree 尝试获取 gradle 依赖树
 func GradleDepTree(dirpath string, root *model.DepTree) {
+	Len := len(root.Children)
 	pwd := temp.GetPwd()
 	os.Chdir(dirpath)
 	// 复制 oss.gradle
@@ -74,6 +75,10 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 		} else {
 			break
 		}
+	}
+
+	if len(root.Children) != Len {
+		gradleSuccess = true
 	}
 	return
 }
