@@ -113,8 +113,7 @@ opensca-cli -db db.json -path ${project_path}
     "release_date": "2021-12-10",
     "security_level_id": 1,
     "exploit_level_id": 1
-  },
-  {}
+  }
 ]
 ```
 
