@@ -36,8 +36,14 @@ func loadVulnDB() {
 		} else {
 			// 解析本地漏洞
 			db := []vulnInfo{}
-			json.Unmarshal(data, &db)
+			err := json.Unmarshal(data, &db)
+			if err != nil {
+				logs.Error(err)
+			}
 			for _, info := range db {
+				if info.Vuln == nil {
+					continue
+				}
 				// 有中文描述则省略英文描述
 				if info.Description != "" {
 					info.DescriptionEn = ""
