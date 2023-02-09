@@ -20,6 +20,11 @@ type Analyzer struct {
 	repos map[int64][]string
 }
 
+var (
+	mvnSuccess    bool
+	gradleSuccess bool
+)
+
 // New 创建java解析器
 func New() Analyzer {
 	return Analyzer{
@@ -177,12 +182,12 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 	poms := []*Pom{}
 	for _, f := range files {
 		// 读取pom文件
-		if filter.JavaPom(f.Name) {
+		if filter.JavaPom(f.Name) && !mvnSuccess {
 			p := ReadPom(f.Data)
 			p.Path = f.Name
 			poms = append(poms, p)
 		}
-		if filter.GroovyGradle(f.Name) {
+		if filter.GroovyGradle(f.Name) && !gradleSuccess {
 			dep := model.NewDepTree(nil)
 			dep.Path = f.Name
 			parseGradle(dep, f)
