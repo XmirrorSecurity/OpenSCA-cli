@@ -83,6 +83,10 @@ func buildMvnDepTree(root *model.DepTree, lines []string) {
 	for _, line := range lines {
 		// 计算层级
 		level := 0
+		// 防止数组越界
+		if level*3+2 >= len(line) {
+			continue
+		}
 		for line[level*3+2] == ' ' {
 			level++
 		}
