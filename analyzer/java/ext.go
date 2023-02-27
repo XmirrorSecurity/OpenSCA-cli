@@ -18,6 +18,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"util/args"
@@ -33,7 +34,58 @@ import (
 
 // MvnDepTree 调用mvn解析项目获取依赖树
 func MvnDepTree(dirpath string, root *model.DepTree) {
-	Len := len(root.Children)
+	root.Direct = true
+	poms := map[string]Pom{}
+	// 记录目录下的pom文件
+	filepath.WalkDir(dirpath, func(fullpath string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !filter.JavaPom(d.Name()) {
+			return nil
+		}
+		fullpath = strings.ReplaceAll(fullpath, `\`, `/`)
+		data, err := os.ReadFile(fullpath)
+		if err != nil {
+			logs.Warn(err)
+			return nil
+		}
+		pom := Pom{}
+		xml.Unmarshal(data, &pom)
+		if pom.GroupId == "" && pom.Parent.GroupId != "" {
+			pom.GroupId = pom.Parent.GroupId
+		}
+		poms[fullpath] = pom
+		return nil
+	})
+	// 关联mvn结果和pom文件
+	deps := []*model.DepTree{}
+	for pomfile, pom := range poms {
+		for _, d := range parseMvnOutput(path.Dir(pomfile)) {
+			if d.Vendor == pom.GroupId && d.Name == pom.ArtifactId {
+				d.Direct = true
+				d.Path = pomfile
+				q := []*model.DepTree{d}
+				for len(q) > 0 {
+					n := q[0]
+					for _, nc := range n.Children {
+						nc.Path = path.Join(n.Path, nc.Dependency.String())
+					}
+					q = append(q[1:], n.Children...)
+				}
+				deps = append(deps, d)
+			}
+		}
+	}
+	sort.Slice(deps, func(i, j int) bool {
+		return deps[i].Path < deps[j].Path
+	})
+	for _, d := range deps {
+		d.Parent = root
+		root.Children = append(root.Children, d)
+	}
+	// 判断mvn是否调用成功
+	mvnSuccess = len(deps) > 0
+}
+
+func parseMvnOutput(dirpath string) []*model.DepTree {
 	pwd := temp.GetPwd()
 	os.Chdir(dirpath)
 	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
@@ -48,37 +100,13 @@ func MvnDepTree(dirpath string, root *model.DepTree) {
 	for i := range lines {
 		lines[i] = strings.TrimPrefix(lines[i], "[INFO] ")
 	}
-	// 捕获依赖树起始位置
-	title := regexp.MustCompile(`--- [^\n]+ ---`)
 	// 记录依赖树起始位置行号
 	start := 0
 	// 标记是否在依赖范围内树
 	tree := false
-	root.Direct = true
-
-	// 记录目录下的pom文件
-	poms := map[string]string{}
-	filepath.WalkDir(dirpath, func(fullpath string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
-		if filter.JavaPom(d.Name()) {
-			fullpath = strings.ReplaceAll(fullpath,`\`,`/`)
-			data, err := os.ReadFile(fullpath)
-			if err != nil {
-				logs.Warn(err)
-				return nil
-			}
-			pom := Pom{}
-			xml.Unmarshal(data, &pom)
-			if pom.GroupId == "" && pom.Parent.GroupId != "" {
-				pom.GroupId = pom.Parent.GroupId
-			}
-			poms[pom.GroupId+pom.ArtifactId] = fullpath
-		}
-		return nil
-	})
-
+	// 捕获依赖树起始位置
+	title := regexp.MustCompile(`--- [^\n]+ ---`)
+	tops := []*model.DepTree{}
 	// 获取mvn依赖树
 	for i, line := range lines {
 		if title.MatchString(line) {
@@ -88,38 +116,20 @@ func MvnDepTree(dirpath string, root *model.DepTree) {
 		}
 		if tree && strings.Trim(line, "-") == "" {
 			tree = false
-			buildMvnDepTree(root, lines[start+1:i])
-			for _, c := range root.Children {
-				if c.Language != language.Java {
-					continue
-				}
-				c.Direct = true
-				// 关联组件和pom文件
-				if pomfile, ok := poms[c.Vendor+c.Name]; ok {
-					c.Path = pomfile
-				}
-				q := []*model.DepTree{c}
-				for len(q) > 0 {
-					n := q[0]
-					for _, nc := range n.Children {
-						nc.Path = path.Join(n.Path, nc.Dependency.String())
-					}
-					q = append(q[1:], n.Children...)
-				}
+			top := buildMvnDepTree(lines[start+1 : i])
+			if top != nil {
+				tops = append(tops, top)
 			}
 			continue
 		}
 	}
-
-	// 以root.children的数量来判断mvn是否调用成功并解析到了结果
-	if len(root.Children) != Len {
-		mvnSuccess = true
-	}
+	return tops
 }
 
 // buildMvnDepTree 构建mvn树
-func buildMvnDepTree(root *model.DepTree, lines []string) {
+func buildMvnDepTree(lines []string) *model.DepTree {
 	// 记录当前的顶点节点列表
+	root := model.NewDepTree(nil)
 	tops := []*model.DepTree{root}
 	// 上一层级
 	lastLevel := -1
@@ -147,6 +157,11 @@ func buildMvnDepTree(root *model.DepTree, lines []string) {
 		dep.Language = language.Java
 		tops = append(tops, dep)
 		lastLevel = level
+	}
+	if len(tops) > 1 {
+		return tops[1]
+	} else {
+		return nil
 	}
 }
 
