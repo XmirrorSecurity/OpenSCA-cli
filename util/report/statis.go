@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"util/args"
 	"util/model"
 )
 
@@ -18,21 +19,25 @@ func Statis(depRoot *model.DepTree, taskInfo TaskInfo) string {
 	}
 	vset := map[string]bool{}
 	q := []*model.DepTree{depRoot}
+	depSet := map[string]bool{}
 	for len(q) > 0 {
 		n := q[0]
-		risk := 5
-		for _, v := range n.Vulnerabilities {
-			if !vset[v.Id] {
-				vset[v.Id] = true
-				vuls[v.SecurityLevelId]++
-				vuls[0]++
+		if _, ok := depSet[n.Dependency.String()]; !(args.Config.Dedup && ok || n.Name == "") {
+			depSet[n.Dependency.String()] = true
+			risk := 5
+			for _, v := range n.Vulnerabilities {
+				if !vset[v.Id] {
+					vset[v.Id] = true
+					vuls[v.SecurityLevelId]++
+					vuls[0]++
+				}
+				if v.SecurityLevelId < risk {
+					risk = v.SecurityLevelId
+				}
 			}
-			if v.SecurityLevelId < risk {
-				risk = v.SecurityLevelId
-			}
+			coms[risk]++
+			coms[0]++
 		}
-		coms[risk]++
-		coms[0]++
 		q = append(q[1:], n.Children...)
 	}
 	return fmt.Sprintf("\nComplete!"+
