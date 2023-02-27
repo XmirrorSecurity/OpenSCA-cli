@@ -8,17 +8,22 @@ package java
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/xml"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 	"util/args"
 	"util/cache"
 	"util/enum/language"
+	"util/filter"
 	"util/logs"
 	"util/model"
 	"util/temp"
@@ -27,10 +32,10 @@ import (
 )
 
 // MvnDepTree 调用mvn解析项目获取依赖树
-func MvnDepTree(path string, root *model.DepTree) {
+func MvnDepTree(dirpath string, root *model.DepTree) {
 	Len := len(root.Children)
 	pwd := temp.GetPwd()
-	os.Chdir(path)
+	os.Chdir(dirpath)
 	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
 	out, _ := cmd.CombinedOutput()
 	os.Chdir(pwd)
@@ -50,6 +55,30 @@ func MvnDepTree(path string, root *model.DepTree) {
 	// 标记是否在依赖范围内树
 	tree := false
 	root.Direct = true
+
+	// 记录目录下的pom文件
+	poms := map[string]string{}
+	filepath.WalkDir(dirpath, func(fullpath string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		if filter.JavaPom(d.Name()) {
+			fullpath = strings.ReplaceAll(fullpath,`\`,`/`)
+			data, err := os.ReadFile(fullpath)
+			if err != nil {
+				logs.Warn(err)
+				return nil
+			}
+			pom := Pom{}
+			xml.Unmarshal(data, &pom)
+			if pom.GroupId == "" && pom.Parent.GroupId != "" {
+				pom.GroupId = pom.Parent.GroupId
+			}
+			poms[pom.GroupId+pom.ArtifactId] = fullpath
+		}
+		return nil
+	})
+
 	// 获取mvn依赖树
 	for i, line := range lines {
 		if title.MatchString(line) {
@@ -61,7 +90,22 @@ func MvnDepTree(path string, root *model.DepTree) {
 			tree = false
 			buildMvnDepTree(root, lines[start+1:i])
 			for _, c := range root.Children {
+				if c.Language != language.Java {
+					continue
+				}
 				c.Direct = true
+				// 关联组件和pom文件
+				if pomfile, ok := poms[c.Vendor+c.Name]; ok {
+					c.Path = pomfile
+				}
+				q := []*model.DepTree{c}
+				for len(q) > 0 {
+					n := q[0]
+					for _, nc := range n.Children {
+						nc.Path = path.Join(n.Path, nc.Dependency.String())
+					}
+					q = append(q[1:], n.Children...)
+				}
 			}
 			continue
 		}
@@ -71,7 +115,6 @@ func MvnDepTree(path string, root *model.DepTree) {
 	if len(root.Children) != Len {
 		mvnSuccess = true
 	}
-	return
 }
 
 // buildMvnDepTree 构建mvn树
