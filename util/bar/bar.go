@@ -7,6 +7,8 @@ package bar
 
 import (
 	"fmt"
+	"sync"
+	"time"
 	"util/args"
 )
 
@@ -26,6 +28,7 @@ type Bar struct {
 	text string
 	now  int
 	id   int
+	logo int
 }
 
 func newBar(text string) *Bar {
@@ -36,11 +39,32 @@ func newBar(text string) *Bar {
 	}
 }
 
+var (
+	logos    = []string{`|`, `/`, `-`, `\`}
+	logoOnce = sync.Once{}
+	barlock  = sync.Mutex{}
+	lastBar  *Bar
+)
+
+func updateLogo() {
+	go func() {
+		for {
+			if lastBar != nil {
+				lastBar.Add(0)
+			}
+			<-time.After(time.Millisecond * 100)
+		}
+	}()
+}
+
 // Add add progress
 func (b *Bar) Add(n int) {
 	if !args.Config.Bar {
 		return
 	}
+	logoOnce.Do(updateLogo)
+	barlock.Lock()
+	defer barlock.Unlock()
 	if b.id == -1 {
 		id++
 		b.id = id
@@ -48,6 +72,9 @@ func (b *Bar) Add(n int) {
 	}
 	b.now += n
 	fmt.Printf("\033[%dA\033[K", id-b.id+1)
-	fmt.Printf("\r%s: %d", b.text, b.now)
+	fmt.Printf("\r%s %s: %d", logos[b.logo], b.text, b.now)
 	fmt.Printf("\033[%dB\033[K", id-b.id+1)
+	b.logo++
+	b.logo %= len(logos)
+	lastBar = b
 }
