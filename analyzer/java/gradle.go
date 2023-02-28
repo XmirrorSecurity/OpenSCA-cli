@@ -81,7 +81,6 @@ func GradleDepTree(dirpath string, root *model.DepTree) {
 	if len(root.Children) != Len {
 		gradleSuccess = true
 	}
-	return
 }
 
 // parseGradle parse *.gradle or *.gradle.kts

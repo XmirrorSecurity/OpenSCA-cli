@@ -7,12 +7,8 @@ package java
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/xml"
-	"fmt"
 	"io/fs"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -20,9 +16,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
-	"util/args"
-	"util/cache"
 	"util/enum/language"
 	"util/filter"
 	"util/logs"
@@ -163,81 +156,4 @@ func buildMvnDepTree(lines []string) *model.DepTree {
 	} else {
 		return nil
 	}
-}
-
-// downloadPom 下载pom文件
-func downloadPom(dep model.Dependency) (data []byte, err error) {
-	tags := strings.Split(dep.Vendor, ".")
-	tags = append(tags, dep.Name)
-	tags = append(tags, dep.Version.Org)
-	tags = append(tags, fmt.Sprintf("%s-%s.pom", dep.Name, dep.Version.Org))
-	// 先扫描指定仓库
-	for _, m := range args.Config.Maven {
-		url := strings.TrimSuffix(m.Repo, `/`) + `/`
-		url = url + strings.Join(tags, "/")
-		name := m.User
-		password := m.Password
-		data, err = getFromRepo(url, name, password)
-		if data == nil {
-			continue
-		}
-		return
-	}
-	// 指定仓库都没有就去官方仓库查询
-	d := `https://repo.maven.apache.org/maven2/`
-	url := d + strings.Join(tags, "/")
-	if rep, err := http.Get(url); err != nil {
-		return nil, err
-	} else {
-		defer rep.Body.Close()
-		if rep.StatusCode == 200 {
-			return ioutil.ReadAll(rep.Body)
-		}
-	}
-	// 应该走不到这里
-	return nil, fmt.Errorf("download failure")
-}
-
-// 从私服库获取pom文件
-func getFromRepo(url string, name string, password string) (data []byte, err error) {
-	c := http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}, Timeout: time.Duration(1 * time.Second)}
-	resp, err := c.Get(url)
-	if err != nil {
-		return nil, err
-	} else {
-		resp.Request.SetBasicAuth(name, password)
-		defer resp.Body.Close()
-		logs.Debug(fmt.Sprintf("status code: %d url: %s", resp.StatusCode, url))
-		if resp.StatusCode == 200 {
-			return ioutil.ReadAll(resp.Body)
-		}
-	}
-	return nil, fmt.Errorf("download from repository failure")
-}
-
-// getpom is get pom from index
-func getpom(groupId, artifactId, version string) (p *Pom) {
-	p = &Pom{Properties: PomProperties{}}
-	if groupId == "" || artifactId == "" || version == "" {
-		return nil
-	}
-	dep := model.Dependency{
-		Vendor:  groupId,
-		Name:    artifactId,
-		Version: model.NewVersion(version),
-	}
-	data := cache.LoadCache(dep)
-	if len(data) != 0 {
-		return ReadPom(data)
-	} else {
-		// 无本地缓存下载pom文件
-		if data, err := downloadPom(dep); err == nil {
-			// 保存pom文件
-			cache.SaveCache(dep, data)
-			return ReadPom(data)
-		} else {
-			logs.Warn(err)
-		}
-	}
-	return nil
 }

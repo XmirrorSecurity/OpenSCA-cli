@@ -15,9 +15,6 @@ import (
 )
 
 type Analyzer struct {
-	mvn *Mvn
-	// maven仓库地址
-	repos map[int64][]string
 }
 
 var (
@@ -27,10 +24,7 @@ var (
 
 // New 创建java解析器
 func New() Analyzer {
-	return Analyzer{
-		mvn:   NewMvn(),
-		repos: map[int64][]string{},
-	}
+	return Analyzer{}
 }
 
 // GetLanguage Get language of Analyzer
@@ -105,7 +99,7 @@ func buildPomTree(poms []*Pom) *pomTree {
 		// 提取路径中的压缩包
 		// 例如: "lib/a.zip/b.jar/d2/pom.xml"
 		// 结果: ["lib/a.zip","b.jar"]
-		dirs := strings.Split(f.Path, "/")
+		dirs := strings.Split(f.Fileinfo.Name, "/")
 		pkgs := []string{}
 		last := 0
 		for i := 0; i < len(dirs); i++ {
@@ -131,20 +125,16 @@ func buildPomTree(poms []*Pom) *pomTree {
 }
 
 // parsePomTree 解析pom树
-func (pt *pomTree) parsePomTree(jarMap map[string]*model.DepTree) []*model.DepTree {
+func (pt *pomTree) parsePomTree(jarMap map[string]*model.DepTree, m Mvn) []*model.DepTree {
 	deps := []*model.DepTree{}
-	mvn := NewMvn()
-	for _, p := range pt.poms {
-		mvn.AppendPom(p)
-	}
-	for _, p := range mvn.MvnSimulation() {
+	for _, p := range m.ParsePoms(pt.poms, true) {
 		d := model.NewDepTree(nil)
-		d.Path = p.Path
+		d.Path = p.Fileinfo.Name
 		buildTree(p, d)
 		deps = append(deps, d)
 	}
 	for pkg, subTree := range pt.subTree {
-		subPoms := subTree.parsePomTree(jarMap)
+		subPoms := subTree.parsePomTree(jarMap, m)
 		if jar, exist := jarMap[pkg]; exist {
 			for _, pom := range subPoms {
 				if pom.Name == jar.Name && pom.Version == jar.Version {
@@ -179,13 +169,10 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 	// 通过jar包解析出的依赖 map[jarpath]depTree
 	jarMap := map[string]*model.DepTree{}
 	// pom 文件列表
-	poms := []*Pom{}
+	pomfiles := []*model.FileInfo{}
 	for _, f := range files {
-		// 读取pom文件
 		if filter.JavaPom(f.Name) && !mvnSuccess {
-			p := ReadPom(f.Data)
-			p.Path = f.Name
-			poms = append(poms, p)
+			pomfiles = append(pomfiles, f)
 		}
 		if filter.GroovyGradle(f.Name) && !gradleSuccess {
 			dep := model.NewDepTree(nil)
@@ -197,7 +184,13 @@ func (a Analyzer) ParseFiles(files []*model.FileInfo) (deps []*model.DepTree) {
 	// 构建jar树
 	deps = append(deps, buildJarTree(jarMap)...)
 	// 构建pom树
-	deps = append(deps, buildPomTree(poms).parsePomTree(jarMap)...)
+	poms := []*Pom{}
+	m := NewMvn()
+	m.setPoms(pomfiles...)
+	for _, f := range pomfiles {
+		poms = append(poms, m.ReadPomFile(f, f.Data))
+	}
+	deps = append(deps, buildPomTree(poms).parsePomTree(jarMap, m)...)
 	return
 }
 
