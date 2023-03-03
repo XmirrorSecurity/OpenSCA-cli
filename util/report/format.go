@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"util/args"
 	"util/enum/language"
@@ -88,5 +89,15 @@ func Save(data []byte, filepath string) {
 			defer f.Close()
 			f.Write(data)
 		}
+	}
+}
+
+// Save 保存结果文件
+func SaveByWriter(wf func(io.Writer), filepath string) {
+	if f, err := os.Create(filepath); err != nil {
+		logs.Error(err)
+	} else {
+		defer f.Close()
+		wf(f)
 	}
 }
