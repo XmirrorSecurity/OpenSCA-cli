@@ -15,10 +15,26 @@ var purlMap = map[language.Type]string{
 	language.Python:     "pypi",
 }
 
-func (dep DepTree) Purl() string {
+var purlStrMap = map[string]string{
+	language.Rust.String():       "cargo",
+	language.Php.String():        "composer",
+	language.Ruby.String():       "gem",
+	language.Golang.String():     "golang",
+	language.Java.String():       "maven",
+	language.JavaScript.String(): "npm",
+	language.Python.String():     "pypi",
+}
+
+func (dep Dependency) Purl() string {
 	group := ""
-	if g, ok := purlMap[dep.Language]; ok {
-		group = g
+	if dep.Language == language.None {
+		if g, ok := purlStrMap[dep.LanguageStr]; ok {
+			group = g
+		}
+	} else {
+		if g, ok := purlMap[dep.Language]; ok {
+			group = g
+		}
 	}
 	version := dep.VersionStr
 	if dep.Version != nil && dep.Version.Org != "" {

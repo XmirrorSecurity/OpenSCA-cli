@@ -19,20 +19,22 @@ func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
 		q = append(q[1:], n.Children...)
 		if n == dep {
 			metadata.Component = &cyclonedx.Component{
-				BOMRef:  n.Purl(),
-				Type:    cyclonedx.ComponentTypeApplication,
-				Name:    n.Name,
-				Version: n.VersionStr,
+				BOMRef:     n.Purl(),
+				Type:       cyclonedx.ComponentTypeApplication,
+				Name:       n.Name,
+				Version:    n.VersionStr,
+				PackageURL: n.Purl(),
 			}
 			continue
 		}
 		if n.Name != "" {
 			components = append(components, cyclonedx.Component{
-				BOMRef:  n.Purl(),
-				Type:    cyclonedx.ComponentTypeLibrary,
-				Author:  n.Vendor,
-				Name:    n.Name[strings.LastIndex(n.Name, "/")+1:],
-				Version: n.VersionStr,
+				BOMRef:     n.Purl(),
+				Type:       cyclonedx.ComponentTypeLibrary,
+				Author:     n.Vendor,
+				Name:       n.Name[strings.LastIndex(n.Name, "/")+1:],
+				Version:    n.VersionStr,
+				PackageURL: n.Purl(),
 			})
 			var deps []string
 			for _, child := range n.Children {
