@@ -28,12 +28,31 @@ func NewMvn() Mvn {
 	}
 }
 
+// AddRepos 添加仓库
+// return: 删除添加的仓库，需要在不会用到仓库时删掉
+func (m Mvn) AddRepos(repos []string) func() {
+	add_repos := []string{}
+	for _, repo := range repos {
+		if _, ok := m.repos[repo]; !ok {
+			add_repos = append(add_repos, repo)
+			m.repos[repo] = args.RepoConfig{
+				Repo: repo,
+			}
+		}
+	}
+	return func() {
+		for _, repo := range add_repos {
+			delete(m.repos, repo)
+		}
+	}
+}
+
 // parseProperties 获取 Properties
 func (m Mvn) parseProperties(p *Pom) PomEnv {
 	env := PomEnv{}
 	for p != nil {
 		env = unionEnv(env, PomEnv{Properties: p.Properties})
-		p = m.GetPom(p.Parent)
+		p = m.GetPom(p.Parent, p.Repositories)
 	}
 	return env
 }
@@ -57,7 +76,7 @@ func checkExclusion(pd PomDependency, exc PomExclusions) bool {
 
 func (m Mvn) importPom(n *Pom, sp PomDependency, other func(n, s *Pom)) {
 	n.Update(n.Properties, &sp)
-	s := m.GetPom(sp)
+	s := m.GetPom(sp, n.Repositories)
 	if s != nil {
 		s.PomDependency = sp
 		s.define = n
@@ -232,7 +251,7 @@ func (m Mvn) ParsePom(p *Pom, deep bool) {
 			for _, d := range n.Dependencies {
 				depSet[d.Index2()] = true
 			}
-			p := m.GetPom(n.Parent)
+			p := m.GetPom(n.Parent, n.Repositories)
 			for p != nil {
 				for _, d := range p.Dependencies {
 					if !depSet[d.Index2()] {
@@ -241,7 +260,7 @@ func (m Mvn) ParsePom(p *Pom, deep bool) {
 						n.Dependencies = append(n.Dependencies, d)
 					}
 				}
-				p = m.GetPom(p.Parent)
+				p = m.GetPom(p.Parent, p.Repositories)
 			}
 		}
 		// 根据maven规则校准当前dependencies

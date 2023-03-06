@@ -231,7 +231,9 @@ func (m Mvn) getPomWithPath(relativePath string) (*Pom, bool) {
 }
 
 // GetPom is get pom from pomMap if exist else download pom
-func (m Mvn) GetPom(p PomDependency) (pom *Pom) {
+func (m Mvn) GetPom(p PomDependency, repos []string) (pom *Pom) {
+	del := m.AddRepos(repos)
+	defer del()
 	if p, ok := m.getPomWithPath(p.RelativePath); ok {
 		return p
 	}

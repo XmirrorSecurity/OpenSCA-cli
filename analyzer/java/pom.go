@@ -7,7 +7,6 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"util/args"
 	"util/model"
 )
 
@@ -299,14 +298,6 @@ func (m Mvn) ReadPomFile(f *model.FileInfo, data []byte) (p *Pom) {
 		p.Dependencies[i] = d
 		if len(d.Version) > 2 && d.Version[0] == '[' && d.Version[len(d.Version)-1] == ']' && !strings.ContainsAny(d.Version, ",()") {
 			p.Dependencies[i].Version = strings.Trim(p.Dependencies[i].Version, "[]")
-		}
-	}
-	// mvn添加repos
-	for _, repo := range p.Repositories {
-		if _, ok := m.repos[repo]; !ok {
-			m.repos[repo] = args.RepoConfig{
-				Repo: repo,
-			}
 		}
 	}
 	return
