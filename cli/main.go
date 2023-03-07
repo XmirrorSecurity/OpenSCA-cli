@@ -45,6 +45,9 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 			reportFunc = report.SpdxJson
 		} else if strings.HasSuffix(out, ".cdx.json") {
 			reportByWriterFunc = report.CycloneDXJson
+		} else if strings.HasSuffix(out, ".swid.json") {
+			out += ".zip"
+			reportByWriterFunc = report.SwidJson
 		} else {
 			reportFunc = report.Json
 		}
@@ -55,20 +58,23 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 			reportFunc = report.SpdxXml
 		} else if strings.HasSuffix(out, ".cdx.xml") {
 			reportByWriterFunc = report.CycloneDXXml
+		} else if strings.HasSuffix(out, ".swid.xml") {
+			out += ".zip"
+			reportByWriterFunc = report.SwidXml
 		} else {
-			logs.Warn(fmt.Sprintf("not support report format: %s", args.Config.Out))
+			logs.Warn(fmt.Sprintf("not support report format: %s", out))
 		}
 	default:
 		reportFunc = report.Json
 	}
 	fmt.Println(report.Statis(depRoot, taskInfo))
-	if args.Config.Out != "" {
+	if out != "" {
 		if reportFunc != nil {
-			report.Save(reportFunc(depRoot, taskInfo), args.Config.Out)
+			report.Save(reportFunc(depRoot, taskInfo), out)
 		} else if reportByWriterFunc != nil {
 			report.SaveByWriter(func(w io.Writer) {
 				reportByWriterFunc(w, depRoot, taskInfo)
-			}, args.Config.Out)
+			}, out)
 		}
 	} else {
 		fmt.Println(string(reportFunc(depRoot, taskInfo)))

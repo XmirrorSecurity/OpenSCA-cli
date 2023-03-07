@@ -36,10 +36,7 @@ func (dep Dependency) Purl() string {
 			group = g
 		}
 	}
-	version := dep.VersionStr
-	if dep.Version != nil && dep.Version.Org != "" {
-		version = dep.Version.Org
-	}
+    version := dep.GetVersion()
 	if dep.Vendor == "" {
 		return fmt.Sprintf("pkg:%s/%s@%s", group, dep.Name, version)
 	}

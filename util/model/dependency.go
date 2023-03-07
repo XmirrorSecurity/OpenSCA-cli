@@ -49,6 +49,15 @@ type Dependency struct {
 	LanguageStr string `json:"language,omitempty"`
 }
 
+// GetVersion 获取版本号
+func (d Dependency) GetVersion() string {
+	if d.Version != nil {
+		return d.Version.Org
+	} else {
+		return d.VersionStr
+	}
+}
+
 // NewDependency 创建Dependency
 func NewDependency() Dependency {
 	dep := Dependency{
