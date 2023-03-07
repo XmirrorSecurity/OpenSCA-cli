@@ -17,9 +17,10 @@ type Mvn struct {
 
 func NewMvn() Mvn {
 	repos := args.GetRepoConfig()
-	mvn := `https://repo.maven.apache.org/maven2/`
-	repos[mvn] = args.RepoConfig{
-		Repo: mvn,
+	for _, repo := range []string{`https://repo.maven.apache.org/maven2/`, `https://maven.aliyun.com/repository/public`} {
+		repos[repo] = args.RepoConfig{
+			Repo: repo,
+		}
 	}
 	return Mvn{
 		repos: repos,
