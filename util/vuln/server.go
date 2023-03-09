@@ -7,6 +7,7 @@ package vuln
 
 import (
 	"encoding/json"
+	"fmt"
 	"util/client"
 	"util/logs"
 	"util/model"
@@ -22,6 +23,7 @@ func GetServerVuln(deps []model.Dependency) (vulns [][]*model.Vuln, err error) {
 	}
 	data, err = client.Detect(data)
 	if err != nil {
+		fmt.Printf("\n%s", err.Error())
 		return vulns, err
 	}
 	if len(data) > 0 {

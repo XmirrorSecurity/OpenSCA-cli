@@ -6,6 +6,7 @@
 package engine
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -69,6 +70,7 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	if f, err := os.Stat(filepath); err != nil {
 		taskInfo.Error = err
 		logs.Error(err)
+		fmt.Println(err)
 		return depRoot, taskInfo
 	} else {
 		if f.IsDir() {
