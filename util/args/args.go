@@ -32,7 +32,9 @@ var (
 		VulnDB string `json:"db"`
 		// prvate repository
 		Maven []RepoConfig `json:"maven"`
-	}{}
+	}{
+		Cache: true,
+	}
 )
 
 func init() {
