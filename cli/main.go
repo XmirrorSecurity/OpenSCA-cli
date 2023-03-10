@@ -9,7 +9,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"util/args"
 	"util/logs"
@@ -69,6 +72,12 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 	}
 	fmt.Println(report.Statis(depRoot, taskInfo))
 	if out != "" {
+		// 尝试创建导出文件目录
+		if err := os.MkdirAll(filepath.Dir(out), fs.ModePerm); err != nil {
+			logs.Warn(err)
+			fmt.Println(err)
+			return
+		}
 		if reportFunc != nil {
 			report.Save(reportFunc(depRoot, taskInfo), out)
 		} else if reportByWriterFunc != nil {
