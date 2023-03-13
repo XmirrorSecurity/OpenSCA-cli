@@ -1,5 +1,3 @@
-
-
 <p align="center">
 	<img alt="logo" src="../logo.svg">
 </p>
@@ -9,41 +7,45 @@
 	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
 </p>
 
-
+English|[中文](../README.md)
 
 ## Introduction
 
-OpenSCA is intended for scanning the third-party component dependencies and vulnerabilities.
+OpenSCA is intended for scanning third-party dependencies and vulnerabilities.
+
+Our website: [https://opensca.xmirror.cn](https://opensca.xmirror.cn)
+
+Click **STAR** to encourage us.
 
 ------
 
 ## Detection Ability
 
-OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The project team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
+OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
 
-| LANGUAGE     | PACKAGE MANAGER | FILE                                                         |
-| ------------ | --------------- | ------------------------------------------------------------ |
-| `Java`       | `Maven`         | `pom.xml`                                                    |
-| `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                                      |
-| `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock`               |
-| `PHP`        | `Composer`      | `composer.json`  `composer.lock`                             |
-| `Ruby`       | `gem`           | `gemfile.lock`                                               |
-| `Golang`     | `gomod`         | `go.mod` `go.sum`                                            |
-| `Rust`       | `cargo`         | `Cargo.lock`                                                 |
-| `Erlang`     | `Rebar`         | `rebar.lock`                                                 |
-| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`(For the latter two, you need to install pipenv in advance) |
+| LANGUAGE     | PACKAGE MANAGER | FILE                                                                                                                                              |
+| ------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Java`       | `Maven`         | `pom.xml`                                                                                                                                         |
+| `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                                                                                                                           |
+| `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock`                                                                                                    |
+| `PHP`        | `Composer`      | `composer.json` `composer.lock`                                                                                                                   |
+| `Ruby`       | `gem`           | `gemfile.lock`                                                                                                                                    |
+| `Golang`     | `gomod`         | `go.mod` `go.sum`                                                                                                                                 |
+| `Rust`       | `cargo`         | `Cargo.lock`                                                                                                                                      |
+| `Erlang`     | `Rebar`         | `rebar.lock`                                                                                                                                      |
+| `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in`(For the latter two, pipenv environment & internet connection are needed) |
 
 ## Download and Deployment
 
-1. Download the appropriate executable file according to your system architecture from [release](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).  
+1. Download the appropriate executable file according to your system architecture from [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).
 
 2. Or download the source code and compile (go 1.18 and above is needed)
 
-   ```
+   ```shell
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
    go work init cli analyzer util
-   go build -o opensca-cli cli
+   go build -o opensca-cli cli/main.go
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
@@ -54,46 +56,80 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 
 ## Samples
 
-For detecting the component information only:
+### Scan & Report in CLI/CRT (default)
 
-```
+Detect the components only:
+
+```shell
 opensca-cli -path ${project_path}
 ```
 
-For connecting to the cloud platform:
+Connect to the cloud vulnerability database:
 
-```
+```shell
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
-Or for using the local vulnerability database:
+Or use the local vulnerability database:
 
-```
+```shell
 opensca-cli -db db.json -path ${project_path}
+```
+
+### Scan & Report in Files (use the `out` parameter)
+
+Files supported by the `out` parameter are listed below：
+
+| TYPE   | FORMAT | SPECIFIED SUFFIX                 | VERSION            |
+| ------ | ------ | -------------------------------- | ------------------ |
+| REPORT | `json` | `.json`                          | `*`                |
+|        | `xml`  | `.xml`                           | `*`                |
+|        | `html` | `.html`                          | `v1.0.6` and above |
+| SBOM   | `spdx` | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above |
+|        | `cdx`  | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above |
+|        | `swid` | `.swid.json` `.swid.xml`         | `v1.0.11`and above |
+
+#### Sample
+
+```shell
+opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
 ```
 
 ## Parameters
 
-**You can either configure the parameters in configuration files or input the parameters in the command-line. When the two conflict with each other, the input parameters will be prioritized.**
+**You can either configure the parameters in the configuration file or input the parameters in the command-line. When the two conflict, the input parameters will be prioritized.**
 
-| PARAMETER  | TYPE     | DESCRIPTION                                                  | SAMPLE                            |
-| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
-| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken. | `-config config.json`             |
-| `path`     | `string` | Set the file or directory path to be detected.               | `-path ./foo`                     |
-| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database, set the address of the cloud service. It needs to be used with the `token` parameter. | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter. | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | This option is recommended. It can cache the downloaded files, for example, the `.pom` file, and save your time when detecting the same component next time. The downloaded files are saved in `.cache` under the same directory as opensca-cli. | `-cache`                          |
-| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result. | `-vuln`                           |
-| `out`      | `string` | Set the output file. The result defaults to json format.Support the output of SBOM list in spdx format. | `-out output.json`                |
-| `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                     |
-| `progress` | `bool`   | Show the progress bar.                                       | `-progress`                       |
-| `dedup`    | `bool`   | Same result deduplication                                    | `-dedup`                          |
+| PARAMETER  | TYPE     | DESCRIPTION                                                                                                                                                                                                                                                                | SAMPLE                                                                                                                                                                                                                                                          |
+| ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken.                          | `-config config.json`                                                                                                                                                                                                                                           |
+| `path`     | `string` | Set the file or directory path to be detected.                                                                                                                                                                                                                             | `-path ./foo`                                                                                                                                                                                                                                                   |
+| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database and set the address of the cloud service. It needs to be used with the `token` parameter.                                                                                                                  | `-url https://opensca.xmirror.cn`                                                                                                                                                                                                                               |
+| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter.                                                                                                                                                    | `-token xxxxxxx`                                                                                                                                                                                                                                                |
+| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result.                                                                                                                                  | `-vuln`                                                                                                                                                                                                                                                         |
+| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix. The default is `JSON` </br>v1.0.6 and above support the visualized report in `HTML` </br>v1.0.8 and above support SBOM in `SPDX`</br>v1.0.11 and above support SBOM in `SWID` and `Cyclonedx` | `-out output.json` </br>`-out output.html`</br>`-out output.xml`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+| `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                                                                                                                                                                                                                                                   |
+| `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                                                                                                                                                                                                                                                     |
+| `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                                                                                                                                                                                                                                                        |
+
+For v1.0.9 and above, local maven component database can be configured in the following format in the configuration file:
+
+```json
+{
+    "maven": [
+        {
+            "repo": "url",
+            "user": "user",
+            "password": "password"
+        }
+    ]
+}
+```
 
 ------
 
 ### The Format of the Vulnerability Database File
 
-```
+```json
 [
   {
     "vendor": "org.apache.logging.log4j",
@@ -139,19 +175,70 @@ opensca-cli -db db.json -path ${project_path}
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
 | `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
 
+## FAQ
+
+### Is the environment variable needed while using OpenSCA?
+
+No. OpenSCA can be directly executed by the command in CLI/CRT after decompression.
+
+### About the vulnerability database?
+
+OpenSCA allows configuring the local vulnerability database. It has to be sorted according to *the Format of the Vulnerability Database File*.
+
+Meanwhile, OpenSCA also offers a cloud vulnerability database covering official databases including CVE/CWE/NVD/CNVD/CNNVD.
+
+### About the time cost of OpenSCA scanning?
+
+It depends on the size of the package, the network condition and the language.
+
+From v1.0.11, we add aliyun mirror database as the backup to the official maven repository to solve the lag caused by network connection.
+
+For v1.0.10 and below, if the time is abnormally long and error information about connection failure to the maven repository gets reported in the log file, users of versions between v1.0.6 and v1.0.10 can fix the problem by setting the `maven` field in `config.json`  like below:
+
+```json
+{
+    "maven": [
+        {
+            "repo": "https://maven.aliyun.com/repository/public",
+            "user": "",
+            "password": ""
+        }
+    ]
+}   
+```
+
+After setting, save `config.json` to the same folder of opensca-cli.exe and execute the command. Eg:
+
+```shell
+opensca-cli -url https://opensca.xmirror.cn -token {token} -path {path} -out output.html -config config.json
+```
+
+Users of v1.0.5 and below may have to modify the source code. We recommend an upgrade to higher versions.
+
+For more other FAQs, please check [FAQs](https://opensca.xmirror.cn/docs/v1/FAQ.html).
+
+## Contact Us
+
+ISSUEs are warmly welcome.
+
+Add WeChat for further consults is also an option:
+
+![二维码](../wechat.png)
+
+Our QQ Group: 832039395
+
+Mailbox: opensca@anpro-tech.com
+
 ## Authors
+
 - Tao Zhang
 - Chi Zhang
 - Zhong Chen
 - Enzhi Liu
 - Ge Ning
 
-## Contributing 
+## Contributing
 
-OpenSCA is an open source project, we appreciate your help!
+OpenSCA is an open source project, we appreciate your contribution!
 
-To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md). 
-
-
-
-*For the Chinese version of this document, please check [README](../README.md).
+To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md).

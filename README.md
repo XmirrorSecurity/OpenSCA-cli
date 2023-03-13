@@ -1,15 +1,21 @@
 <p align="center">
-	<img alt="logo" src="./logo.svg">
+ <img alt="logo" src="./logo.svg">
 </p>
 <h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
 <p align="center">
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
+ <a href="https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
+ <a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
 </p>
+
+中文 | [English](./.github/README.md)
 
 ## 项目介绍
 
 **OpenSCA** 用来扫描项目的第三方组件依赖及漏洞信息。
+
+官网：[https://opensca.xmirror.cn](https://opensca.xmirror.cn)
+
+欢迎点亮**star**，鼓励下项目组的小伙伴们~
 
 ---
 
@@ -27,7 +33,7 @@
 | `Golang`     | `gomod`    | `go.mod` `go.sum`                                            |
 | `Rust`       | `cargo`    | `Cargo.lock`                                                 |
 | `Erlang`     | `Rebar`    | `rebar.lock`                                                 |
-| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py``requirements.txt``requirements.in`（后两者需要pipenv环境，需要联网） |
+| `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in` （后两者的解析需要具备pipenv环境，需要联网。） |
 
 ## 下载安装
 
@@ -53,6 +59,8 @@
 
 ## 使用样例
 
+### 检测并输出检测结果到命令行/终端界面（默认）
+
 仅检测组件信息
 
 ```shell
@@ -71,22 +79,54 @@ opensca-cli -url ${url} -token ${token} -path ${project_path}
 opensca-cli -db db.json -path ${project_path}
 ```
 
+### 检测并输出检测结果文件（使用`out`参数）
+
+`out`参数支持范围如下：
+
+| 类型     | 文件格式 | 识别的文件后缀                   | 支持版本        |
+| -------- | -------- | -------------------------------- | --------------- |
+| 检测报告 | `json`   | `.json`                          | `*`             |
+|          | `xml`    | `.xml`                           | `*`             |
+|          | `html`   | `.html`                          | `v1.0.6`及以上  |
+| SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8`及以上  |
+|          | `cdx`    | `.cdx.json` `.cdx.xml`           | `v1.0.11`及以上 |
+|          | `swid`   | `.swid.json` `.swid.xml`         | `v1.0.11`及以上 |
+
+#### 样例
+
+```shell
+opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
+```
+
 ## 参数说明
 
 **可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
 
-| 参数       | 类型     | 描述                                                         | 使用样例                          |
-| ---------- | -------- | ------------------------------------------------------------ | --------------------------------- |
-| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数 | `-config config.json`             |
-| `path`     | `string` | 指定要检测的文件或目录路径                                   | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用 | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                  |
-| `cache`    | `bool`   | 建议开启，缓存下载的文件(例如 `.pom` 文件)，重复检测相同组件时会节省时间，下载的文件会保存到工具所在目录的.cache 目录下 | `-cache`                          |
-| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                           |
-| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `json` 格式；支持以`spdx`格式展示`sbom`清单只需更换相应输出文件后缀即可 | `-out output.json`                |
-| `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                     |
-| `progress` | `bool`   | 显示进度条                                                   | `-progress`                       |
-| `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                          |
+| 参数       | 类型     | 描述                                                         | 使用样例                                                     |
+| ---------- | -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `config`   | `string` | 指定配置文件路径，程序启动时将配置文件中的参数作为启动参数，配置参数与命令行输入参数冲突时优先使用输入参数 | `-config config.json`                                        |
+| `path`     | `string` | 指定要检测的文件或目录路径                                   | `-path ./foo`                                                |
+| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用 | `-url https://opensca.xmirror.cn`                            |
+| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                                             |
+| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                                                      |
+| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `JSON` 格式 | `-out output.json` </br>`-out output.xml`</br>`-out output.html`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+| `db`       | `string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件为 `json` 格式，具体格式会在之后给出;若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集 | `-db db.json`                                                |
+| `progress` | `bool`   | 显示进度条                                                   | `-progress`                                                  |
+| `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                                                     |
+
+**1.0.9及以上版本**支持配置maven私服库，需要在配置文件config.json里进行配置，格式如下：
+
+```json
+{
+    "maven": [
+        {
+            "repo": "url",
+            "user": "user",
+            "password": "password"
+        }
+    ]
+}
+```
 
 ---
 
@@ -137,6 +177,68 @@ opensca-cli -db db.json -path ${project_path}
 | `release_date`      | 漏洞发布日期                      | 否       |
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
+
+## 常见问题
+
+### 使用OpenSCA需要配置环境变量吗？
+
+不需要。解压后直接在命令行或终端工具中执行对应命令即可开始检测。
+
+### OpenSCA目前支持哪些漏洞库呢？
+
+OpenSCA支持自主配置本地漏洞库，需要按照[漏洞库文件格式](https://opensca.xmirror.cn/docs/v1/cli.html#漏洞库文件格式)配置。
+
+同时OpenSCA提供云漏洞库服务，兼容NVD、CNVD、CNNVD等官方漏洞库。
+
+### 使用OpenSCA检测时，检测速度与哪些因素有关？
+
+检测速度与压缩包大小、网络状况和检测语言有关，通常情况下会在几秒到几分钟。
+
+v1.0.11开始在默认逻辑中新增了阿里云镜像库作为maven官方库的备用，解决了官方库连接受限导致的检测速度过慢问题。
+
+v1.0.10及更低版本使用时如遇检测速度异常慢、日志文件中有maven连接失败报错，v1.0.6-v1.0.10可在配置文件config.json中将“maven”字段作如下设置：
+
+```json
+{
+    "maven": [
+        {
+            "repo": "https://maven.aliyun.com/repository/public",
+            "user": "",
+            "password": ""
+        }
+    ]
+}
+```
+
+设置完毕后，确保配置文件和opensca-cli在同一目录下，执行opensca-cli检测命令加上-config congif.json即可，示例：
+
+```shell
+opensca-cli -url https://opensca.xmirror.cn -token {token} -path {path} -out output.html -config config.json
+```
+
+v1.0.5及更低版本需要自行修改源码配置镜像库地址，建议升级到更高版本。
+
+**更多常见问题**，参见[常见问题](https://opensca.xmirror.cn/docs/v1/FAQ.html)。
+
+## 问题反馈&联系我们
+
+如果您在使用中遇到问题，欢迎向我们提交ISSUE。
+
+也可添加下方微信：
+
+![二维码](./wechat.png)
+
+QQ技术交流群：832039395
+
+官方邮箱：opensca@anpro-tech.com
+
+## 贡献者
+
+- 张涛
+- 张弛
+- 陈钟
+- 刘恩炙
+- 宁戈
 
 ## 向我们贡献
 
