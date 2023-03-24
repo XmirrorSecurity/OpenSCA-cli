@@ -136,18 +136,22 @@ func buildMvnDepTree(lines []string) *model.DepTree {
 		for line[level*3+2] == ' ' {
 			level++
 		}
-		tops = tops[:len(tops)-lastLevel+level-1]
 		root = tops[len(tops)-1]
 		tags := strings.Split(line[level*3:], ":")
 		if len(tags) < 4 {
 			logs.Error(errors.New("mvn parse error"))
 			break
 		}
+		scope := tags[len(tags)-1]
+		if scope == "test" || scope == "provided" {
+			continue
+		}
 		dep := model.NewDepTree(root)
 		dep.Vendor = tags[0]
 		dep.Name = tags[1]
 		dep.Version = model.NewVersion(tags[3])
 		dep.Language = language.Java
+		tops = tops[:len(tops)-lastLevel+level-1]
 		tops = append(tops, dep)
 		lastLevel = level
 	}
