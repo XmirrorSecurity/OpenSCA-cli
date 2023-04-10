@@ -21,8 +21,6 @@ import (
 	"util/logs"
 	"util/model"
 	"util/temp"
-
-	"github.com/pkg/errors"
 )
 
 // MvnDepTree 调用mvn解析项目获取依赖树
@@ -139,8 +137,7 @@ func buildMvnDepTree(lines []string) *model.DepTree {
 		root = tops[len(tops)-1]
 		tags := strings.Split(line[level*3:], ":")
 		if len(tags) < 4 {
-			logs.Error(errors.New("mvn parse error"))
-			break
+			continue
 		}
 		scope := tags[len(tags)-1]
 		if scope == "test" || scope == "provided" {
