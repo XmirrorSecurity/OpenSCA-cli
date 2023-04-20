@@ -22,7 +22,6 @@ func init() {
 }
 
 func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
-	format(dep)
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)
@@ -41,7 +40,6 @@ func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 }
 
 func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
-	format(dep)
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)
@@ -57,7 +55,6 @@ func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 }
 
 func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
-	format(dep)
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)

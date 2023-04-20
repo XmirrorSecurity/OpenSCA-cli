@@ -44,6 +44,9 @@ func SearchVuln(root *model.DepTree) (err error) {
 		exist := map[string]struct{}{}
 		if len(localVulns) != 0 {
 			for _, vuln := range localVulns[i] {
+				if vuln.Id == "" {
+					continue
+				}
 				if _, ok := exist[vuln.Id]; !ok {
 					exist[vuln.Id] = struct{}{}
 					dep.Vulnerabilities = append(dep.Vulnerabilities, vuln)
@@ -52,6 +55,9 @@ func SearchVuln(root *model.DepTree) (err error) {
 		}
 		if len(serverVulns) != 0 {
 			for _, vuln := range serverVulns[i] {
+				if vuln.Id == "" {
+					continue
+				}
 				if _, ok := exist[vuln.Id]; !ok {
 					exist[vuln.Id] = struct{}{}
 					dep.Vulnerabilities = append(dep.Vulnerabilities, vuln)

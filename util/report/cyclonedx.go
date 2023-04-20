@@ -9,7 +9,6 @@ import (
 )
 
 func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
-	format(dep)
 	metadata := cyclonedx.Metadata{}
 	components := []cyclonedx.Component{}
 	dependencies := []cyclonedx.Dependency{}

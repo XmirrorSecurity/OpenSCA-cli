@@ -22,8 +22,8 @@ type TaskInfo struct {
 	ErrorString string  `json:"error,omitempty"`
 }
 
-// format 按照输出内容格式化(不可逆)
-func format(dep *model.DepTree) {
+// Format 按照输出内容格式化(不可逆)
+func Format(dep *model.DepTree) {
 	q := []*model.DepTree{dep}
 	// 保留要导出的数据
 	for len(q) > 0 {

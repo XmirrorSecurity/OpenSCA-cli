@@ -71,10 +71,14 @@ func NewDependency() Dependency {
 
 // String 获取用于展示的Dependency字符串
 func (dep Dependency) String() string {
+	ver := dep.VersionStr
+	if dep.Version != nil {
+		ver = dep.Version.Org
+	}
 	if len(dep.Vendor) == 0 {
-		return fmt.Sprintf("[%s:%s]", dep.Name, dep.Version.Org)
+		return fmt.Sprintf("[%s:%s]", dep.Name, ver)
 	} else {
-		return fmt.Sprintf("[%s:%s:%s]", dep.Vendor, dep.Name, dep.Version.Org)
+		return fmt.Sprintf("[%s:%s:%s]", dep.Vendor, dep.Name, ver)
 	}
 }
 
@@ -191,7 +195,11 @@ func (root *DepTree) String() string {
 		if len(vulns) > 0 {
 			vuln = fmt.Sprintf(" %v", vulns)
 		}
-		res += fmt.Sprintf("%s%s<%s>%s%s\n", strings.Repeat("\t", node.Deep), dep.Dependency, dep.Language, dep.Path[strings.Index(dep.Path, "/")+1:], vuln)
+		lan := dep.LanguageStr
+		if lan == "" {
+			lan = dep.Language.String()
+		}
+		res += fmt.Sprintf("%s%s<%s>%s%s\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], vuln)
 		for i := len(dep.Children) - 1; i >= 0; i-- {
 			stack.Push(newNode(dep.Children[i], node.Deep+1))
 		}

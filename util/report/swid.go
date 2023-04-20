@@ -14,7 +14,6 @@ import (
 )
 
 func buildSwid(ext string, writer io.Writer, dep *model.DepTree, taskInfo TaskInfo) {
-	format(dep)
 	w := zip.NewWriter(writer)
 	defer w.Close()
 	q := []*model.DepTree{dep}

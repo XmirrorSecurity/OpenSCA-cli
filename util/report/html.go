@@ -31,7 +31,6 @@ func Html(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	}
 	vulnMap := map[string]int{}
 	// 遍历所有组件
-	format(dep)
 	q := []*model.DepTree{dep}
 	for len(q) > 0 {
 		n := q[0]
