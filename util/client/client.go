@@ -1,5 +1,5 @@
 /*
- * @Descripation: 用于和服务端通信
+ * @Description: 用于和服务端通信
  * @Date: 2021-12-11 17:48:40
  */
 

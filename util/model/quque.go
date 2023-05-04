@@ -1,5 +1,5 @@
 /*
- * @Descripation: 队列和栈
+ * @Description: 队列和栈
  * @Date: 2021-11-04 17:25:27
  */
 

@@ -1,5 +1,5 @@
 /*
- * @Descripation: ruby解析器
+ * @Description: ruby解析器
  * @Date: 2021-11-30 14:36:49
  */
 

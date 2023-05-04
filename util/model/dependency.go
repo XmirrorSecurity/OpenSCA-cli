@@ -1,5 +1,5 @@
 /*
- * @Descripation: 依赖相关数据结构
+ * @Description: 依赖相关数据结构
  * @Date: 2021-11-03 12:11:37
  */
 
