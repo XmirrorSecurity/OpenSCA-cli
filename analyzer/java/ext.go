@@ -143,6 +143,10 @@ func buildMvnDepTree(lines []string) *model.DepTree {
 		if scope == "test" || scope == "provided" {
 			continue
 		}
+		if level-lastLevel > 1 {
+			// 在某个依赖解析失败的时候 子依赖会出现这种情况
+			continue
+		}
 		dep := model.NewDepTree(root)
 		dep.Vendor = tags[0]
 		dep.Name = tags[1]
