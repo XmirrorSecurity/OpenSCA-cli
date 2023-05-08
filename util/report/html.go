@@ -75,6 +75,6 @@ func Html(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		return []byte{}
 	} else {
 		// 替换模板数据
-		return bytes.Replace(index, []byte("N$}"), append(data, '}'), 1)
+		return bytes.Replace(index, []byte(`"此处填充json数据"`), data, 1)
 	}
 }
