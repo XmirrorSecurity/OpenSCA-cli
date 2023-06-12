@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"strings"
-	"util/args"
 	"util/enum/language"
 	"util/logs"
 	"util/model"
@@ -26,37 +25,38 @@ type vulnInfo struct {
 // 漏洞信息 map[language]map[name][]vulninfo
 var vulnDB map[string]map[string][]vulnInfo
 
-// loadVulnDB 加载本地漏洞
-func loadVulnDB() {
+// LoadVulnDB 加载本地漏洞
+func LoadVulnDB(dbpath string) {
+	if dbpath == "" {
+		return
+	}
 	vulnDB = map[string]map[string][]vulnInfo{}
-	if args.Config.VulnDB != "" {
-		// 读取本地漏洞数据
-		if data, err := ioutil.ReadFile(args.Config.VulnDB); err != nil {
+	// 读取本地漏洞数据
+	if data, err := ioutil.ReadFile(dbpath); err != nil {
+		logs.Error(err)
+	} else {
+		// 解析本地漏洞
+		db := []vulnInfo{}
+		err := json.Unmarshal(data, &db)
+		if err != nil {
 			logs.Error(err)
-		} else {
-			// 解析本地漏洞
-			db := []vulnInfo{}
-			err := json.Unmarshal(data, &db)
-			if err != nil {
-				logs.Error(err)
+		}
+		for _, info := range db {
+			if info.Vuln == nil {
+				continue
 			}
-			for _, info := range db {
-				if info.Vuln == nil {
-					continue
-				}
-				// 有中文描述则省略英文描述
-				if info.Description != "" {
-					info.DescriptionEn = ""
-				}
-				// 将漏洞信息存到vulnDB中
-				name := strings.ToLower(info.Product)
-				language := strings.ToLower(info.Language)
-				if _, ok := vulnDB[language]; !ok {
-					vulnDB[language] = map[string][]vulnInfo{}
-				}
-				vulns := vulnDB[language]
-				vulns[name] = append(vulns[name], info)
+			// 有中文描述则省略英文描述
+			if info.Description != "" {
+				info.DescriptionEn = ""
 			}
+			// 将漏洞信息存到vulnDB中
+			name := strings.ToLower(info.Product)
+			language := strings.ToLower(info.Language)
+			if _, ok := vulnDB[language]; !ok {
+				vulnDB[language] = map[string][]vulnInfo{}
+			}
+			vulns := vulnDB[language]
+			vulns[name] = append(vulns[name], info)
 		}
 	}
 }
@@ -64,7 +64,7 @@ func loadVulnDB() {
 // GetLocalVulns 使用本地漏洞库获取漏洞
 func GetLocalVulns(deps []model.Dependency) (vulns [][]*model.Vuln) {
 	if vulnDB == nil {
-		loadVulnDB()
+		return nil
 	}
 	vulns = make([][]*model.Vuln, len(deps))
 	for i, dep := range deps {

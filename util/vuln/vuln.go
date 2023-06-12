@@ -56,6 +56,8 @@ func SearchVuln(root *model.DepTree) (err error) {
 		if len(serverVulns) != 0 {
 			for _, vuln := range serverVulns[i] {
 				if vuln.Id == "" {
+					// 约定没有id时按照许可证处理
+					dep.AddLicense(vuln.Name)
 					continue
 				}
 				if _, ok := exist[vuln.Id]; !ok {

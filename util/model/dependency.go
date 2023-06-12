@@ -187,15 +187,11 @@ func (root *DepTree) String() string {
 		for _, v := range dep.Vulnerabilities {
 			vulns = append(vulns, v.Id)
 		}
-		vuln := ""
-		if len(vulns) > 0 {
-			vuln = fmt.Sprintf(" %v", vulns)
-		}
 		lan := dep.LanguageStr
 		if lan == "" {
 			lan = dep.Language.String()
 		}
-		res += fmt.Sprintf("%s%s<%s>%s%s\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], vuln)
+		res += fmt.Sprintf("%s%s<%s> path:%s license:%v vulns:%v\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], dep.Licenses, vulns)
 		for i := len(dep.Children) - 1; i >= 0; i-- {
 			stack.Push(newNode(dep.Children[i], node.Deep+1))
 		}

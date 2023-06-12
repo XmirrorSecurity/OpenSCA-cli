@@ -18,12 +18,14 @@ import (
 	"util/logs"
 	"util/model"
 	"util/report"
+	"util/vuln"
 )
 
 var version string
 
 func main() {
 	args.Parse()
+	vuln.LoadVulnDB(args.Config.VulnDB)
 	if len(args.Config.Path) > 0 {
 		output(engine.NewEngine().ParseFile(args.Config.Path))
 	} else {
