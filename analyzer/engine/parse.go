@@ -143,7 +143,7 @@ func parseCopyright(f *model.FileInfo) string {
 			continue
 		}
 		if strings.EqualFold("copyright", tks[0]) {
-			if re.MatchString(tks[1]) {
+			if len(tks) > 1 && re.MatchString(tks[1]) {
 				matchLevel[high] = line
 			}
 			matchLevel[mid] = line
