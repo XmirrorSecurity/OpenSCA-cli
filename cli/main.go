@@ -66,7 +66,7 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 			out += ".zip"
 			reportByWriterFunc = report.SwidXml
 		} else {
-			logs.Warn(fmt.Sprintf("not support report format: %s", out))
+			reportFunc = report.Xml
 		}
 	default:
 		reportFunc = report.Json
