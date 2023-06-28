@@ -39,14 +39,14 @@ func getId() int64 {
 
 // Dependency 组件依赖
 type Dependency struct {
-	Vendor   string        `json:"vendor,omitempty"`
-	Name     string        `json:"name,omitempty"`
-	Version  *Version      `json:"ver,omitempty"`
-	Language language.Type `json:"lan,omitempty"`
+	Vendor   string        `json:"vendor,omitempty" xml:"vendor,omitempty" `
+	Name     string        `json:"name,omitempty" xml:"name,omitempty" `
+	Version  *Version      `json:"ver,omitempty" xml:"-" `
+	Language language.Type `json:"lan,omitempty" xml:"-" `
 
 	// 仅在生成json时赋值
-	VersionStr  string `json:"version,omitempty"`
-	LanguageStr string `json:"language,omitempty"`
+	VersionStr  string `json:"version,omitempty" xml:"version,omitempty" `
+	LanguageStr string `json:"language,omitempty" xml:"language,omitempty" `
 }
 
 // GetVersion 获取版本号
@@ -86,31 +86,27 @@ func (dep Dependency) String() string {
 type DepTree struct {
 	Dependency
 	// 是否为直接依赖
-	Direct bool `json:"direct"`
+	Direct bool `json:"direct" xml:"direct"`
 	// 依赖路径
-	Path  string   `json:"-"`
-	Paths []string `json:"paths,omitempty"`
+	Path  string   `json:"-" xml:"-"`
+	Paths []string `json:"paths,omitempty" xml:"paths,omitempty" `
 	// 唯一的组件id，用来标识不同组件
-	ID int64 `json:"-"`
+	ID int64 `json:"-" xml:"-" `
 	// 父组件
-	Parent                  *DepTree `json:"-"`
-	Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty"`
-	IndirectVulnerabilities int      `json:"indirect_vulnerabilities,omitempty"`
+	Parent                  *DepTree `json:"-" xml:"-" `
+	Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
+	IndirectVulnerabilities int      `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
 	// 许可证列表
-	licenseMap map[string]struct{} `json:"-"`
-	Licenses   []string            `json:"licenses,omitempty"`
+	licenseMap map[string]struct{} `json:"-" xml:"-" `
+	Licenses   []string            `json:"licenses,omitempty" xml:"licenses,omitempty" `
 	// spdx相关字段
-	CopyrightText    string `json:"copyrightText,omitempty"`
-	HomePage         string `json:"-"`
-	DownloadLocation string `json:"-"`
-	CheckSum         string `json:"-"`
+	CopyrightText    string `json:"copyrightText,omitempty" xml:"copyrightText,omitempty" `
+	HomePage         string `json:"-" xml:"-" `
+	DownloadLocation string `json:"-" xml:"-" `
+	CheckSum         string `json:"-" xml:"-" `
 	// 子组件
-	Children []*DepTree  `json:"children,omitempty"`
-	Expand   interface{} `json:"-"`
-}
-type CheckSum struct {
-	Algorithm string `json:"algorithm,omitempty"`
-	Value     string `json:"value,omitempty"`
+	Children []*DepTree  `json:"children,omitempty" xml:"children,omitempty" `
+	Expand   interface{} `json:"-" xml:"-" `
 }
 
 // NewDepTree 创建DepTree

@@ -12,14 +12,14 @@ import (
 
 // 任务检查信息
 type TaskInfo struct {
-	ToolVersion string  `json:"tool_version"`
-	AppName     string  `json:"app_name"`
-	Size        int64   `json:"size"`
-	StartTime   string  `json:"start_time"`
-	EndTime     string  `json:"end_time"`
-	CostTime    float64 `json:"cost_time"`
-	Error       error   `json:"-"`
-	ErrorString string  `json:"error,omitempty"`
+	ToolVersion string  `json:"tool_version" xml:"tool_version" `
+	AppName     string  `json:"app_name" xml:"app_name" `
+	Size        int64   `json:"size" xml:"size" `
+	StartTime   string  `json:"start_time" xml:"start_time" `
+	EndTime     string  `json:"end_time" xml:"end_time" `
+	CostTime    float64 `json:"cost_time" xml:"cost_time" `
+	Error       error   `json:"-" xml:"-" `
+	ErrorString string  `json:"error,omitempty" xml:"error,omitempty" `
 }
 
 // Format 按照输出内容格式化(不可逆)

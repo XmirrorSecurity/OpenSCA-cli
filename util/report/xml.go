@@ -11,10 +11,11 @@ func Xml(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	if taskInfo.Error != nil {
 		taskInfo.ErrorString = taskInfo.Error.Error()
 	}
-	if data, err := xml.Marshal(struct {
-		TaskInfo TaskInfo `json:"task_info"`
+	type report struct {
+		TaskInfo TaskInfo `xml:"task_info"`
 		*model.DepTree
-	}{
+	}
+	if data, err := xml.Marshal(report{
 		TaskInfo: taskInfo,
 		DepTree:  dep,
 	}); err != nil {
