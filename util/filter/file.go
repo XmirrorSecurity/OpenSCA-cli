@@ -50,8 +50,10 @@ var (
 // javascript相关
 var (
 	JavaScriptPackageLock = filterFunc(strings.HasSuffix, "package-lock.json")
-	JavaScriptPackage     = filterFunc(strings.HasSuffix, "package.json")
-	JavaScriptYarnLock    = filterFunc(strings.HasSuffix, "yarn.lock")
+	JavaScriptPackage     = func(filename string) bool {
+		return strings.HasSuffix(filename, "package.json") && !strings.Contains(filename, "node_modules")
+	}
+	JavaScriptYarnLock = filterFunc(strings.HasSuffix, "yarn.lock")
 )
 
 // php相关
