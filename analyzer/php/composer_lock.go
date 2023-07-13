@@ -1,5 +1,5 @@
 /*
- * @Descripation: parse composer.lock file
+ * @Description: parse composer.lock file
  * @Date: 2021-11-26 14:50:06
  */
 

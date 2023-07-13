@@ -1,5 +1,5 @@
 /*
- * @Descripation: 从云服务获取漏洞
+ * @Description: 从云服务获取漏洞
  * @Date: 2021-12-08 16:30:46
  */
 

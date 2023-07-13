@@ -1,5 +1,5 @@
 /*
- * @Descripation: 文件相关数据结构
+ * @Description: 文件相关数据结构
  * @Date: 2021-11-03 11:24:58
  */
 package model

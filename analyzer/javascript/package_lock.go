@@ -1,5 +1,5 @@
 /*
- * @Descripation: package-lock.json 解析
+ * @Description: package-lock.json 解析
  * @Date: 2021-11-25 20:25:08
  */
 

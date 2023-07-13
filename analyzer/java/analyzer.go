@@ -1,5 +1,5 @@
 /*
- * @Descripation: java Analyzer
+ * @Description: java Analyzer
  * @Date: 2021-11-03 11:17:09
  */
 package java

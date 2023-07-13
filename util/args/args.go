@@ -1,5 +1,5 @@
 /*
- * @Descripation: 程序启动参数
+ * @Description: 程序启动参数
  * @Date: 2021-11-06 16:50:53
  */
 
@@ -19,13 +19,13 @@ var (
 	ConfigPath string
 	Config     = struct {
 		// detect option
-		Path     string `json:"path"`
-		Out      string `json:"out"`
+		Path string `json:"path"`
+		Out  string `json:"out"`
 		// 永远开启
-		Cache    bool   `json:"-"`
-		Bar      bool   `json:"progress"`
-		OnlyVuln bool   `json:"vuln"`
-		Dedup    bool   `json:"dedup"`
+		Cache    bool `json:"-"`
+		Bar      bool `json:"progress"`
+		OnlyVuln bool `json:"vuln"`
+		Dedup    bool `json:"dedup"`
 		// remote vuldb
 		Url   string `json:"url"`
 		Token string `json:"token"`

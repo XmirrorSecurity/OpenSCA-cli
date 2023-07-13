@@ -1,5 +1,5 @@
 /*
- * @Descripation: php解析器
+ * @Description: php解析器
  * @Date: 2021-11-26 14:39:49
  */
 

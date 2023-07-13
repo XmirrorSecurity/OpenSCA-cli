@@ -1,5 +1,5 @@
 /*
- * @Descripation: mvn解析依赖树
+ * @Description: mvn解析依赖树
  * @Date: 2021-12-16 10:10:13
  */
 

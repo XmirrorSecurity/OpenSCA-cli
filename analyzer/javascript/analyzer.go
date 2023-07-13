@@ -1,5 +1,5 @@
 /*
- * @Descripation: javascript解析器
+ * @Description: javascript解析器
  * @Date: 2021-11-25 19:59:35
  */
 

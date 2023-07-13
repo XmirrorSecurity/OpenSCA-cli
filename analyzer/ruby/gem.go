@@ -1,5 +1,5 @@
 /*
- * @Descripation: 解析gem文件
+ * @Description: 解析gem文件
  * @Date: 2021-11-30 15:03:08
  */
 

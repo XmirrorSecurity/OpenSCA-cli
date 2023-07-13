@@ -1,5 +1,5 @@
 /*
- * @Descripation: 查找漏洞
+ * @Description: 查找漏洞
  * @Date: 2021-11-16 21:05:05
  */
 
