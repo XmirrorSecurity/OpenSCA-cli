@@ -53,7 +53,7 @@ func parseComposer(root *model.DepTree, file *model.FileInfo, simulation bool) (
 	root.DownloadLocation = composer.Support["source"]
 	// add license
 	if composer.License != "" {
-		root.AddLicense(composer.License)
+		root.AddLicense(model.LicenseInfo{ShortName: composer.License})
 	}
 	// parse direct dependency
 	requires := map[string]string{}

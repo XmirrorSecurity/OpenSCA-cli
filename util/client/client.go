@@ -93,7 +93,7 @@ func GetClientId() string {
 }
 
 // Detect 发送任务解析请求
-func Detect(reqbody []byte) (repbody []byte, err error) {
+func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 	repbody = []byte{}
 	// 获取aes-key
 	key, err := getAesKey()
@@ -120,13 +120,16 @@ func Detect(reqbody []byte) (repbody []byte, err error) {
 		return repbody, err
 	}
 	// 发送数据
-	rep, err := http.Post(url, "application/json", bytes.NewReader(data))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Detect-Type", dtype)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return repbody, err
 	}
-	defer rep.Body.Close()
-	if rep.StatusCode == 200 {
-		repbody, err = ioutil.ReadAll(rep.Body)
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		repbody, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			logs.Error(err)
 			return
@@ -159,7 +162,7 @@ func Detect(reqbody []byte) (repbody []byte, err error) {
 			}
 		}
 	} else {
-		return repbody, fmt.Errorf("%s status code: %d", url, rep.StatusCode)
+		return repbody, fmt.Errorf("%s status code: %d", url, resp.StatusCode)
 	}
 }
 

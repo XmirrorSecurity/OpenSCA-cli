@@ -57,7 +57,7 @@ func parseSetup(root *model.DepTree, file *model.FileInfo) {
 		}
 		root.Name = dep.Name
 		root.Version = model.NewVersion(dep.Version)
-		root.Licenses = append(root.Licenses, dep.License)
+		root.AddLicense(model.LicenseInfo{ShortName: dep.License})
 		for _, pkg := range [][]string{dep.Packages, dep.InstallRequires, dep.Requires} {
 			for _, p := range pkg {
 				index := strings.IndexAny(p, "=<>")

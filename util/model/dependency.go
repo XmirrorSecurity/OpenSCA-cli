@@ -98,7 +98,7 @@ type DepTree struct {
 	IndirectVulnerabilities int      `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
 	// 许可证列表
 	licenseMap map[string]struct{} `json:"-" xml:"-" `
-	Licenses   []string            `json:"licenses,omitempty" xml:"licenses,omitempty" `
+	Licenses   []LicenseInfo       `json:"licenses,omitempty" xml:"licenses,omitempty" `
 	// spdx相关字段
 	CopyrightText    string `json:"copyrightText,omitempty" xml:"copyrightText,omitempty" `
 	HomePage         string `json:"-" xml:"-" `
@@ -120,7 +120,7 @@ func NewDepTree(parent *DepTree) *DepTree {
 		Parent:          parent,
 		Children:        []*DepTree{},
 		licenseMap:      map[string]struct{}{},
-		Licenses:        []string{},
+		Licenses:        []LicenseInfo{},
 		CopyrightText:   "",
 	}
 	if parent != nil {
@@ -130,11 +130,11 @@ func NewDepTree(parent *DepTree) *DepTree {
 }
 
 // AddLicense 添加许可证
-func (dep *DepTree) AddLicense(licName string) {
-	key := strings.TrimSpace(strings.ToLower(licName))
+func (dep *DepTree) AddLicense(lic LicenseInfo) {
+	key := strings.TrimSpace(strings.ToLower(lic.ShortName))
 	if _, ok := dep.licenseMap[key]; !ok {
 		dep.licenseMap[key] = struct{}{}
-		dep.Licenses = append(dep.Licenses, licName)
+		dep.Licenses = append(dep.Licenses, lic)
 	}
 }
 
@@ -183,15 +183,23 @@ func (root *DepTree) String() string {
 	for !stack.Empty() {
 		node := stack.Pop().(*node)
 		dep := node.Dep
+
 		vulns := []string{}
 		for _, v := range dep.Vulnerabilities {
 			vulns = append(vulns, v.Id)
 		}
+
 		lan := dep.LanguageStr
 		if lan == "" {
 			lan = dep.Language.String()
 		}
-		res += fmt.Sprintf("%s%s<%s> path:%s license:%v vulns:%v\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], dep.Licenses, vulns)
+
+		lics := make([]string, len(dep.Licenses))
+		for i, lic := range dep.Licenses {
+			lics[i] = lic.ShortName
+		}
+
+		res += fmt.Sprintf("%s%s<%s> path:%s license:%v vulns:%v\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], lics, vulns)
 		for i := len(dep.Children) - 1; i >= 0; i-- {
 			stack.Push(newNode(dep.Children[i], node.Deep+1))
 		}

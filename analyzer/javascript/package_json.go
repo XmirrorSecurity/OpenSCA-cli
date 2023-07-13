@@ -50,7 +50,9 @@ func parsePackage(root *model.DepTree, file *model.FileInfo, simulation bool) (d
 	if pkg.Version != "" {
 		root.Version = model.NewVersion(pkg.Version)
 	}
-	root.AddLicense(pkg.License)
+	root.AddLicense(model.LicenseInfo{
+		ShortName: pkg.License,
+	})
 	root.HomePage = pkg.HomePage
 	// 依赖列表map[name]version
 	depMap := map[string]string{}
@@ -145,7 +147,7 @@ func npmSimulation(dep *model.DepTree, exist map[string]struct{}) (subDeps []*mo
 	}
 	info := npm.Versions[latestVersion]
 	dep.Version = model.NewVersion(latestVersion)
-	dep.AddLicense(info.License)
+	dep.AddLicense(model.LicenseInfo{ShortName: info.License})
 	// 解析子依赖
 	names := []string{}
 	for name := range info.Deps {

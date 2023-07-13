@@ -26,3 +26,9 @@ type Vuln struct {
 func NewVuln() *Vuln {
 	return &Vuln{}
 }
+
+// LicenseInfo 许可证
+type LicenseInfo struct {
+	ShortName string `json:"name"`
+	// TODO: expand
+}

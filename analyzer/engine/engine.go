@@ -102,7 +102,7 @@ func (e Engine) ParseFile(filepath string) (depRoot *model.DepTree, taskInfo rep
 	// 解析目录树获取依赖树
 	e.parseDependency(dirRoot, depRoot)
 	// 获取漏洞
-	taskInfo.Error = vuln.SearchVuln(depRoot)
+	taskInfo.Error = vuln.SearchDetail(depRoot)
 	// 是否仅保留漏洞组件
 	if args.Config.OnlyVuln {
 		root := model.NewDepTree(nil)

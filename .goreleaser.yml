@@ -1,33 +1,35 @@
-{
-  "project_name": "opensca-cli",
-  "builds":
-    [
-      {
-        "env": ["CGO_ENABLED=0"],
-        "goos": ["linux", "windows", "darwin"],
-        "goarch": [386, "amd64", "arm", "arm64"],
-        "goarm": [6, 7],
-        "id": "opensca-cli",
-        "dir": ".",
-        "binary": "opensca-cli",
-        "main": "./cli/",
-      },
-    ],
-  "archives":
-    [
-      {
-        "replacements":
-          {
-            "386": "i386",
-            "darwin": "Darwin",
-            "linux": "Linux",
-            "windows": "Windows",
-            "amd64": "x86_64",
-          },
-        "files": ["LICENSE", "config.json", "README.md"],
-        "format": "zip",
-      },
-    ],
-  "checksum": { "name_template": "checksums.txt" },
-  "snapshot": { "name_template": "{{.Tag}}" },
-}
+project_name: opensca-cli
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 6
+      - 7
+    id: opensca-cli
+    dir: .
+    binary: opensca-cli
+    main: ./cli/
+archives:
+  - name_template: >-
+      {{.ProjectName}}_{{.Tag}}_{{- title .Os}}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else}}{{.Arch}}{{.Arm}}{{end}}
+    files:
+      - LICENSE
+      - config.json
+      - README.md
+    format: zip
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: "{{.Tag}}"

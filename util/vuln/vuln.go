@@ -11,8 +11,8 @@ import (
 	"util/model"
 )
 
-// SearchVuln 查找漏洞
-func SearchVuln(root *model.DepTree) (err error) {
+// SearchDetail 查找组件详情:漏洞/许可证
+func SearchDetail(root *model.DepTree) (err error) {
 	queue := model.NewQueue()
 	queue.Push(root)
 	deps := []*model.DepTree{}
@@ -23,17 +23,26 @@ func SearchVuln(root *model.DepTree) (err error) {
 			queue.Push(child)
 		}
 	}
-	localVulns := [][]*model.Vuln{}
-	serverVulns := [][]*model.Vuln{}
 	ds := make([]model.Dependency, len(deps))
 	for i, d := range deps {
 		ds[i] = d.Dependency
 	}
+
+	localVulns := [][]*model.Vuln{}
+	serverVulns := [][]*model.Vuln{}
 	if args.Config.VulnDB != "" {
 		localVulns = GetLocalVulns(ds)
 	}
 	if args.Config.Url != "" && args.Config.Token != "" {
+		// vulnerability
 		serverVulns, err = GetServerVuln(ds)
+		// license
+		serverLicenses, _ := GetServerLicense(ds)
+		for i, lics := range serverLicenses {
+			for _, lic := range lics {
+				deps[i].AddLicense(lic)
+			}
+		}
 	} else if args.Config.VulnDB == "" && args.Config.Url == "" && args.Config.Token != "" {
 		err = errors.New("url is null")
 	} else if args.Config.VulnDB == "" && args.Config.Url != "" && args.Config.Token == "" {
@@ -56,8 +65,6 @@ func SearchVuln(root *model.DepTree) (err error) {
 		if len(serverVulns) != 0 {
 			for _, vuln := range serverVulns[i] {
 				if vuln.Id == "" {
-					// 约定没有id时按照许可证处理
-					dep.AddLicense(vuln.Name)
 					continue
 				}
 				if _, ok := exist[vuln.Id]; !ok {

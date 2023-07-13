@@ -194,10 +194,10 @@ func setPkgLicenseCon(dep *model.DepTree) string {
 		lic := ""
 		for _, v := range dep.Licenses {
 			if lic == "" {
-				lic = v
+				lic = v.ShortName
 				continue
 			}
-			lic = lic + " OR " + v
+			lic = lic + " OR " + v.ShortName
 		}
 		return lic
 	}
