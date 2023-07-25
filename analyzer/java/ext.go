@@ -127,12 +127,11 @@ func buildMvnDepTree(lines []string) *model.DepTree {
 	for _, line := range lines {
 		// 计算层级
 		level := 0
-		// 防止数组越界
+		for level*3+2 < len(line) && line[level*3+2] == ' ' {
+			level++
+		}
 		if level*3+2 >= len(line) {
 			continue
-		}
-		for line[level*3+2] == ' ' {
-			level++
 		}
 		root = tops[len(tops)-1]
 		tags := strings.Split(line[level*3:], ":")
