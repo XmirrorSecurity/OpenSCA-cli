@@ -7,7 +7,6 @@ package engine
 
 import (
 	"path"
-	"regexp"
 	"strings"
 	"util/filter"
 	"util/model"
@@ -25,7 +24,6 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 	if depRoot == nil {
 		depRoot = model.NewDepTree(nil)
 	}
-	var copyrightMess = make(map[string]string)
 	for _, analyzer := range e.Analyzers {
 		// 遍历目录树获取要检测的文件
 		files := []*model.FileInfo{}
@@ -39,22 +37,11 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 			for _, f := range n.Files {
 				if analyzer.CheckFile(f.Name) {
 					files = append(files, f)
-				} else if filter.CheckLicense(f.Name) {
-					if _, ok := copyrightMess[path.Dir(f.Name)]; !ok {
-						// 记录解析到的copyrigh信息
-						copyrightMess[path.Dir(f.Name)] = parseCopyright(f)
-					}
 				}
 			}
 		}
 		// 从文件中解析依赖树
 		for _, d := range analyzer.ParseFiles(files) {
-			p := path.Dir(d.Path)
-			if _, ok := copyrightMess[p]; ok {
-				// 将copyright信息加入与其同一文件目录的依赖节点中
-				d.CopyrightText = copyrightMess[p]
-				delete(copyrightMess, p)
-			}
 			depRoot.Children = append(depRoot.Children, d)
 			d.Parent = depRoot
 			if d.Name != "" && !strings.ContainsAny(d.Vendor+d.Name, "${}") && d.Version.Ok() {
@@ -118,48 +105,4 @@ func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) 
 		}
 	}
 	return depRoot
-}
-
-// 从文件中提取copyright信息
-func parseCopyright(f *model.FileInfo) string {
-	matchLevel := map[int]string{}
-	ct := string(f.Data)
-	if len(ct) == 0 {
-		return ""
-	}
-	pras := strings.Split(ct, "\n\n")
-	re := regexp.MustCompile(`^\d{4}$|^\d{4}-\d{4}$|^\(c\)$`)
-	for _, pra := range pras {
-		if !strings.Contains(strings.ToLower(pra), "copyright") {
-			continue
-		}
-		lines := strings.Split(pra, "\n")
-		line := strings.TrimSpace(lines[0])
-		if len(lines) == 0 {
-			continue
-		}
-		tks := strings.Fields(line)
-		if len(tks) == 0 {
-			continue
-		}
-		if strings.EqualFold("copyright", tks[0]) {
-			if len(tks) > 1 && re.MatchString(tks[1]) {
-				matchLevel[high] = line
-			}
-			matchLevel[mid] = line
-		}
-		for _, l := range lines {
-			if strings.HasPrefix(strings.TrimSpace(strings.ToLower(l)), "copyright") {
-				matchLevel[low] = strings.TrimSpace(l)
-				break
-			}
-		}
-
-	}
-	for i := high; i >= low; i-- {
-		if matchLevel[i] != "" {
-			return matchLevel[i]
-		}
-	}
-	return ""
 }
