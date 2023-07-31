@@ -28,8 +28,7 @@ import (
 // checkFile 检测是否为可检测的文件
 func (e Engine) checkFile(filename string) bool {
 	for _, analyzer := range e.Analyzers {
-		if analyzer.CheckFile(filename) ||
-			filter.CheckLicense(filename) {
+		if analyzer.CheckFile(filename) {
 			return true
 		}
 	}

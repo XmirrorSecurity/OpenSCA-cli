@@ -12,13 +12,6 @@ import (
 	"util/model"
 )
 
-// copyright匹配优先级
-const (
-	low = iota
-	mid
-	high
-)
-
 // parseDependency 解析依赖
 func (e Engine) parseDependency(dirRoot *model.DirTree, depRoot *model.DepTree) *model.DepTree {
 	if depRoot == nil {
