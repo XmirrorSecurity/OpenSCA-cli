@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"util/args"
 	"util/bar"
 	"util/filter"
 	"util/logs"
@@ -134,6 +135,9 @@ func (e Engine) opendir(dirpath string) (dir *model.DirTree) {
 			dir.SubDir[filename] = e.opendir(filepath)
 		} else {
 			if filter.AllPkg(filename) {
+				if args.Config.DirOnly {
+					continue
+				}
 				dir.DirList = append(dir.DirList, filename)
 				dir.SubDir[filename] = e.unArchiveFile(filepath)
 			} else if e.checkFile(filename) {

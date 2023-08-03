@@ -1,5 +1,5 @@
 /*
- * @Description:
+ * @Descripation:
  * @Date: 2021-11-06 15:44:20
  */
 
@@ -10,7 +10,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
+	"util/args"
 
 	"github.com/pkg/errors"
 )
@@ -35,12 +37,30 @@ var (
 	logger  *log.Logger
 )
 
-func init() {
+func initLogger() {
 	// 创建日志文件
 	var err error
-	dir, _ := os.Executable()
-	filepath := path.Join(path.Dir(strings.ReplaceAll(dir, `\`, `/`)), "opensca.log")
-	logFile, err = os.OpenFile(filepath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
+
+	cwd, err := os.Getwd() //获取当前工作目录
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	logFilePath := args.Config.Logfile
+	// fmt.Printf("Log file initLogger:%s\n", args.Config.Logfile)
+
+	if logFilePath == "" {
+		logFilePath = path.Join(strings.ReplaceAll(cwd, `\`, `/`), "opensca.log")
+	}
+
+	fmt.Printf("log file: %s\n", logFilePath)
+
+	if err := os.MkdirAll(filepath.Dir(logFilePath), os.ModeDir); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	logFile, err = os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 	if err != nil {
 		fmt.Println("log file create fail!")
 	} else {
@@ -55,10 +75,14 @@ func GetLogFile() *os.File {
 
 func out(level logLevel, v interface{}) {
 	if logger == nil {
-		return
+		initLogger()
 	}
 	logger.SetPrefix(fmt.Sprintf("[%s] ", prefixs[level]))
-	logger.Output(3, fmt.Sprint(v))
+	err := logger.Output(3, fmt.Sprint(v))
+	if err != nil {
+		fmt.Println(errors.WithStack(err).Error())
+		return
+	}
 }
 
 func Debug(v interface{}) {

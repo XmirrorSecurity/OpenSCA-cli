@@ -14,7 +14,7 @@
 {
   "name": "screeps",
   "version": "1.0.0",
-  "description": "",
+  "Descripation": "",
   "main": "index.js",
   "scripts": {
     "push": "rollup -cw --environment DEST:main",

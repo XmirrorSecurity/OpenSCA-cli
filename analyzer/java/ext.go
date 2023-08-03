@@ -20,7 +20,6 @@ import (
 	"util/filter"
 	"util/logs"
 	"util/model"
-	"util/temp"
 )
 
 // MvnDepTree 调用mvn解析项目获取依赖树
@@ -77,7 +76,11 @@ func MvnDepTree(dirpath string, root *model.DepTree) {
 }
 
 func parseMvnOutput(dirpath string) []*model.DepTree {
-	pwd := temp.GetPwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		logs.Warn(err)
+		return nil
+	}
 	os.Chdir(dirpath)
 	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
 	out, _ := cmd.CombinedOutput()

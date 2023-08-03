@@ -145,8 +145,8 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
     "cnnvd_id": "CNNVD-202112-799",
     "cnvd_id": "CNVD-2021-95914",
     "cwe_id": "CWE-502,CWE-400,CWE-20",
-    "description": "Apache Log4j是美国阿帕奇（Apache）基金会的一款基于Java的开源日志记录工具。\r\nApache Log4J 存在代码问题漏洞，攻击者可设计一个数据请求发送给使用 Apache Log4j工具的服务器，当该请求被打印成日志时就会触发远程代码执行。",
-    "description_en": "Apache Log4j2 2.0-beta9 through 2.12.1 and 2.13.0 through 2.15.0 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0, this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects.",
+    "Descripation": "Apache Log4j是美国阿帕奇（Apache）基金会的一款基于Java的开源日志记录工具。\r\nApache Log4J 存在代码问题漏洞，攻击者可设计一个数据请求发送给使用 Apache Log4j工具的服务器，当该请求被打印成日志时就会触发远程代码执行。",
+    "Descripation_en": "Apache Log4j2 2.0-beta9 through 2.12.1 and 2.13.0 through 2.15.0 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0, this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects.",
     "suggestion": "2.12.1及以下版本可以更新到2.12.2，其他建议更新至2.15.0或更高版本，漏洞详情可参考：https://github.com/apache/logging-log4j2/pull/608 \r\n1、临时解决方案，适用于2.10及以上版本：\r\n\t（1）设置jvm参数：“-Dlog4j2.formatMsgNoLookups=true”；\r\n\t（2）设置参数：“log4j2.formatMsgNoLookups=True”；",
     "attack_type": "远程",
     "release_date": "2021-12-10",
@@ -170,8 +170,8 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `cnnvd_id`          | cnnvd 编号                        | 否       |
 | `cnvd_id`           | cnvd 编号                         | 否       |
 | `cwe_id`            | cwe 编号                          | 否       |
-| `description`       | 漏洞描述                          | 否       |
-| `description_en`    | 漏洞英文描述                      | 否       |
+| `Descripation`       | 漏洞描述                          | 否       |
+| `Descripation_en`    | 漏洞英文描述                      | 否       |
 | `suggestion`        | 漏洞修复建议                      | 否       |
 | `attack_type`       | 攻击方式                          | 否       |
 | `release_date`      | 漏洞发布日期                      | 否       |

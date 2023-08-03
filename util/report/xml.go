@@ -2,12 +2,13 @@ package report
 
 import (
 	"encoding/xml"
+	"io"
 	"util/logs"
 	"util/model"
 )
 
 // Xml 获取xml格式报告数据
-func Xml(dep *model.DepTree, taskInfo TaskInfo) []byte {
+func Xml(dep *model.DepTree, taskInfo TaskInfo) {
 	if taskInfo.Error != nil {
 		taskInfo.ErrorString = taskInfo.Error.Error()
 	}
@@ -15,13 +16,13 @@ func Xml(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		TaskInfo TaskInfo `xml:"task_info"`
 		*model.DepTree
 	}
-	if data, err := xml.Marshal(report{
-		TaskInfo: taskInfo,
-		DepTree:  dep,
-	}); err != nil {
-		logs.Error(err)
-	} else {
-		return data
-	}
-	return []byte{}
+	outWrite(func(w io.Writer) {
+		err := xml.NewEncoder(w).Encode(report{
+			TaskInfo: taskInfo,
+			DepTree:  dep,
+		})
+		if err != nil {
+			logs.Error(err)
+		}
+	})
 }

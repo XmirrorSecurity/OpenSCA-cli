@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"io"
 	"util/logs"
 	"util/model"
 )
@@ -12,7 +13,7 @@ import (
 var index []byte
 
 // Html 获取html格式报告数据
-func Html(dep *model.DepTree, taskInfo TaskInfo) []byte {
+func Html(dep *model.DepTree, taskInfo TaskInfo) {
 	// html组件字段
 	type htmlDep struct {
 		*model.DepTree
@@ -72,9 +73,11 @@ func Html(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		Components: deps,
 	}); err != nil {
 		logs.Warn(err)
-		return []byte{}
 	} else {
 		// 替换模板数据
-		return bytes.Replace(index, []byte(`"此处填充json数据"`), data, 1)
+		outWrite(func(w io.Writer) {
+			w.Write(bytes.Replace(index, []byte(`"此处填充json数据"`), data, 1))
+		})
+		return
 	}
 }

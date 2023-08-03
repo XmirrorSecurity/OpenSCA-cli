@@ -40,7 +40,7 @@ func Statis(depRoot *model.DepTree, taskInfo TaskInfo) string {
 		}
 		q = append(q[1:], n.Children...)
 	}
-	return fmt.Sprintf("\nComplete!"+
+	return fmt.Sprintf("Complete!"+
 		"\nComponents:%d C:%d H:%d M:%d L:%d"+
 		"\nVulnerabilities:%d C:%d H:%d M:%d L:%d",
 		coms[0], coms[1], coms[2], coms[3], coms[4],

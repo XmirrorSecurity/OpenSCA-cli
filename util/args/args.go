@@ -10,17 +10,20 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"path"
+	"log"
+	"os/user"
+	"path/filepath"
 	"strings"
-	"util/temp"
 )
 
 var (
 	ConfigPath string
 	Config     = struct {
 		// detect option
-		Path string `json:"path"`
-		Out  string `json:"out"`
+		Path    string `json:"path"`
+		Out     string `json:"out"`
+		Logfile string `json:"log"`
+		DirOnly bool   `json:"dironly"`
 		// 永远开启
 		Cache    bool `json:"-"`
 		Bar      bool `json:"progress"`
@@ -45,10 +48,12 @@ func init() {
 	flag.StringVar(&Config.Token, "token", Config.Token, "(可选,与url需一起使用) 云服务验证token,需要在云服务平台申请")
 	flag.BoolVar(&Config.Cache, "cache", Config.Cache, "(已弃用/永远开启) 缓存下载的文件(例如pom文件),重复检测相同组件时会节省时间,下载的文件会保存到工具所在目录的.cache目录下")
 	flag.BoolVar(&Config.OnlyVuln, "vuln", Config.OnlyVuln, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
-	flag.StringVar(&Config.Out, "out", Config.Out, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,默认为json格式,例: -out output.json")
+	flag.StringVar(&Config.Out, "out", Config.Out, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,支持的后缀有：.html, .json, .spdx.json, .spdx.xml, .csv, .sqlite, 默认为json格式,例: -out output.json")
 	flag.StringVar(&Config.VulnDB, "db", Config.VulnDB, "(可选) 指定本地漏洞库文件,希望使用自己漏洞库时可用,漏洞库文件为json格式,具体格式会在开源项目文档中给出;若同时使用云端漏洞库与本地漏洞库,漏洞查询结果取并集,例: -db db.json")
 	flag.BoolVar(&Config.Bar, "progress", Config.Bar, "(可选) 显示进度条")
 	flag.BoolVar(&Config.Dedup, "dedup", Config.Dedup, "(可选) 相同组件去重")
+	flag.BoolVar(&Config.DirOnly, "dironly", Config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
+	flag.StringVar(&Config.Logfile, "log", Config.Logfile, "(可选) 指定日志文件路径")
 }
 
 func Parse() {
@@ -62,8 +67,13 @@ func Parse() {
 			}
 		}
 	} else {
-		// 默认读取目录下的config.json文件
-		if data, err := ioutil.ReadFile(path.Join(temp.GetPwd(), "config.json")); err == nil {
+		// 默认读取HOME目录下的opensca_config.json
+		user, err := user.Current()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		if data, err := ioutil.ReadFile(filepath.Join(user.HomeDir, "opensca_config.json")); err == nil {
 			// 不处理错误
 			json.Unmarshal(data, &Config)
 		}

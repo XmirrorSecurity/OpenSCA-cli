@@ -8,11 +8,7 @@ import (
 	"analyzer/engine"
 	"flag"
 	"fmt"
-	"io"
-	"io/fs"
-	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"util/args"
 	"util/logs"
@@ -40,20 +36,20 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 	// 记录依赖
 	logs.Debug("\n" + depRoot.String())
 	// 输出结果
-	var reportFunc func(*model.DepTree, report.TaskInfo) []byte
-	var reportByWriterFunc func(io.Writer, *model.DepTree, report.TaskInfo)
+	var reportFunc func(*model.DepTree, report.TaskInfo)
 	out := args.Config.Out
-	switch path.Ext(out) {
+	ext := path.Ext(out)
+	switch ext {
 	case ".html":
 		reportFunc = report.Html
 	case ".json":
 		if strings.HasSuffix(out, ".spdx.json") {
 			reportFunc = report.SpdxJson
 		} else if strings.HasSuffix(out, ".cdx.json") {
-			reportByWriterFunc = report.CycloneDXJson
+			reportFunc = report.CycloneDXJson
 		} else if strings.HasSuffix(out, ".swid.json") {
 			out += ".zip"
-			reportByWriterFunc = report.SwidJson
+			reportFunc = report.SwidJson
 		} else {
 			reportFunc = report.Json
 		}
@@ -63,32 +59,22 @@ func output(depRoot *model.DepTree, taskInfo report.TaskInfo) {
 		if strings.HasSuffix(out, ".spdx.xml") {
 			reportFunc = report.SpdxXml
 		} else if strings.HasSuffix(out, ".cdx.xml") {
-			reportByWriterFunc = report.CycloneDXXml
+			reportFunc = report.CycloneDXXml
 		} else if strings.HasSuffix(out, ".swid.xml") {
 			out += ".zip"
-			reportByWriterFunc = report.SwidXml
+			reportFunc = report.SwidXml
 		} else {
 			reportFunc = report.Xml
 		}
+	case ".csv":
+		reportFunc = report.Csv
+	case ".sqlite", ".db":
+		reportFunc = report.Sqlite
 	default:
 		reportFunc = report.Json
 	}
+
 	fmt.Println(report.Statis(depRoot, taskInfo))
-	if out != "" {
-		// 尝试创建导出文件目录
-		if err := os.MkdirAll(filepath.Dir(out), fs.ModePerm); err != nil {
-			logs.Warn(err)
-			fmt.Println(err)
-			return
-		}
-		if reportFunc != nil {
-			report.Save(reportFunc(depRoot, taskInfo), out)
-		} else if reportByWriterFunc != nil {
-			report.SaveByWriter(func(w io.Writer) {
-				reportByWriterFunc(w, depRoot, taskInfo)
-			}, out)
-		}
-	} else {
-		fmt.Println(string(reportFunc(depRoot, taskInfo)))
-	}
+	reportFunc(depRoot, taskInfo)
+
 }

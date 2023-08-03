@@ -1,10 +1,10 @@
 package report
 
 import (
-	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"path"
 	"strings"
 	"text/template"
@@ -21,7 +21,7 @@ func init() {
 	replacer = strings.NewReplacer(replacers...)
 }
 
-func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
+func Spdx(dep *model.DepTree, taskInfo TaskInfo) {
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)
@@ -31,15 +31,15 @@ func Spdx(dep *model.DepTree, taskInfo TaskInfo) []byte {
 	if err != nil {
 		logs.Warn(err)
 	}
-	templateBuffer := new(bytes.Buffer)
-	err = tmpl.Execute(templateBuffer, doc)
-	if err != nil {
-		logs.Error(err)
-	}
-	return templateBuffer.Bytes()
+	outWrite(func(w io.Writer) {
+		err = tmpl.Execute(w, doc)
+		if err != nil {
+			logs.Error(err)
+		}
+	})
 }
 
-func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
+func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) {
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)
@@ -47,14 +47,15 @@ func SpdxJson(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		Document `json:"document"`
 	}
 	d := D{*doc}
-	res, err := json.Marshal(d.Document)
-	if err != nil {
-		logs.Error(err)
-	}
-	return res
+	outWrite(func(w io.Writer) {
+		err := json.NewEncoder(w).Encode(d.Document)
+		if err != nil {
+			logs.Error(err)
+		}
+	})
 }
 
-func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
+func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) {
 	doc := buildDocument(dep, taskInfo)
 	addPkgToDoc(dep, doc)
 	addRelation(dep, doc)
@@ -62,11 +63,12 @@ func SpdxXml(dep *model.DepTree, taskInfo TaskInfo) []byte {
 		Document `xml:"document"`
 	}
 	d := D{*doc}
-	res, err := xml.Marshal(d.Document)
-	if err != nil {
-		logs.Error(err)
-	}
-	return res
+	outWrite(func(w io.Writer) {
+		err := xml.NewEncoder(w).Encode(d.Document)
+		if err != nil {
+			logs.Error(err)
+		}
+	})
 }
 
 // 为document添加relationship字段
@@ -141,7 +143,7 @@ func buildDocument(root *model.DepTree, taskInfo TaskInfo) *Document {
 		SPDXVersion:       "SPDX-2.2",
 		DataLicense:       "",
 		SPDXID:            "SPDXRef-DOCUMENT",
-		DocumentName:      path.Base(taskInfo.AppName),
+		DocumentName:      taskInfo.AppName,
 		DocumentNamespace: "",
 		CreationInfo: CreationInfo{
 			Creators: []string{"OpenSCA-Cli"},

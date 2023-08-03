@@ -16,11 +16,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"util/args"
 	"util/logs"
-	"util/temp"
 
 	"github.com/pkg/errors"
 )
@@ -62,7 +61,11 @@ func GetClientId() string {
 	// 默认id
 	id := "XXXXXXXXXXXXXXXX"
 	// 尝试读取.key文件
-	idFile := path.Join(temp.GetPwd(), ".key")
+	excFilepath, err := os.Executable()
+	if err != nil {
+		logs.Error(err)
+	}
+	idFile := filepath.Join(filepath.Dir(excFilepath), ".key")
 	if _, err := os.Stat(idFile); err != nil {
 		// 文件不存在则生成随机ID并保存
 		if f, err := os.Create(idFile); err != nil {

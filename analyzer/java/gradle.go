@@ -11,7 +11,6 @@ import (
 	"util/enum/language"
 	"util/logs"
 	"util/model"
-	"util/temp"
 )
 
 //go:embed oss.gradle
@@ -30,7 +29,11 @@ type gradleDep struct {
 // GradleDepTree 尝试获取 gradle 依赖树
 func GradleDepTree(dirpath string, root *model.DepTree) {
 	Len := len(root.Children)
-	pwd := temp.GetPwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		logs.Warn(err)
+		return
+	}
 	os.Chdir(dirpath)
 	// 复制 oss.gradle
 	if err := os.WriteFile("oss.gradle", ossGradle, 0444); err != nil {

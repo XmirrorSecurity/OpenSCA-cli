@@ -68,10 +68,14 @@ func buildSwid(ext string, writer io.Writer, dep *model.DepTree, taskInfo TaskIn
 	}
 }
 
-func SwidJson(writer io.Writer, dep *model.DepTree, taskInfo TaskInfo) {
-	buildSwid("json", writer, dep, taskInfo)
+func SwidJson(dep *model.DepTree, taskInfo TaskInfo) {
+	outWrite(func(w io.Writer) {
+		buildSwid("json", w, dep, taskInfo)
+	})
 }
 
-func SwidXml(writer io.Writer, dep *model.DepTree, taskInfo TaskInfo) {
-	buildSwid("xml", writer, dep, taskInfo)
+func SwidXml(dep *model.DepTree, taskInfo TaskInfo) {
+	outWrite(func(w io.Writer) {
+		buildSwid("xml", w, dep, taskInfo)
+	})
 }

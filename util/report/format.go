@@ -3,7 +3,9 @@ package report
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"util/args"
 	"util/enum/language"
 	"util/logs"
@@ -80,24 +82,27 @@ func Format(dep *model.DepTree) {
 	}
 }
 
-// Save 保存结果文件
-func Save(data []byte, filepath string) {
-	if len(data) > 0 {
-		if f, err := os.Create(filepath); err != nil {
-			logs.Error(err)
-		} else {
-			defer f.Close()
-			f.Write(data)
-		}
-	}
-}
+func outWrite(do func(io.Writer)) {
+	out := args.Config.Out
 
-// Save 保存结果文件
-func SaveByWriter(wf func(io.Writer), filepath string) {
-	if f, err := os.Create(filepath); err != nil {
-		logs.Error(err)
+	if out == "" {
+		do(os.Stdout)
+		return
+	}
+
+	pwd, _ := os.Getwd()
+	fmt.Printf("Working directory: %s, Output file: %s\n", pwd, out)
+	// 尝试创建导出文件目录
+	if err := os.MkdirAll(filepath.Dir(out), fs.ModePerm); err != nil {
+		logs.Warn(err)
+		fmt.Println(err)
+		return
+	}
+	w, err := os.Create(out)
+	if err != nil {
+		logs.Warn(err)
 	} else {
-		defer f.Close()
-		wf(f)
+		defer w.Close()
+		do(w)
 	}
 }

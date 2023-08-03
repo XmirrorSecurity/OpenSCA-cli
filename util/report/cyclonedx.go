@@ -52,12 +52,17 @@ func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
 	return bom
 }
 
-func CycloneDXJson(writer io.Writer, dep *model.DepTree, taskInfo TaskInfo) {
+func CycloneDXJson(dep *model.DepTree, taskInfo TaskInfo) {
 	bom := buildCycBom(dep, taskInfo)
-	cyclonedx.NewBOMEncoder(writer, cyclonedx.BOMFileFormatJSON).SetPretty(true).Encode(bom)
+	outWrite(func(w io.Writer) {
+		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatJSON).SetPretty(true).Encode(bom)
+	})
 }
 
-func CycloneDXXml(writer io.Writer, dep *model.DepTree, taskInfo TaskInfo) {
+func CycloneDXXml(dep *model.DepTree, taskInfo TaskInfo) {
 	bom := buildCycBom(dep, taskInfo)
-	cyclonedx.NewBOMEncoder(writer, cyclonedx.BOMFileFormatXML).SetPretty(true).Encode(bom)
+	outWrite(func(w io.Writer) {
+		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatXML).SetPretty(true).Encode(bom)
+	})
+
 }
