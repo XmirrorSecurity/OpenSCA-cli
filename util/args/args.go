@@ -6,36 +6,38 @@
 package args
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"log"
 	"os/user"
 	"path/filepath"
 	"strings"
+
+	"github.com/json5/json5-go"
 )
 
 var (
 	ConfigPath string
 	Config     = struct {
 		// detect option
-		Path    string `json:"path"`
-		Out     string `json:"out"`
+		Path        string `json:"path"`
+		Out         string `json:"out"`
 		Logfile string `json:"log"`
 		DirOnly bool   `json:"dironly"`
-		// 永远开启
-		Cache    bool `json:"-"`
-		Bar      bool `json:"progress"`
-		OnlyVuln bool `json:"vuln"`
-		Dedup    bool `json:"dedup"`
-		// remote vuldb
+		Cache    bool   `json:"-"`
+		Bar      bool   `json:"progress"`
+		OnlyVuln bool   `json:"vuln"`
+		Dedup    bool   `json:"dedup"`
+		// remote db
 		Url   string `json:"url"`
 		Token string `json:"token"`
-		// local vuldb
-		VulnDB string `json:"db"`
+		// local db
+		DB string `json:"db"`
 		// prvate repository
 		Maven []RepoConfig `json:"maven"`
+		// data origin
+		Origin map[string]OriginConfig `json:"origin"`
 	}{
 		Cache: true,
 	}
@@ -49,7 +51,7 @@ func init() {
 	flag.BoolVar(&Config.Cache, "cache", Config.Cache, "(已弃用/永远开启) 缓存下载的文件(例如pom文件),重复检测相同组件时会节省时间,下载的文件会保存到工具所在目录的.cache目录下")
 	flag.BoolVar(&Config.OnlyVuln, "vuln", Config.OnlyVuln, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
 	flag.StringVar(&Config.Out, "out", Config.Out, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,支持的后缀有：.html, .json, .spdx.json, .spdx.xml, .csv, .sqlite, 默认为json格式,例: -out output.json")
-	flag.StringVar(&Config.VulnDB, "db", Config.VulnDB, "(可选) 指定本地漏洞库文件,希望使用自己漏洞库时可用,漏洞库文件为json格式,具体格式会在开源项目文档中给出;若同时使用云端漏洞库与本地漏洞库,漏洞查询结果取并集,例: -db db.json")
+	flag.StringVar(&Config.DB, "db", Config.DB, "(弃用/请在配置文件中配置origin) 指定本地漏洞库文件,例: -db db.json")
 	flag.BoolVar(&Config.Bar, "progress", Config.Bar, "(可选) 显示进度条")
 	flag.BoolVar(&Config.Dedup, "dedup", Config.Dedup, "(可选) 相同组件去重")
 	flag.BoolVar(&Config.DirOnly, "dironly", Config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
@@ -59,10 +61,10 @@ func init() {
 func Parse() {
 	flag.Parse()
 	if ConfigPath != "" {
-		if data, err := ioutil.ReadFile(ConfigPath); err != nil {
+		if data, err := os.ReadFile(ConfigPath); err != nil {
 			fmt.Printf("load config file error: %s\n", err)
 		} else {
-			if err = json.Unmarshal(data, &Config); err != nil {
+			if err = json5.Unmarshal(data, &Config); err != nil {
 				fmt.Printf("parse config file error: %s\n", err)
 			}
 		}
@@ -73,9 +75,9 @@ func Parse() {
 			log.Fatalf(err.Error())
 		}
 
-		if data, err := ioutil.ReadFile(filepath.Join(user.HomeDir, "opensca_config.json")); err == nil {
+		if data, err := os.ReadFile(filepath.Join(user.HomeDir, "opensca_config.json")); err == nil {
 			// 不处理错误
-			json.Unmarshal(data, &Config)
+			json5.Unmarshal(data, &Config)
 		}
 	}
 	// 再次调用Parse, 优先使用cli参数

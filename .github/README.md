@@ -70,12 +70,6 @@ Connect to the cloud vulnerability database:
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
-Or use the local vulnerability database:
-
-```shell
-opensca-cli -db db.json -path ${project_path}
-```
-
 ### Scan & Report in Files (use the `out` parameter)
 
 Files supported by the `out` parameter are listed below：
@@ -107,7 +101,6 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter.                                                                                                                                                    | `-token xxxxxxx`                                                                                                                                                                                                                                                |
 | `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result.                                                                                                                                  | `-vuln`                                                                                                                                                                                                                                                         |
 | `out`      | `string` | Save the result to the specified file whose format is defined by the suffix. The default is `JSON` </br>v1.0.6 and above support the visualized report in `HTML` </br>v1.0.8 and above support SBOM in `SPDX`</br>v1.0.11 and above support SBOM in `SWID` and `Cyclonedx` | `-out output.json` </br>`-out output.html`</br>`-out output.xml`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
-| `db`       | `string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json`                                                                                                                                                                                                                                                   |
 | `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                                                                                                                                                                                                                                                     |
 | `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                                                                                                                                                                                                                                                        |
 

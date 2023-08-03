@@ -9,6 +9,7 @@ import (
 	"errors"
 	"util/args"
 	"util/model"
+	"util/vuln/origin"
 )
 
 // SearchDetail 查找组件详情:漏洞/许可证
@@ -30,8 +31,8 @@ func SearchDetail(root *model.DepTree) (err error) {
 
 	localVulns := [][]*model.Vuln{}
 	serverVulns := [][]*model.Vuln{}
-	if args.Config.VulnDB != "" {
-		localVulns = GetLocalVulns(ds)
+	if len(args.Config.Origin) != 0 {
+		localVulns = origin.GetOrigin().SearchVuln(ds)
 	}
 	if args.Config.Url != "" && args.Config.Token != "" {
 		// vulnerability
@@ -43,10 +44,12 @@ func SearchDetail(root *model.DepTree) (err error) {
 				deps[i].AddLicense(lic)
 			}
 		}
-	} else if args.Config.VulnDB == "" && args.Config.Url == "" && args.Config.Token != "" {
-		err = errors.New("url is null")
-	} else if args.Config.VulnDB == "" && args.Config.Url != "" && args.Config.Token == "" {
-		err = errors.New("token is null")
+	} else if len(localVulns) == 0 {
+		if args.Config.Url == "" && args.Config.Token != "" {
+			err = errors.New("url is null")
+		} else if args.Config.Url != "" && args.Config.Token == "" {
+			err = errors.New("token is null")
+		}
 	}
 	for i, dep := range deps {
 		// 合并本地和云端库搜索的漏洞
