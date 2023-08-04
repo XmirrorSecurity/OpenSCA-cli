@@ -1,27 +1,23 @@
 {
-	"path": "",
-	"out": "output.json",
+  "path": "",
+  "out": "output.json",
 
-	"vuln": false,
-	"dedup": true,
-	"progress": true,
+  "vuln": false,
+  "dedup": true,
+  "progress": true,
 
-	"url": "https://opensca.xmirror.cn",
-	"token": "",
+  "url": "https://opensca.xmirror.cn",
+  "token": "",
 
-	"origin":[
-		{
-			"dsn":"",
-			"type":"",
-			"table":""
-		}
-	],
+  "origin": {
+    "": { "dsn": "" }
+  },
 
-	"maven":[
-		{
-			"repo":"",
-			"user":"",
-			"password":""
-		}
-	]
+  "maven": [
+    {
+      "repo": "",
+      "user": "",
+      "password": ""
+    }
+  ]
 }
