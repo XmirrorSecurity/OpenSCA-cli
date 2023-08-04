@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"util/args"
@@ -19,17 +20,19 @@ var initSql string
 // Sqlite sql格式报告数据
 func Sqlite(dep *model.DepTree, taskInfo TaskInfo) {
 
-	initRequired := false
-
 	dbFile := args.Config.Out
 	db, err := sql.Open("sqlite", dbFile)
 	if err != nil {
 		logs.Error(err)
 	}
+	defer db.Close()
 
-	if initRequired {
+	if _, err := os.Stat(dbFile); err != nil {
 		logs.Info("initing database: " + dbFile)
-		db.Exec(initSql)
+		_, err = db.Exec(initSql)
+		if err != nil {
+			logs.Warn(err)
+		}
 	}
 
 	if taskInfo.Error != nil {
@@ -43,7 +46,7 @@ func Sqlite(dep *model.DepTree, taskInfo TaskInfo) {
 		moduleName = dep.Name
 	}
 
-	result := fmt.Sprintf("\n---- sql report of %s\n", moduleName)
+	logs.Debug(fmt.Sprintf("---- sql report of %s", moduleName))
 	insertFmt := "insert or ignore into component (name, version, vendor, language, purl) values ('%s','%s','%s','%s','%s');\n"
 	insertRef := "insert or ignore into reference (module_name, purl) values ('%s','%s');\n"
 
@@ -55,7 +58,7 @@ func Sqlite(dep *model.DepTree, taskInfo TaskInfo) {
 
 		if n.Name != "" {
 			db.Exec("insert or ignore into component (name, version, vendor, language, purl) values (?,?,?,?,?)", n.Name, n.VersionStr, n.Vendor, n.LanguageStr, n.Purl())
-			result = result + fmt.Sprintf(insertFmt, quoteEscape(n.Name), quoteEscape(n.VersionStr), quoteEscape(n.Vendor), quoteEscape(n.LanguageStr), quoteEscape(n.Purl()))
+			logs.Debug(fmt.Sprintf(insertFmt, quoteEscape(n.Name), quoteEscape(n.VersionStr), quoteEscape(n.Vendor), quoteEscape(n.LanguageStr), quoteEscape(n.Purl())))
 		}
 
 	}
@@ -66,14 +69,15 @@ func Sqlite(dep *model.DepTree, taskInfo TaskInfo) {
 		q = append(q[1:], n.Children...)
 
 		if n.Name != "" {
-			result = result + fmt.Sprintf(insertRef, moduleName, quoteEscape(n.Purl()))
-			db.Exec("insert or ignore into reference (module_name, purl) values (?, ?)", moduleName, n.Purl())
+			logs.Debug(fmt.Sprintf(insertRef, moduleName, quoteEscape(n.Purl())))
+			_, err := db.Exec("insert or ignore into reference (module_name, purl) values (?, ?)", moduleName, n.Purl())
+			if err != nil {
+				logs.Warn(err)
+			}
 		}
 
 	}
 
-	result = result + fmt.Sprintf("---- sql report of %s\n", moduleName)
-	logs.Debug(result)
 }
 
 // quoteEscape 转义单引号
