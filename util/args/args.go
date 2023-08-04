@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/json5/json5-go"
+	"github.com/titanous/json5"
 )
 
 var (
@@ -91,8 +91,10 @@ func Parse() {
 
 		for _, config := range defaultConfigPaths {
 			if data, err := os.ReadFile(config); err == nil {
-				json5.Unmarshal(data, &Config)
-				break
+				err := json5.Unmarshal(data, &Config)
+				if err == nil {
+					break
+				}
 			}
 		}
 
