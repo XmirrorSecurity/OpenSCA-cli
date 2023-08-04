@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"log"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -21,10 +20,10 @@ var (
 	ConfigPath string
 	Config     = struct {
 		// detect option
-		Path        string `json:"path"`
-		Out         string `json:"out"`
-		Logfile string `json:"log"`
-		DirOnly bool   `json:"dironly"`
+		Path     string `json:"path"`
+		Out      string `json:"out"`
+		Logfile  string `json:"log"`
+		DirOnly  bool   `json:"dironly"`
 		Cache    bool   `json:"-"`
 		Bar      bool   `json:"progress"`
 		OnlyVuln bool   `json:"vuln"`
@@ -69,16 +68,34 @@ func Parse() {
 			}
 		}
 	} else {
-		// 默认读取HOME目录下的opensca_config.json
-		user, err := user.Current()
-		if err != nil {
-			log.Fatalf(err.Error())
+
+		defaultConfigPaths := []string{}
+
+		// 读取工作目录的 config.json
+		p, err := os.Getwd()
+		if err == nil {
+			defaultConfigPaths = append(defaultConfigPaths, filepath.Join(p, "config.json"))
 		}
 
-		if data, err := os.ReadFile(filepath.Join(user.HomeDir, "opensca_config.json")); err == nil {
-			// 不处理错误
-			json5.Unmarshal(data, &Config)
+		// 读取用户目录下的 opensca_config.json
+		user, err := user.Current()
+		if err == nil {
+			defaultConfigPaths = append(defaultConfigPaths, filepath.Join(user.HomeDir, "opensca_config.json"))
 		}
+
+		// 读取 opensca-cli 所在目录下的 config.json
+		p, err = os.Executable()
+		if err == nil {
+			defaultConfigPaths = append(defaultConfigPaths, filepath.Join(filepath.Dir(p), "config.json"))
+		}
+
+		for _, config := range defaultConfigPaths {
+			if data, err := os.ReadFile(config); err == nil {
+				json5.Unmarshal(data, &Config)
+				break
+			}
+		}
+
 	}
 	// 再次调用Parse, 优先使用cli参数
 	flag.Parse()
