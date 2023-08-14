@@ -33,13 +33,13 @@ jobs:
         run: go walk init cli analyzer util
 
       - name: Release
-        uses: wangyoucao577/go-release-action@v1.16
+        uses: wangyoucao577/go-release-action@v1.39
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cli"
-          goversion: 1.20
+          goversion: latest
 #          pre_command: go work init cli analyzer util
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json
