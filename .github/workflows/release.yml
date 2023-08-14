@@ -1,0 +1,41 @@
+name: Release Go Binaries
+
+on:
+  release:
+    types: [created]
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  releases-matrix:
+    name: Release Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goarch: arm64
+            goos: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set APP_VERSION env
+        run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+      - name: Set BUILD_TIME env
+        run: echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
+      - name: Environment Printer
+        uses: managedkaos/print-env@v1.0
+
+      - uses: wangyoucao577/go-release-action@v1.16
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          project_path: "./cli"
+          goversion: 1.20
+          pre_command: go init cli analyzer util
+          binary_name: opensca-cli
+          extra_files: README.md config.json db-demo.json
