@@ -29,8 +29,8 @@ jobs:
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
 
-      - name: Go mod init
-        run: go walk init cli analyzer util
+#      - name: Go mod init
+#        run: go walk init cli analyzer util
 
       - name: Release
         uses: wangyoucao577/go-release-action@v1.39
@@ -40,6 +40,6 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: "./cli"
           goversion: latest
-#          pre_command: go work init cli analyzer util
+          pre_command: go work init cli analyzer util
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json
