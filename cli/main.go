@@ -8,6 +8,7 @@ import (
 	"analyzer/engine"
 	"flag"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"util/args"
@@ -18,7 +19,18 @@ import (
 
 var version string
 
+func v() {
+	var v bool
+	flag.BoolVar(&v, "version", false, "-version 打印版本信息")
+	flag.Parse()
+	if v {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+}
+
 func main() {
+	v()
 	args.Parse()
 	if len(args.Config.Path) > 0 {
 		output(engine.NewEngine().ParseFile(args.Config.Path))
