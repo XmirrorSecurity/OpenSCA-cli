@@ -39,7 +39,7 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cli"
-          goversion: latest
+          goversion: 1.21.0
           pre_command: go work init cli analyzer util
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json
