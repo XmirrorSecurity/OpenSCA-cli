@@ -33,9 +33,6 @@ jobs:
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
 
-#      - name: Go mod init
-#        run: go walk init cli analyzer util
-
       - name: Release
         uses: wangyoucao577/go-release-action@v1.39
         with:
