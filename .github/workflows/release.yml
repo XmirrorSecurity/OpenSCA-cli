@@ -1,4 +1,4 @@
-name: Build Go Binaries and Create Release
+name: Build Go Binaries
 
 on:
   push:
@@ -7,52 +7,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  releases-matrix:
-    name: Release Matrix
+  build:
+    name: Create Release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64, 386]
-        exclude:
-          - goarch: arm64
-            goos: windows
-          - goarch: 386
-            goos: darwin
-          - goarch: 386
-            goos: windows
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set APP_VERSION env
-        run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
-      - name: Set BUILD_TIME env
-        run: echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
-      - name: Environment Printer
-        uses: managedkaos/print-env@v1.0
-
       - name: Create Release
         uses: actions/create-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-#          tag_name: ${{ github.ref }}
+          tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: "TODO: add release notes"
           draft: false
           prerelease: false
-
-
-      - name: Build And Release
-        uses: wangyoucao577/go-release-action@v1.39
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          project_path: "./cli"
-          goversion: 1.21.0
-          pre_command: go work init cli analyzer util
-          binary_name: opensca-cli
-          extra_files: README.md config.json db-demo.json
