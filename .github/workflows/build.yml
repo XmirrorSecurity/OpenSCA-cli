@@ -1,4 +1,4 @@
-name: Build Go Binaries And Release
+name: Build Binaries And Release
 
 on:
   push:
@@ -17,12 +17,12 @@ jobs:
         uses: softprops/action-gh-release@v1
 
   releases-matrix:
-    name: Release Matrix
+    name: Release Binary
     runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, windows, darwin]
-        goarch: [amd64, arm64, 386]
+        goarch: [amd64, arm64, 386, loong64]
         exclude:
           - goarch: arm64
             goos: windows
@@ -30,11 +30,13 @@ jobs:
             goos: darwin
           - goarch: 386
             goos: windows
+          - goarch: loong64
+            goos: windows
+          - goarch: loong64
+            goos: darwin
     steps:
-
-      - name: Create APP_VERSION file
+      - name: Create VERSION file
         run: echo $(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) > VERSION
-
       - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
         with:
@@ -42,7 +44,7 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cli"
-          goversion: 1.21.0
+          goversion: 1.21
           pre_command: go work init cli analyzer util
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json VERSION
