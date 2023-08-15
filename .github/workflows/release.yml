@@ -1,8 +1,7 @@
-name: Release Go Binaries
+name: Build Go Binaries and Create Release
 
 on:
-  release:
-    types: [created]
+  push:
     tags:
       - v*
   workflow_dispatch:
@@ -33,7 +32,20 @@ jobs:
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
 
-      - name: Release
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: "TODO: add release notes"
+          draft: false
+          prerelease: false
+
+
+      - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
