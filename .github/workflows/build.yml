@@ -35,6 +35,8 @@ jobs:
           - goarch: loong64
             goos: darwin
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Create VERSION file
         run: echo $(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) > VERSION
       - name: Build And Release
