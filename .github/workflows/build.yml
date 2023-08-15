@@ -1,10 +1,30 @@
-name: Build Go Binaries
+name: Build Go Binaries And Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - v*
 
 jobs:
+
+  createRelease:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: "TODO: add release notes"
+          draft: false
+          prerelease: false
+
   releases-matrix:
     name: Release Matrix
     runs-on: ubuntu-latest
