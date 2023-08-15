@@ -31,15 +31,9 @@ jobs:
           - goarch: 386
             goos: windows
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
 
-      - name: Set APP_VERSION env
-        run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
-      - name: Set BUILD_TIME env
-        run: echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
-      - name: Environment Printer
-        uses: managedkaos/print-env@v1.0
+      - name: Create APP_VERSION file
+        run: echo $(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) > VERSION
 
       - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
@@ -51,4 +45,4 @@ jobs:
           goversion: 1.21.0
           pre_command: go work init cli analyzer util
           binary_name: opensca-cli
-          extra_files: README.md config.json db-demo.json
+          extra_files: README.md config.json db-demo.json VERSION
