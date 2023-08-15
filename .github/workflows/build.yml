@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         goos: [linux, windows, darwin]
-        goarch: [amd64, arm64, 386, loong64]
+        goarch: [amd64, arm64, 386]
         exclude:
           - goarch: arm64
             goos: windows
@@ -30,10 +30,6 @@ jobs:
             goos: darwin
           - goarch: 386
             goos: windows
-          - goarch: loong64
-            goos: windows
-          - goarch: loong64
-            goos: darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v3
