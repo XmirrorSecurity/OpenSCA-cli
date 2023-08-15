@@ -42,7 +42,6 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cli"
-#          goversion: 1.21
           pre_command: go work init cli analyzer util
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json VERSION
@@ -56,6 +55,8 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+      - name: Set VERSION ENV
+        run: echo VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -68,4 +69,4 @@ jobs:
           file: ./docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: opensca/opensca-teste:latest, opensca/opensca-test:${{ github.ref }}
+          tags: opensca/opensca-teste:latest, opensca/opensca-test:${{ env.VERSION }}
