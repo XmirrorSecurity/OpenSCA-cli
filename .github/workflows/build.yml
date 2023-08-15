@@ -3,7 +3,7 @@ name: Build Go Binaries And Release
 on:
   push:
     tags:
-      - v*
+      - v*.*.*
 
 jobs:
 
@@ -14,16 +14,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Create Release
-        uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: "TODO: add release notes"
-          draft: false
-          prerelease: false
+        uses: softprops/action-gh-release@v1
 
   releases-matrix:
     name: Release Matrix
