@@ -3,28 +3,25 @@ package temp
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"util/logs"
 )
 
-const tempdir = ".opensca-tempdir"
+var tempdir string
 
 func init() {
-	pwd, _ := os.Getwd()
-	os.RemoveAll(path.Join(pwd, tempdir))
+	p, _ := os.Executable()
+	tempdir = path.Join(filepath.Dir(p), ".opensca-tempdir")
+	os.RemoveAll(tempdir)
+	os.Mkdir(tempdir, os.ModePerm)
 }
 
 // DoInTempDir 在临时目录中执行
 func DoInTempDir(do func(tempdir string)) {
-	pwd, err := os.Getwd()
+	dir, err := os.MkdirTemp(tempdir, "")
 	if err != nil {
 		logs.Warn(err)
 	}
-
-	dir, err := os.MkdirTemp(path.Join(pwd, tempdir), "")
-	if err != nil {
-		logs.Warn(err)
-	}
-
 	defer os.RemoveAll(dir)
 	do(dir)
 }
