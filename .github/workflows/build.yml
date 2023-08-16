@@ -1,0 +1,75 @@
+name: Build Binaries And Release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+
+  createRelease:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+
+  releases-matrix:
+    name: Release Binary
+    runs-on: ubuntu-latest
+    needs: [createRelease]
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64, 386]
+        exclude:
+          - goarch: arm64
+            goos: windows
+          - goarch: 386
+            goos: darwin
+          - goarch: 386
+            goos: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create VERSION file
+        run: echo $(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) > VERSION
+      - name: Build And Release
+        uses: wangyoucao577/go-release-action@v1.39
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          project_path: "./cli"
+          pre_command: go work init cli analyzer util
+          binary_name: opensca-cli
+          extra_files: README.md config.json db-demo.json VERSION
+
+  push-docker-images:
+    name: Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [releases-matrix]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: docker
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Set VERSION ENV
+        run: echo VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: opensca/opensca-cli:latest, opensca/opensca-cli:${{ env.VERSION }}
