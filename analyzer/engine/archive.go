@@ -38,6 +38,11 @@ func (e Engine) checkFile(filename string) bool {
 
 // unArchiveFile 解压文件获取目录树
 func (e Engine) unArchiveFile(filepath string) (root *model.DirTree) {
+	defer func() {
+		if err := recover(); err != nil {
+			logs.Warn(err)
+		}
+	}()
 	filepath = strings.ReplaceAll(filepath, `\`, `/`)
 	// 目录树根
 	root = model.NewDirTree()
@@ -52,6 +57,9 @@ func (e Engine) unArchiveFile(filepath string) (root *model.DirTree) {
 		walker = archiver.NewTarGz()
 	} else if filter.TarBz2(filepath) {
 		walker = archiver.NewTarBz2()
+	} else {
+		// 未知格式默认尝试zip解压
+		walker = archiver.NewZip()
 	}
 	if err := walker.Walk(filepath, func(f archiver.File) error {
 		if !f.IsDir() {
