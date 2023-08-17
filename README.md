@@ -171,6 +171,22 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
 
+支持`sql`类的数据源，需要按照上述字段预先创建好数据表并在配置文件中配置：
+
+```json
+{
+  "origin":{
+    "mysql":{
+      "dsn":"user:password@tcp(ip:port)/dbname",
+      "table":"table_name"
+    },
+    "json":{
+      "dsn":"db.json"
+    }
+  }
+}
+```
+
 ## 常见问题
 
 ### 使用OpenSCA需要配置环境变量吗？

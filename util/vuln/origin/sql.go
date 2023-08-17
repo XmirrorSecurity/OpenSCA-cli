@@ -39,6 +39,6 @@ func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg args.OriginConf
 		return
 	}
 	data := []VulnInfo{}
-	db.Find(&cfg)
+	db.Table(cfg.Table).Find(&cfg)
 	o.LoadDataOrigin(data...)
 }

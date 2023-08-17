@@ -16,5 +16,6 @@ func GetRepoConfig() map[string]RepoConfig {
 }
 
 type OriginConfig struct {
-	Dsn string `json:"dsn"`
+	Dsn   string `json:"dsn"`
+	Table string `json:"table"`
 }
