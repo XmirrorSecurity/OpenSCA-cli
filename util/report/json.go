@@ -13,9 +13,7 @@ func Json(dep *model.DepTree, taskInfo TaskInfo) {
 		taskInfo.ErrorString = taskInfo.Error.Error()
 	}
 	outWrite(func(w io.Writer) {
-		jsonEncoder := json.NewEncoder(w)
-		jsonEncoder.SetIndent("", "    ")
-		err := jsonEncoder.Encode(struct {
+		err := json.NewEncoder(w).Encode(struct {
 			TaskInfo TaskInfo `json:"task_info"`
 			*model.DepTree
 		}{
