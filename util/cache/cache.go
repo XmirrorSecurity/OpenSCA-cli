@@ -26,7 +26,7 @@ func init() {
 		pwd = path.Dir(strings.ReplaceAll(pwd, `\`, `/`))
 		cacheDir = path.Join(pwd, ".cache")
 	}
-	if err := os.MkdirAll(cacheDir, os.ModeDir); err != nil {
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		logs.Error(err)
 	}
 }
