@@ -29,11 +29,8 @@ func SearchDetail(root *model.DepTree) (err error) {
 		ds[i] = d.Dependency
 	}
 
-	localVulns := [][]*model.Vuln{}
 	serverVulns := [][]*model.Vuln{}
-	if len(args.Config.Origin) != 0 {
-		localVulns = origin.GetOrigin().SearchVuln(ds)
-	}
+	localVulns := origin.GetOrigin().SearchVuln(ds)
 	if args.Config.Url != "" && args.Config.Token != "" {
 		// vulnerability
 		serverVulns, err = GetServerVuln(ds)

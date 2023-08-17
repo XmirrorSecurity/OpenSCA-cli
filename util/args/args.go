@@ -50,7 +50,7 @@ func init() {
 	flag.BoolVar(&Config.Cache, "cache", Config.Cache, "(已弃用/永远开启) 缓存下载的文件(例如pom文件),重复检测相同组件时会节省时间,下载的文件会保存到工具所在目录的.cache目录下")
 	flag.BoolVar(&Config.OnlyVuln, "vuln", Config.OnlyVuln, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
 	flag.StringVar(&Config.Out, "out", Config.Out, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,支持的后缀有：.html, .json, .spdx.json, .spdx.xml, .csv, .sqlite, 默认为json格式,例: -out output.json")
-	flag.StringVar(&Config.DB, "db", Config.DB, "(弃用/请在配置文件中配置origin) 指定本地漏洞库文件,例: -db db.json")
+	flag.StringVar(&Config.DB, "db", Config.DB, `(未来将会弃用,可以在配置文件中配置"origin":{"json":{"dsn":"db.json"}}来指定) 指定本地漏洞库文件,例: -db db.json`)
 	flag.BoolVar(&Config.Bar, "progress", Config.Bar, "(可选) 显示进度条")
 	flag.BoolVar(&Config.Dedup, "dedup", Config.Dedup, "(可选) 相同组件去重")
 	flag.BoolVar(&Config.DirOnly, "dironly", Config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
