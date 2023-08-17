@@ -34,7 +34,7 @@ func init() {
 // save save cache file
 func save(filepath string, data []byte) {
 	if args.Config.Cache {
-		if err := os.MkdirAll(path.Join(cacheDir, path.Dir(filepath)), os.ModeDir); err == nil {
+		if err := os.MkdirAll(path.Join(cacheDir, path.Dir(filepath)), 0755); err == nil {
 			if f, err := os.Create(path.Join(cacheDir, filepath)); err == nil {
 				defer f.Close()
 				f.Write(data)

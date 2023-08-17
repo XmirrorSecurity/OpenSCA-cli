@@ -55,7 +55,7 @@ func InitLogger() {
 
 	fmt.Printf("log file: %s\n", logFilePath)
 
-	if err := os.MkdirAll(filepath.Dir(logFilePath), os.ModeDir); err != nil {
+	if err := os.MkdirAll(filepath.Dir(logFilePath), 0755); err != nil {
 		fmt.Println(err)
 		return
 	}
