@@ -37,7 +37,7 @@ var (
 	logger  *log.Logger
 )
 
-func initLogger() {
+func InitLogger() {
 	// 创建日志文件
 	var err error
 
@@ -75,7 +75,7 @@ func GetLogFile() *os.File {
 
 func out(level logLevel, v interface{}) {
 	if logger == nil {
-		initLogger()
+		InitLogger()
 	}
 	logger.SetPrefix(fmt.Sprintf("[%s] ", prefixs[level]))
 	err := logger.Output(3, fmt.Sprint(v))

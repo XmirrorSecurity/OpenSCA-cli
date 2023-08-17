@@ -33,6 +33,7 @@ func main() {
 	v()
 	args.Parse()
 	if len(args.Config.Path) > 0 {
+		logs.InitLogger()
 		output(engine.NewEngine().ParseFile(args.Config.Path))
 	} else {
 		flag.PrintDefaults()
