@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/config"
 	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/model"
 	"github.com/xmirrorsecurity/opensca-cli/util/report"
@@ -29,10 +30,9 @@ func v() {
 
 func main() {
 	v()
-	args.Parse()
-	if len(args.Config.Path) > 0 {
-		logs.InitLogger()
-		output(engine.NewEngine().ParseFile(args.Config.Path))
+	config.ParseArgs()
+	if len(config.Conf().Path) > 0 {
+		output(engine.NewEngine().ParseFile(config.Conf().Path))
 	} else {
 		flag.PrintDefaults()
 	}
