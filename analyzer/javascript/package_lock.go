@@ -1,15 +1,11 @@
-/*
- * @Description: package-lock.json 解析
- * @Date: 2021-11-25 20:25:08
- */
-
 package javascript
 
 import (
 	"encoding/json"
 	"sort"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type dependencies struct {

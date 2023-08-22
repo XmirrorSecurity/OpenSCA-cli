@@ -12,11 +12,12 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"util/args"
-	"util/cache"
-	"util/enum/language"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/cache"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // setCachePom 添加缓存的pom

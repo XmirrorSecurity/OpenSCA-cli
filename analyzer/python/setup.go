@@ -7,9 +7,10 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-	"util/logs"
-	"util/model"
-	"util/temp"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/temp"
 )
 
 //go:embed oss.py

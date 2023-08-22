@@ -1,8 +1,3 @@
-/*
- * @Description: cache download file
- * @Date: 2022-01-08 15:34:37
- */
-
 package cache
 
 import (
@@ -11,10 +6,11 @@ import (
 	"os"
 	"path"
 	"strings"
-	"util/args"
-	"util/enum/language"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 var cacheDir string

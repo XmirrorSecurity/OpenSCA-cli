@@ -3,8 +3,9 @@ package rust
 import (
 	"sort"
 	"strings"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/BurntSushi/toml"
 )

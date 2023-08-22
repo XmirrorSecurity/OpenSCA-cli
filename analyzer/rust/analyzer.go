@@ -1,9 +1,9 @@
 package rust
 
 import (
-	"util/enum/language"
-	"util/filter"
-	"util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type Analyzer struct{}

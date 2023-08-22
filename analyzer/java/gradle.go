@@ -8,9 +8,10 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"util/enum/language"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 //go:embed oss.gradle

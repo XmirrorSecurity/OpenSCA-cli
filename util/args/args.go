@@ -1,8 +1,3 @@
-/*
- * @Description: 程序启动参数
- * @Date: 2021-11-06 16:50:53
- */
-
 package args
 
 import (

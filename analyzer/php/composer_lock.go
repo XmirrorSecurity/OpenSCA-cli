@@ -1,16 +1,12 @@
-/*
- * @Description: parse composer.lock file
- * @Date: 2021-11-26 14:50:06
- */
-
 package php
 
 import (
 	"encoding/json"
 	"sort"
 	"strings"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // composer.lock

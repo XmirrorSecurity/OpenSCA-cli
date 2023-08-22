@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 
 	"github.com/axgle/mahonia"
 )

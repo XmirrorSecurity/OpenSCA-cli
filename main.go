@@ -1,20 +1,18 @@
-/*
- * @Description: 引擎入口
- * @Date: 2021-11-03 11:12:19
- */
 package main
 
 import (
-	"analyzer/engine"
 	"flag"
 	"fmt"
 	"os"
 	"path"
 	"strings"
-	"util/args"
-	"util/logs"
-	"util/model"
-	"util/report"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/report"
+
+	"github.com/xmirrorsecurity/opensca-cli/analyzer/engine"
 )
 
 var version string

@@ -12,7 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"util/args"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
 
 	"github.com/pkg/errors"
 )

@@ -4,7 +4,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 var tempdir string

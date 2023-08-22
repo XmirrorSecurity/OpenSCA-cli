@@ -1,8 +1,3 @@
-/*
- * @Description: 解析package.json文件
- * @Date: 2022-01-07 17:00:41
- */
-
 package javascript
 
 import (
@@ -11,11 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
-	"util/bar"
-	"util/cache"
-	"util/enum/language"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/bar"
+	"github.com/xmirrorsecurity/opensca-cli/util/cache"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/Masterminds/semver/v3"
 )

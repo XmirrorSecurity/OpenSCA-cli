@@ -2,8 +2,9 @@ package origin
 
 import (
 	"strings"
-	"util/enum/language"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type VulnInfo struct {

@@ -5,8 +5,9 @@ import (
 	"path"
 	"strings"
 	"sync"
-	"util/args"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type Mvn struct {

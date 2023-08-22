@@ -1,8 +1,3 @@
-/*
- * @Description: 版本号
- * @Date: 2021-11-03 16:03:06
- */
-
 package model
 
 import (

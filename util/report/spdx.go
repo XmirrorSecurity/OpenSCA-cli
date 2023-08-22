@@ -9,8 +9,9 @@ import (
 	"strings"
 	"text/template"
 	"time"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // 记录节点名与pacakge的对应关系

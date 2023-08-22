@@ -1,13 +1,8 @@
-/*
- * @Description: Analyzer接口
- * @Date: 2021-11-17 21:26:36
- */
-
 package analyzer
 
 import (
-	"util/enum/language"
-	"util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type Analyzer interface {

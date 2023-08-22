@@ -1,8 +1,3 @@
-/*
- * @Description: 队列和栈
- * @Date: 2021-11-04 17:25:27
- */
-
 package model
 
 // Queue 队列

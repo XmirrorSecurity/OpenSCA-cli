@@ -3,8 +3,9 @@ package origin
 import (
 	"fmt"
 	"sync"
-	"util/args"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 var (

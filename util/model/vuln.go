@@ -1,8 +1,3 @@
-/*
- * @Description: 漏洞信息
- * @Date: 2021-12-11 14:54:46
- */
-
 package model
 
 // Vuln 组件漏洞

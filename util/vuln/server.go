@@ -1,16 +1,12 @@
-/*
- * @Description: 从云服务获取漏洞
- * @Date: 2021-12-08 16:30:46
- */
-
 package vuln
 
 import (
 	"encoding/json"
 	"fmt"
-	"util/client"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/client"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // GetServerVuln 从云服务获取漏洞

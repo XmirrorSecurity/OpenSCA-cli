@@ -8,7 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 func xtar(input, output string) bool {

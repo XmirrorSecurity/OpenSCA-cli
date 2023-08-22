@@ -3,8 +3,9 @@ package report
 import (
 	"encoding/xml"
 	"io"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // Xml 获取xml格式报告数据

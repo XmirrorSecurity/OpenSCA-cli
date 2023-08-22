@@ -1,8 +1,3 @@
-/*
- * @Description: 语言类型
- * @Date: 2021-11-04 20:53:03
- */
-
 package language
 
 import (

@@ -1,8 +1,3 @@
-/*
- * @Description: 用于和服务端通信
- * @Date: 2021-12-11 17:48:40
- */
-
 package client
 
 import (
@@ -18,8 +13,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"util/args"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 
 	"github.com/pkg/errors"
 )

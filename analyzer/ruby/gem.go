@@ -1,15 +1,11 @@
-/*
- * @Description: 解析gem文件
- * @Date: 2021-11-30 15:03:08
- */
-
 package ruby
 
 import (
 	"regexp"
 	"sort"
 	"strings"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // parseGemfileLock 解析Gemfile.lock文件

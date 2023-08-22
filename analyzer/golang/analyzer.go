@@ -1,14 +1,9 @@
-/*
- * @Description: golang analyzer
- * @Date: 2022-02-10 16:08:00
- */
-
 package golang
 
 import (
-	"util/enum/language"
-	"util/filter"
-	"util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // golang Analyzer

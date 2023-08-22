@@ -1,8 +1,3 @@
-/*
- * @Description: parse composer_lock file
- * @Date: 2022-01-17 14:28:58
- */
-
 package php
 
 import (
@@ -12,11 +7,12 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"util/bar"
-	"util/cache"
-	"util/enum/language"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/bar"
+	"github.com/xmirrorsecurity/opensca-cli/util/cache"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/Masterminds/semver/v3"
 )

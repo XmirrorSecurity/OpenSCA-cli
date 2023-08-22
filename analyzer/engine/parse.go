@@ -1,15 +1,11 @@
-/*
- * @Description: 解析依赖
- * @Date: 2021-11-16 20:09:17
- */
-
 package engine
 
 import (
 	"path"
 	"strings"
-	"util/filter"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // parseDependency 解析依赖

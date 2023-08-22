@@ -2,8 +2,9 @@ package python
 
 import (
 	"encoding/json"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/BurntSushi/toml"
 )

@@ -1,8 +1,3 @@
-/*
- * @Description: mvn解析依赖树
- * @Date: 2021-12-16 10:10:13
- */
-
 package java
 
 import (
@@ -16,10 +11,11 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"util/enum/language"
-	"util/filter"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // MvnDepTree 调用mvn解析项目获取依赖树

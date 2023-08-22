@@ -1,15 +1,11 @@
-/*
- * @Description: pargress bar
- * @Date: 2022-01-20 15:48:46
- */
-
 package bar
 
 import (
 	"fmt"
 	"sync"
 	"time"
-	"util/args"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
 )
 
 var (

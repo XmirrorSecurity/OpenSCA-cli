@@ -1,14 +1,10 @@
-/*
- * @Description: aes加密
- * @Date: 2021-12-20 10:00:55
- */
-
 package client
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 // aes-tag大小

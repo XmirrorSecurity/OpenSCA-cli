@@ -3,7 +3,8 @@ package report
 import (
 	"fmt"
 	"io"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // Csv csv格式报告数据

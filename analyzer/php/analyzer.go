@@ -1,15 +1,11 @@
-/*
- * @Description: php解析器
- * @Date: 2021-11-26 14:39:49
- */
-
 package php
 
 import (
 	"path"
-	"util/enum/language"
-	"util/filter"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type Analyzer struct{}

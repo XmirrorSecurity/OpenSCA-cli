@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"strings"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 type Magic []byte

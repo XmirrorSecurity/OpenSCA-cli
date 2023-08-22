@@ -2,7 +2,8 @@ package model
 
 import (
 	"fmt"
-	"util/enum/language"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
 )
 
 var purlMap = map[language.Type]string{
@@ -36,7 +37,7 @@ func (dep Dependency) Purl() string {
 			group = g
 		}
 	}
-    version := dep.GetVersion()
+	version := dep.GetVersion()
 	if dep.Vendor == "" {
 		return fmt.Sprintf("pkg:%s/%s@%s", group, dep.Name, version)
 	}

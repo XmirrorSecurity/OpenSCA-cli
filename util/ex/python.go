@@ -3,7 +3,8 @@ package ex
 import (
 	"os/exec"
 	"strings"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 
 	"github.com/axgle/mahonia"
 )

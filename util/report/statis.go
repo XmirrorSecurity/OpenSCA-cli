@@ -2,8 +2,9 @@ package report
 
 import (
 	"fmt"
-	"util/args"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // Statis 统计概览信息

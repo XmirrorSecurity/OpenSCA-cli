@@ -1,15 +1,11 @@
-/*
- * @Description: 查找漏洞
- * @Date: 2021-11-16 21:05:05
- */
-
 package vuln
 
 import (
 	"errors"
-	"util/args"
-	"util/model"
-	"util/vuln/origin"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/vuln/origin"
 )
 
 // SearchDetail 查找组件详情:漏洞/许可证

@@ -1,17 +1,14 @@
-/*
- * @Description: java Analyzer
- * @Date: 2021-11-03 11:17:09
- */
 package java
 
 import (
 	"path"
 	"sort"
 	"strings"
-	"util/bar"
-	"util/enum/language"
-	"util/filter"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/bar"
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type Analyzer struct {

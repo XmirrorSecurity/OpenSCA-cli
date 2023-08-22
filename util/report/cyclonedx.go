@@ -3,7 +3,8 @@ package report
 import (
 	"io"
 	"strings"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/CycloneDX/cyclonedx-go"
 )

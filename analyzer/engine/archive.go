@@ -1,8 +1,3 @@
-/*
- * @Description: 解压相关操作
- * @Date: 2021-11-04 16:13:57
- */
-
 package engine
 
 import (
@@ -13,12 +8,13 @@ import (
 	"os"
 	"path"
 	"strings"
-	"util/args"
-	"util/bar"
-	"util/filter"
-	"util/logs"
-	"util/model"
-	"util/temp"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/bar"
+	"github.com/xmirrorsecurity/opensca-cli/util/filter"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
+	"github.com/xmirrorsecurity/opensca-cli/util/temp"
 
 	"github.com/axgle/mahonia"
 	"github.com/mholt/archiver"

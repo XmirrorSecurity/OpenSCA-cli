@@ -1,8 +1,3 @@
-/*
- * @Description: 依赖相关数据结构
- * @Date: 2021-11-03 12:11:37
- */
-
 package model
 
 import (
@@ -10,7 +5,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"util/enum/language"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
 )
 
 // 用于id生成

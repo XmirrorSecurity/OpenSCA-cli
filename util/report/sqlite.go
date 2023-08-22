@@ -7,9 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"util/args"
-	"util/logs"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/args"
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	_ "github.com/glebarez/go-sqlite"
 )

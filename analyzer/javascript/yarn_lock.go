@@ -1,15 +1,11 @@
-/*
- * @Description: parse yarn.lock
- * @Date: 2022-01-20 14:28:18
- */
-
 package javascript
 
 import (
 	"regexp"
 	"sort"
 	"strings"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // parseYarnLock parse yarn.lock file

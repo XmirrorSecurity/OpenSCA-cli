@@ -2,7 +2,8 @@ package erlang
 
 import (
 	"regexp"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // parseRebarLock parse rebar.lock file

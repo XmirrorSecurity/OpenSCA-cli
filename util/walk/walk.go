@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"util/logs"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 // Walk 遍历文件/目录/压缩包

@@ -1,14 +1,10 @@
-/*
- * @Description: parse go.mod/go.sum
- * @Date: 2022-02-10 16:16:24
- */
-
 package golang
 
 import (
 	"regexp"
 	"strings"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 // parseGomod parse go.mod

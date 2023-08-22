@@ -7,7 +7,8 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"util/model"
+
+	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 
 type SimplePom struct {
