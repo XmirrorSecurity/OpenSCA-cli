@@ -12,7 +12,7 @@ import (
 
 type Sca interface {
 	Filter(relpath string) bool
-	Sca(ctx context.Context, parent model.File, files []model.File) []*model.DepGraph
+	Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph
 }
 
 var allSca = []Sca{
@@ -31,8 +31,8 @@ func Filter(relpath string) bool {
 	return false
 }
 
-func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent model.File, files []model.File) {
-	return func(parent model.File, files []model.File) {
+func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent *model.File, files []*model.File) {
+	return func(parent *model.File, files []*model.File) {
 		for _, sca := range allSca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
 				do(dep)

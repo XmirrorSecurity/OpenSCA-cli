@@ -12,6 +12,6 @@ func (sca Sca) Filter(relpath string) bool {
 	panic("not implemented") // TODO: Implement
 }
 
-func (sca Sca) Sca(ctx context.Context, parent model.File, files []model.File) []*model.DepGraph {
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 	panic("not implemented") // TODO: Implement
 }

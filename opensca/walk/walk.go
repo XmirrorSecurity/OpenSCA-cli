@@ -25,7 +25,7 @@ func init() {
 }
 
 type ExtractFileFilter func(relpath string) bool
-type WalkFileFunc func(parent model.File, files []model.File)
+type WalkFileFunc func(parent *model.File, files []*model.File)
 
 // Walk 遍历文件/目录/压缩包
 // name: 检测文件名
@@ -36,15 +36,13 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 	tmp, _ := os.MkdirTemp(tempdir, "download")
 	defer wg.Wait()
 	defer os.RemoveAll(tmp)
-	return walk(ctx, model.File{
-		Relpath: name,
-		Abspath: tmp,
-	}, filter, do)
+	parent := &model.File{Relpath: name, Abspath: tmp}
+	return walk(ctx, parent, filter, do)
 }
 
-func walk(ctx context.Context, parent model.File, filter ExtractFileFilter, do WalkFileFunc) error {
+func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do WalkFileFunc) error {
 
-	var files []model.File
+	var files []*model.File
 
 	err := filepath.Walk(parent.Abspath, func(path string, info fs.FileInfo, err error) error {
 
@@ -57,16 +55,13 @@ func walk(ctx context.Context, parent model.File, filter ExtractFileFilter, do W
 		}
 
 		rel := filepath.Join(parent.Relpath, strings.TrimPrefix(path, parent.Abspath))
-		files = append(files, model.File{
-			Abspath: path,
-			Relpath: rel,
-		})
+		files = append(files, &model.File{Abspath: path, Relpath: rel})
 
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			decompress(path, filter, func(tmpdir string) {
-				parent := model.File{Relpath: rel, Abspath: tempdir}
+				parent := &model.File{Relpath: rel, Abspath: tempdir}
 				if err := walk(ctx, parent, filter, do); err != nil {
 					logs.Warn(err)
 				}
