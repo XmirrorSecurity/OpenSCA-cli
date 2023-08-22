@@ -10,7 +10,7 @@ import (
 	"github.com/nwaples/rardecode"
 )
 
-func xrar(input, output string) bool {
+func xrar(filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileHead(input, M_RAR) {
 		return false

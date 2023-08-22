@@ -11,7 +11,7 @@ import (
 	"github.com/axgle/mahonia"
 )
 
-func xzip(input, output string) bool {
+func xzip(filter ExtractFileFilter, input, output string) bool {
 	if !checkFileHead(input, M_ZIP) {
 		return false
 	}
@@ -62,10 +62,10 @@ func xzip(input, output string) bool {
 	return true
 }
 
-func xjar(input, output string) bool {
+func xjar(filter ExtractFileFilter, input, output string) bool {
 	if !checkFileExt(input, ".jar") {
 		return false
 	}
 	// TODO: 剔除可执行jar包前的bash脚本
-	return xzip(input, output)
+	return xzip(filter, input, output)
 }

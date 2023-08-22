@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
 type Magic []byte
@@ -40,6 +40,7 @@ func checkFileHead(abspath string, ms ...Magic) bool {
 	reader, err := os.Open(abspath)
 	if err != nil {
 		logs.Warn(err)
+		return false
 	}
 	defer reader.Close()
 	for _, m := range ms {

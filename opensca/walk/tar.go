@@ -12,7 +12,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
-func xtar(input, output string) bool {
+func xtar(filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileExt(input, ".tar") {
 		return false
