@@ -10,7 +10,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// ParseCargoLock 解析cargo.lock文件
 func ParseCargoLock(file *model.File) *model.DepGraph {
 
 	cargo := struct {

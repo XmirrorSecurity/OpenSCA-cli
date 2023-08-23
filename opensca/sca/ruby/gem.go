@@ -6,7 +6,6 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
-// ParseGemfileLock 解析Gemfile.lock文件
 func ParseGemfileLock(file *model.File) *model.DepGraph {
 
 	// map[name]dep
