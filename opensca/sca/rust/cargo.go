@@ -1,95 +1,59 @@
 package rust
 
 import (
-	"sort"
+	"io"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
-	"github.com/xmirrorsecurity/opensca-cli/util/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 
 	"github.com/BurntSushi/toml"
 )
 
-type cargoPkg struct {
-	Name         string   `toml:"name"`
-	Version      string   `toml:"version"`
-	DepStr       []string `toml:"dependencies"`
-	Dependencies []struct {
-		Name    string
-		Version string
-	} `toml:"-"`
-}
+// ParseCargoLock 解析cargo.lock文件
+func ParseCargoLock(file *model.File) *model.DepGraph {
 
-// parseCargoLock 解析cargo.lock文件
-func parseCargoLock(root *model.DepTree, file *model.FileInfo) {
 	cargo := struct {
-		Pkgs []*cargoPkg `toml:"package"`
+		Pkgs []struct {
+			Name         string   `toml:"name"`
+			Version      string   `toml:"version"`
+			dependencies []string `toml:"dependencies"`
+		} `toml:"package"`
 	}{}
-	cdepMap := map[string]*cargoPkg{}
-	depMap := map[string]*model.DepTree{}
-	directMap := map[string]*model.DepTree{}
-	if err := toml.Unmarshal(file.Data, &cargo); err != nil {
-		logs.Warn(err)
-	}
-	for _, pkg := range cargo.Pkgs {
-		dep := model.NewDepTree(nil)
-		dep.Name = pkg.Name
-		dep.Version = model.NewVersion(pkg.Version)
-		pkg.Dependencies = make([]struct {
-			Name    string
-			Version string
-		}, len(pkg.DepStr))
-		for i, str := range pkg.DepStr {
-			name, version := str, ""
-			index := strings.Index(str, " ")
-			if index > -1 {
-				name, version = str[:index], str[index+1:]
-			}
-			pkg.Dependencies[i] = struct {
-				Name    string
-				Version string
-			}{Name: name, Version: version}
+
+	file.OpenReader(func(reader io.Reader) {
+		_, err := toml.NewDecoder(reader).Decode(&cargo)
+		if err != nil {
+			logs.Warnf("parse %s fail:%s", file.Relpath, err)
 		}
-		depMap[dep.Name] = dep
-		directMap[dep.Name] = dep
-		cdepMap[dep.Name] = pkg
-	}
-	// 找出未被依赖的作为直接依赖
-	for _, pkg := range cargo.Pkgs {
-		for _, d := range pkg.Dependencies {
-			delete(directMap, d.Name)
-		}
-	}
-	directDeps := []*model.DepTree{}
-	for _, v := range directMap {
-		directDeps = append(directDeps, v)
-	}
-	sort.Slice(directDeps, func(i, j int) bool {
-		return directDeps[i].Name < directDeps[j].Name
 	})
-	for _, d := range directDeps {
-		d.Parent = root
-		root.Children = append(root.Children, d)
-	}
-	// 从顶层开始构建
-	q := make([]*model.DepTree, len(directDeps))
-	copy(q, directDeps)
-	exist := map[string]struct{}{}
-	for len(q) > 0 {
-		n := q[0]
-		exist[n.Name] = struct{}{}
-		if cdep, ok := cdepMap[n.Name]; ok {
-			for _, d := range cdep.Dependencies {
-				if _, ok := exist[d.Name]; !ok {
-					exist[d.Name] = struct{}{}
-					if sub, ok := depMap[d.Name]; ok {
-						sub.Parent = n
-						n.Children = append(n.Children, sub)
-					}
-				}
-			}
+
+	// 记录组件信息
+	depMap := map[string]*model.DepGraph{}
+	for _, c := range cargo.Pkgs {
+		depMap[c.Name] = &model.DepGraph{
+			Name:    c.Name,
+			Version: c.Version,
 		}
-		q = append(q[1:], n.Children...)
 	}
-	return
+
+	// 记录依赖关系
+	for _, c := range cargo.Pkgs {
+		for _, dependency := range c.dependencies {
+			name := dependency
+			i := strings.Index(dependency, " ")
+			if i != -1 {
+				name = dependency[:i]
+			}
+			depMap[c.Name].AppendChild(depMap[name])
+		}
+	}
+
+	root := &model.DepGraph{Path: file.Relpath}
+	for _, dep := range depMap {
+		if len(dep.Parents) == 0 {
+			root.AppendChild(dep)
+		}
+	}
+	return root
 }

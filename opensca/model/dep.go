@@ -31,6 +31,9 @@ type DepGraph struct {
 
 // AppendChild 添加子依赖
 func (dep *DepGraph) AppendChild(child *DepGraph) {
+	if dep == nil || child == nil {
+		return
+	}
 	if dep.Children == nil {
 		dep.Children = map[*DepGraph]bool{}
 	}

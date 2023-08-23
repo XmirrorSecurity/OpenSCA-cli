@@ -47,11 +47,7 @@ func ParseGemfileLock(file *model.File) *model.DepGraph {
 	file.ReadLine(func(line string) {
 		if strings.HasPrefix(line, space6) {
 			name, _ := parseLine(line)
-			parent := depMap[last]
-			child := depMap[name]
-			if parent != nil && child != nil {
-				parent.AppendChild(child)
-			}
+			depMap[last].AppendChild(depMap[name])
 			return
 		}
 		if strings.HasPrefix(line, space4) {
