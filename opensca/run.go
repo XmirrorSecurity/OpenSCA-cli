@@ -11,7 +11,17 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/walk"
 )
 
-func RunTask(ctx context.Context, arg *model.TaskArg) (task model.TaskResult) {
+// 任务检测参数
+type TaskArg struct {
+	// 检测数据源 文件路径或url 兼容http(s)|ftp|file
+	DataOrigin string
+	// 检测对象名称 用于结果展示 缺省时取DataOrigin尾单词
+	Name string
+	// 超时时间 单位s
+	Timeout int
+}
+
+func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err error) {
 
 	if arg == nil {
 		arg = defaultArg
@@ -29,24 +39,14 @@ func RunTask(ctx context.Context, arg *model.TaskArg) (task model.TaskResult) {
 		}
 	}
 
-	task = model.TaskResult{
-		AppName:   arg.Name,
-		StartTime: time.Now().Format("2006-01-02 15:04:05"),
-	}
-	defer func(start time.Time) {
-		task.CostTime = time.Since(start).Seconds()
-		task.EndTime = time.Now().Format("2006-01-02 15:04:05")
-	}(time.Now())
-
-	task.Size, task.Error = walk.Walk(ctx, arg.Name, arg.DataOrigin, sca.Filter, sca.Do(ctx, func(dep *model.DepGraph) {
+	err = walk.Walk(ctx, arg.Name, arg.DataOrigin, sca.Filter, sca.Do(ctx, func(dep *model.DepGraph) {
 		logs.Info(dep)
-		task.DepRoot = append(task.DepRoot, dep)
+		deps = append(deps, dep)
 	}))
-
 	return
 }
 
-var defaultArg = &model.TaskArg{
+var defaultArg = &TaskArg{
 	DataOrigin: "./",
 	Name:       "default",
 }

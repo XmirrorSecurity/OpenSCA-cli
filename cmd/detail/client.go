@@ -1,12 +1,14 @@
-package client
+package detail
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	mrand "math/rand"
 	"net/http"
 	"net/url"
@@ -128,7 +130,7 @@ func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		repbody, err = ioutil.ReadAll(resp.Body)
+		repbody, err = io.ReadAll(resp.Body)
 		if err != nil {
 			logs.Error(err)
 			return
@@ -188,7 +190,7 @@ func getAesKey() (key []byte, err error) {
 		return
 	} else {
 		defer rep.Body.Close()
-		data, err := ioutil.ReadAll(rep.Body)
+		data, err := io.ReadAll(rep.Body)
 		if err != nil {
 			logs.Error(err)
 			return key, err
@@ -206,4 +208,43 @@ func getAesKey() (key []byte, err error) {
 			return key, nil
 		}
 	}
+}
+
+// aes-tag大小
+const tagSize = 16
+
+// encrypt aes-gcm加密
+func encrypt(text, key, nonce []byte) (ciphertext, tag []byte) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+	aesgcm, err := cipher.NewGCMWithNonceSize(block, len(nonce))
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+	res := aesgcm.Seal(nil, nonce, text, nil)
+	tagIndex := len(res) - tagSize
+	return res[:tagIndex], res[tagIndex:]
+}
+
+// decrypt aes-gcm解密
+func decrypt(ciphertext, key, nonce, tag []byte) (text []byte) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+	aesgcm, err := cipher.NewGCMWithNonceSize(block, len(nonce))
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+	text, err = aesgcm.Open(nil, nonce, append(ciphertext, tag...), nil)
+	if err != nil {
+		logs.Error(err)
+	}
+	return
 }

@@ -89,9 +89,9 @@ type DepTree struct {
 	// 唯一的组件id，用来标识不同组件
 	ID int64 `json:"-" xml:"-" `
 	// 父组件
-	Parent                  *DepTree `json:"-" xml:"-" `
-	Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
-	IndirectVulnerabilities int      `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
+	Parent *DepTree `json:"-" xml:"-" `
+	// Vulnerabilities         []*Vuln  `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
+	// IndirectVulnerabilities int `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
 	// 许可证列表
 	licenseMap map[string]struct{} `json:"-" xml:"-" `
 	Licenses   []LicenseInfo       `json:"licenses,omitempty" xml:"licenses,omitempty" `
@@ -108,16 +108,16 @@ type DepTree struct {
 // NewDepTree 创建DepTree
 func NewDepTree(parent *DepTree) *DepTree {
 	dep := &DepTree{
-		ID:              getId(),
-		Dependency:      NewDependency(),
-		Vulnerabilities: []*Vuln{},
-		Path:            "",
-		Paths:           nil,
-		Parent:          parent,
-		Children:        []*DepTree{},
-		licenseMap:      map[string]struct{}{},
-		Licenses:        []LicenseInfo{},
-		CopyrightText:   "",
+		ID:         getId(),
+		Dependency: NewDependency(),
+		// Vulnerabilities: []*Vuln{},
+		Path:          "",
+		Paths:         nil,
+		Parent:        parent,
+		Children:      []*DepTree{},
+		licenseMap:    map[string]struct{}{},
+		Licenses:      []LicenseInfo{},
+		CopyrightText: "",
 	}
 	if parent != nil {
 		parent.Children = append(parent.Children, dep)
@@ -180,10 +180,10 @@ func (root *DepTree) String() string {
 		node := stack.Pop().(*node)
 		dep := node.Dep
 
-		vulns := []string{}
-		for _, v := range dep.Vulnerabilities {
-			vulns = append(vulns, v.Id)
-		}
+		// vulns := []string{}
+		// for _, v := range dep.Vulnerabilities {
+		// 	vulns = append(vulns, v.Id)
+		// }
 
 		lan := dep.LanguageStr
 		if lan == "" {
@@ -195,7 +195,7 @@ func (root *DepTree) String() string {
 			lics[i] = lic.ShortName
 		}
 
-		res += fmt.Sprintf("%s%s<%s> path:%s license:%v vulns:%v\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], lics, vulns)
+		res += fmt.Sprintf("%s%s<%s> path:%s license:%v\n", strings.Repeat("\t", node.Deep), dep.Dependency, lan, dep.Path[strings.Index(dep.Path, "/")+1:], lics)
 		for i := len(dep.Children) - 1; i >= 0; i-- {
 			stack.Push(newNode(dep.Children[i], node.Deep+1))
 		}

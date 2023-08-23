@@ -18,7 +18,7 @@ type Dep struct {
 	// 检出路径
 	Path string `json:"path"`
 	// 许可证
-	Licenses []string `json:"licenses"`
+	Licenses []License `json:"licenses"`
 	// 仅用于开发环境
 	Develop bool `json:"develop"`
 }
@@ -108,4 +108,8 @@ func (dep *DepGraph) ForEachOnce(do func(n *DepGraph) bool) {
 		depSet[n] = true
 		return do(n)
 	})
+}
+
+type License struct {
+	ShortName string `json:"name"`
 }
