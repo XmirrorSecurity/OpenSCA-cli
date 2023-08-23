@@ -9,6 +9,10 @@ import (
 
 type Sca struct{}
 
+func (sca Sca) Language() model.Language {
+	return model.Lan_Golang
+}
+
 func (sca Sca) Filter(relpath string) bool {
 	return filter.GoMod(relpath) || filter.GoSum(relpath)
 }

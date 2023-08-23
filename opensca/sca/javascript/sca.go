@@ -9,8 +9,12 @@ import (
 
 type Sca struct{}
 
+func (sca Sca) Language() model.Language {
+	return model.Lan_JavaScript
+}
+
 func (sca Sca) Filter(relpath string) bool {
-	return filter.JavaScriptPackage(relpath) ||
+	return filter.JavaScriptPackageJson(relpath) ||
 		filter.JavaScriptPackageLock(relpath) ||
 		filter.JavaScriptYarnLock(relpath)
 }

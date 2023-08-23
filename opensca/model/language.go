@@ -3,6 +3,7 @@ package model
 type Language string
 
 const (
+	Lan_None       Language = ""
 	Lan_Java       Language = "Java"
 	Lan_JavaScript Language = "JavaScript"
 	Lan_Php        Language = "Php"

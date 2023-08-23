@@ -22,7 +22,7 @@ var (
 
 var (
 	JavaScriptPackageLock = filterFunc(strings.HasSuffix, "package-lock.json")
-	JavaScriptPackage     = func(filename string) bool {
+	JavaScriptPackageJson = func(filename string) bool {
 		return strings.HasSuffix(filename, "package.json") && !strings.Contains(filename, "node_modules")
 	}
 	JavaScriptYarnLock = filterFunc(strings.HasSuffix, "yarn.lock")

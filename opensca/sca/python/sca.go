@@ -9,6 +9,10 @@ import (
 
 type Sca struct{}
 
+func (sca Sca) Language() model.Language {
+	return model.Lan_Python
+}
+
 func (sca Sca) Filter(relpath string) bool {
 	return filter.PythonPipfile(relpath) ||
 		filter.PythonPipfileLock(relpath) ||

@@ -10,6 +10,10 @@ import (
 
 type Sca struct{}
 
+func (sca Sca) Language() model.Language {
+	return model.Lan_Java
+}
+
 func (sca Sca) Filter(relpath string) bool {
 	return filter.JavaPom(relpath)
 }

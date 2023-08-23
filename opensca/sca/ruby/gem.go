@@ -35,9 +35,8 @@ func ParseGemfileLock(file *model.File) *model.DepGraph {
 			return
 		}
 		depMap[name] = &model.DepGraph{
-			Name:     name,
-			Version:  version,
-			Language: model.Lan_Ruby,
+			Name:    name,
+			Version: version,
 		}
 	})
 

@@ -10,6 +10,10 @@ import (
 
 type Sca struct{}
 
+func (sca Sca) Language() model.Language {
+	return model.Lan_Erlang
+}
+
 func (sca Sca) Filter(relpath string) bool {
 	return filter.ErlangRebarLock(relpath)
 }

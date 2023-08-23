@@ -61,6 +61,18 @@ func (dep *DepGraph) String() string {
 	return fmt.Sprintf("%s<%s>(%s)", dep.Index(), dep.Language, dep.Path)
 }
 
+func (dep *DepGraph) IsDevelop() bool {
+	if len(dep.Parents) == 0 || dep.Develop {
+		return dep.Develop
+	}
+	for p := range dep.Parents {
+		if !p.Develop {
+			return false
+		}
+	}
+	return true
+}
+
 // Tree 无重复依赖树
 func (dep *DepGraph) Tree() string {
 

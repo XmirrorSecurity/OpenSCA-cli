@@ -14,6 +14,7 @@ import (
 )
 
 type Sca interface {
+	Language() model.Language
 	Filter(relpath string) bool
 	Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph
 }
@@ -43,17 +44,24 @@ func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent *model.Fi
 	return func(parent *model.File, files []*model.File) {
 		for _, sca := range allSca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
-				do(dep)
 				dep.ForEachNode(func(p, n *model.DepGraph) bool {
-					// TODO: 补全路径
-					if p != nil {
-						n.Path += p.Path
+					// 补全路径
+					if p != nil && n.Path == "" {
+						n.Path = p.Path
 					}
 					if n.Name != "" {
 						n.Path += n.Index()
 					}
+					// 补全语言
+					if n.Language == model.Lan_None {
+						n.Language = sca.Language()
+					}
+					// 传递develop
+					n.Develop = n.IsDevelop()
 					return true
 				})
+				// 回调
+				do(dep)
 			}
 		}
 	}
