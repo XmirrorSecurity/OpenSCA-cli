@@ -32,23 +32,51 @@ func vulnLanguageKey(language string) string {
 	return language
 }
 
+type Dep struct {
+	// 厂商
+	Vendor string `json:"vendor"`
+	// 名称
+	Name string `json:"name"`
+	// 版本号
+	Version string `json:"version"`
+	// 语言
+	Language string `json:"language"`
+}
+
+type License struct {
+	ShortName string `json:"name"`
+}
+
 type DepDetailGraph struct {
-	model.Dep
+	Dep
+	Path            string            `json:"path,omitempty" xml:"path,omitempty"`
+	Licenses        []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
 	Children        []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
+}
+
+func (d *DepDetailGraph) Update(dep *model.DepGraph) {
+	d.Name = dep.Name
+	d.Vendor = dep.Vendor
+	d.Version = dep.Version
+	d.Language = dep.Language
+	d.Path = dep.Path
+	for _, lic := range dep.Licenses {
+		d.Licenses = append(d.Licenses, License{ShortName: lic})
+	}
 }
 
 // SearchDetail 查找组件详情:漏洞/许可证
 func SearchDetail(depRoot *model.DepGraph) (detailRoot *DepDetailGraph, err error) {
 
 	var details []*DepDetailGraph
-	var ds []model.Dep
+	var ds []Dep
 
 	detailRoot = &DepDetailGraph{}
 	depRoot.Expand = detailRoot
 	depRoot.ForEachOnce(func(n *model.DepGraph) bool {
 		detail := n.Expand.(*DepDetailGraph)
-		detail.Dep = n.Dep
+		detail.Update(n)
 		for c := range n.Children {
 			cd := &DepDetailGraph{}
 			c.Expand = cd
@@ -108,8 +136,8 @@ func SearchDetail(depRoot *model.DepGraph) (detailRoot *DepDetailGraph, err erro
 }
 
 // GetServerLicense 从云服务获取许可证
-func GetServerLicense(deps []model.Dep) (lics [][]model.License, err error) {
-	lics = [][]model.License{}
+func GetServerLicense(deps []Dep) (lics [][]License, err error) {
+	lics = [][]License{}
 	data, err := json.Marshal(deps)
 	if err != nil {
 		logs.Error(err)
@@ -130,7 +158,7 @@ func GetServerLicense(deps []model.Dep) (lics [][]model.License, err error) {
 }
 
 // GetServerVuln 从云服务获取漏洞
-func GetServerVuln(deps []model.Dep) (vulns [][]*Vuln, err error) {
+func GetServerVuln(deps []Dep) (vulns [][]*Vuln, err error) {
 	vulns = [][]*Vuln{}
 	data, err := json.Marshal(deps)
 	if err != nil {
@@ -151,7 +179,7 @@ func GetServerVuln(deps []model.Dep) (vulns [][]*Vuln, err error) {
 	return
 }
 
-func (o *BaseOrigin) SearchVuln(deps []model.Dep) (vulns [][]*Vuln) {
+func (o *BaseOrigin) SearchVuln(deps []Dep) (vulns [][]*Vuln) {
 	if o == nil || o.data == nil {
 		return nil
 	}

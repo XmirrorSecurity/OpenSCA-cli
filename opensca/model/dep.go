@@ -5,34 +5,28 @@ import (
 	"strings"
 )
 
-// Dep 依赖信息
-type Dep struct {
-	// 厂商
-	Vendor string `json:"vendor"`
-	// 名称
-	Name string `json:"name"`
-	// 版本号
-	Version string `json:"version"`
-	// 语言
-	Language string `json:"language"`
-	// 检出路径
-	Path string `json:"path"`
-	// 许可证
-	Licenses []License `json:"licenses"`
-	// 仅用于开发环境
-	Develop bool `json:"develop"`
-}
-
 // DepGraph 依赖关系图
 type DepGraph struct {
-	// 依赖信息
-	Dep
+	// 厂商
+	Vendor string
+	// 名称
+	Name string
+	// 版本号
+	Version string
+	// 语言
+	Language Language
+	// 检出路径
+	Path string
+	// 许可证
+	Licenses []string
+	// 仅用于开发环境
+	Develop bool
 	// 父节点
-	Parents map[*DepGraph]bool `json:"-"`
+	Parents map[*DepGraph]bool
 	// 子节点
-	Children map[*DepGraph]bool `json:"-"`
+	Children map[*DepGraph]bool
 	// 附加信息
-	Expand any `json:"-"`
+	Expand any
 }
 
 // AppendChild 添加子依赖
@@ -47,7 +41,7 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 	delete(child.Parents, dep)
 }
 
-func (dep Dep) String() string {
+func (dep *DepGraph) String() string {
 	return fmt.Sprintf("[%s:%s:%s]<%s>(%s)", dep.Vendor, dep.Name, dep.Version, dep.Language, dep.Path)
 }
 
@@ -77,7 +71,7 @@ func (dep *DepGraph) Tree() string {
 		n.Expand = nil
 
 		sb.WriteString(strings.Repeat("  ", deep))
-		sb.WriteString(n.Dep.String())
+		sb.WriteString(n.String())
 		sb.WriteString("\n")
 	}
 	return sb.String()
@@ -108,8 +102,4 @@ func (dep *DepGraph) ForEachOnce(do func(n *DepGraph) bool) {
 		depSet[n] = true
 		return do(n)
 	})
-}
-
-type License struct {
-	ShortName string `json:"name"`
 }
