@@ -18,6 +18,7 @@ func (file *File) ReadLine(do func(line string)) {
 		logs.Warnf("open file %s fail: %s", file.Relpath, err)
 		return
 	}
+	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		do(scanner.Text())

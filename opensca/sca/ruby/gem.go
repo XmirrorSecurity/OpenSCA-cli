@@ -22,7 +22,7 @@ func ParseGemfileLock(file *model.File) []*model.DepGraph {
 			return
 		}
 		name = line[:i]
-		version = strings.TrimSpace(line[i+1:])
+		version = strings.Trim(line[i+1:], "()")
 		return
 	}
 
@@ -45,10 +45,6 @@ func ParseGemfileLock(file *model.File) []*model.DepGraph {
 	// 第二次记录依赖关系
 	var last string
 	file.ReadLine(func(line string) {
-		if strings.HasPrefix(line, space4) {
-			last, _ = parseLine(line)
-			return
-		}
 		if strings.HasPrefix(line, space6) {
 			name, _ := parseLine(line)
 			parent := depMap[last]
@@ -56,6 +52,10 @@ func ParseGemfileLock(file *model.File) []*model.DepGraph {
 			if parent != nil && child != nil {
 				parent.AppendChild(child)
 			}
+			return
+		}
+		if strings.HasPrefix(line, space4) {
+			last, _ = parseLine(line)
 			return
 		}
 	})

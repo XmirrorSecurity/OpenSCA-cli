@@ -59,7 +59,7 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Name = dep.Name
 	d.Vendor = dep.Vendor
 	d.Version = dep.Version
-	d.Language = dep.Language
+	d.Language = string(dep.Language)
 	d.Path = dep.Path
 	for _, lic := range dep.Licenses {
 		d.Licenses = append(d.Licenses, License{ShortName: lic})
