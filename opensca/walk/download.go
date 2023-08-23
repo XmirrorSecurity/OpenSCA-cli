@@ -29,17 +29,22 @@ func isFile(url string) bool {
 	return strings.HasPrefix(url, "file://")
 }
 
-// Download 下载文件并保存到目标位置
-func Download(origin, output string) error {
+// download 下载数据
+func download(origin string) (delete bool, output string, err error) {
 	if isHttp(origin) {
-		return downloadFromHttp(origin, output)
+		delete = true
+		output, _ = os.MkdirTemp(tempdir, "download")
+		err = downloadFromHttp(origin, output)
 	} else if isFtp(origin) {
-		return downloadFromFtp(origin, output)
+		delete = true
+		output, _ = os.MkdirTemp(tempdir, "download")
+		err = downloadFromFtp(origin, output)
 	} else if isFile(origin) {
-		return downloadFromFile(origin, output)
+		output = strings.TrimPrefix(origin, "file:///")
 	} else {
-		return copyfile(origin, output)
+		output = origin
 	}
+	return
 }
 
 var downloadHttpClient = &http.Client{
@@ -165,27 +170,5 @@ func downloadFromFtp(url, output string) error {
 		return err
 	}
 	_, err = io.Copy(f, r)
-	return err
-}
-
-// downloadFromFile 下载url并保存到目标文件
-func downloadFromFile(url, output string) error {
-	input := strings.TrimPrefix(url, "file:///")
-	return copyfile(input, output)
-}
-
-// copyfile 复制文件
-func copyfile(src, dst string) error {
-	input, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer input.Close()
-	output, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer output.Close()
-	_, err = io.Copy(output, input)
 	return err
 }

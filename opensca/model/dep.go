@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -46,29 +45,6 @@ func (dep *DepGraph) AppendChild(child *DepGraph) {
 func (dep *DepGraph) RemoveChild(child *DepGraph) {
 	delete(dep.Children, child)
 	delete(child.Parents, dep)
-}
-
-// Json 无重复json
-func (dep *DepGraph) Json() string {
-	type depJson struct {
-		Dep
-		Children []depJson `json:"children"`
-	}
-	root := depJson{}
-	dep.Expand = root
-	dep.ForEachOnce(func(n *DepGraph) bool {
-		dj := n.Expand.(depJson)
-		dj.Dep = n.Dep
-		for c := range n.Children {
-			cdj := depJson{}
-			c.Expand = cdj
-			dj.Children = append(dj.Children, cdj)
-		}
-		n.Expand = nil
-		return true
-	})
-	data, _ := json.Marshal(root)
-	return string(data)
 }
 
 func (dep Dep) String() string {

@@ -31,13 +31,28 @@ type WalkFileFunc func(parent *model.File, files []*model.File)
 // name: 检测文件名
 // origin: 检测数据源
 // filter: 过滤需要提取的文件
-// do: 目标内文件操作
-func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) error {
-	tmp, _ := os.MkdirTemp(tempdir, "download")
+// do: 对文件的操作
+// size: 检测文件大小
+func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
+
 	defer wg.Wait()
-	defer os.RemoveAll(tmp)
-	parent := &model.File{Relpath: name, Abspath: tmp}
-	return walk(ctx, parent, filter, do)
+
+	delete, filepath, err := download(origin)
+	if err != nil {
+		return
+	}
+
+	if delete {
+		defer os.RemoveAll(filepath)
+	}
+
+	if f, err := os.Stat(filepath); err == nil {
+		size = f.Size()
+	}
+
+	parent := &model.File{Relpath: name, Abspath: filepath}
+	err = walk(ctx, parent, filter, do)
+	return
 }
 
 func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do WalkFileFunc) error {

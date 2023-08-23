@@ -2,6 +2,7 @@ package opensca
 
 import (
 	"context"
+	"path"
 	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
@@ -10,10 +11,14 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/walk"
 )
 
-func RunTask(ctx context.Context, arg *TaskArg) {
+func RunTask(ctx context.Context, arg *model.TaskArg) (task model.TaskResult) {
 
 	if arg == nil {
 		arg = defaultArg
+	}
+
+	if arg.Name == "" {
+		arg.Name = path.Base(arg.DataOrigin)
 	}
 
 	if arg.Timeout > 0 {
@@ -24,21 +29,24 @@ func RunTask(ctx context.Context, arg *TaskArg) {
 		}
 	}
 
-	walk.Walk(ctx, arg.Name, arg.DataOrigin, sca.Filter, sca.Do(ctx, func(dep *model.DepGraph) {
+	task = model.TaskResult{
+		AppName:   arg.Name,
+		StartTime: time.Now().Format("2006-01-02 15:04:05"),
+	}
+	defer func(start time.Time) {
+		task.CostTime = time.Since(start).Seconds()
+		task.EndTime = time.Now().Format("2006-01-02 15:04:05")
+	}(time.Now())
+
+	task.Size, task.Error = walk.Walk(ctx, arg.Name, arg.DataOrigin, sca.Filter, sca.Do(ctx, func(dep *model.DepGraph) {
 		logs.Info(dep)
+		task.DepRoot = append(task.DepRoot, dep)
 	}))
+
+	return
 }
 
-// 任务检测参数
-type TaskArg struct {
-	// 检测数据源 文件路径或url 兼容http(s)|ftp|file
-	DataOrigin string
-	// 检测对象名称 用于结果展示 缺省时取DataOrigin尾单词
-	Name string
-	// 超时时间 单位s
-	Timeout int
-}
-
-var defaultArg = &TaskArg{
+var defaultArg = &model.TaskArg{
 	DataOrigin: "./",
+	Name:       "default",
 }
