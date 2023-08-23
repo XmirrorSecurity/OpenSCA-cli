@@ -47,8 +47,15 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 	delete(child.Parents, dep)
 }
 
+func (dep *DepGraph) Index() string {
+	if dep.Vendor == "" {
+		return fmt.Sprintf("[%s:%s]", dep.Name, dep.Version)
+	}
+	return fmt.Sprintf("[%s:%s:%s]", dep.Vendor, dep.Name, dep.Version)
+}
+
 func (dep *DepGraph) String() string {
-	return fmt.Sprintf("[%s:%s:%s]<%s>(%s)", dep.Vendor, dep.Name, dep.Version, dep.Language, dep.Path)
+	return fmt.Sprintf("%s<%s>(%s)", dep.Index(), dep.Language, dep.Path)
 }
 
 // Tree 无重复依赖树
@@ -83,29 +90,34 @@ func (dep *DepGraph) Tree() string {
 	return sb.String()
 }
 
-// ForEach 遍历依赖图
+// ForEachPath 遍历依赖图路径
 // do: 对当前节点的操作 返回true代表继续迭代子节点
-func (dep *DepGraph) ForEach(do func(n *DepGraph) bool) {
+// do.p: 路径起点(遍历当前节点的父节点)
+// do.n: 路径终点(当前节点)
+func (dep *DepGraph) ForEachPath(do func(p, n *DepGraph) bool) {
 	q := []*DepGraph{dep}
+	if !do(nil, dep) {
+		return
+	}
 	for len(q) > 0 {
 		n := q[0]
 		q = q[1:]
-		if do(n) {
-			for c := range n.Children {
+		for c := range n.Children {
+			if do(n, c) {
 				q = append(q, c)
 			}
 		}
 	}
 }
 
-// ForEachOnce 无重复遍历依赖图
-func (dep *DepGraph) ForEachOnce(do func(n *DepGraph) bool) {
+// ForEachNode 遍历依赖图节点
+func (dep *DepGraph) ForEachNode(do func(p, n *DepGraph) bool) {
 	depSet := map[*DepGraph]bool{}
-	dep.ForEach(func(n *DepGraph) bool {
+	dep.ForEachPath(func(p, n *DepGraph) bool {
 		if depSet[n] {
 			return false
 		}
 		depSet[n] = true
-		return do(n)
+		return do(p, n)
 	})
 }

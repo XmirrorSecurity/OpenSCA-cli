@@ -7,7 +7,7 @@ import (
 )
 
 // ParseGemfileLock 解析Gemfile.lock文件
-func ParseGemfileLock(file *model.File) []*model.DepGraph {
+func ParseGemfileLock(file *model.File) *model.DepGraph {
 
 	// map[name]dep
 	depMap := map[string]*model.DepGraph{}
@@ -60,10 +60,10 @@ func ParseGemfileLock(file *model.File) []*model.DepGraph {
 		}
 	})
 
-	root := []*model.DepGraph{}
+	root := &model.DepGraph{Path: file.Relpath}
 	for _, d := range depMap {
 		if len(d.Parents) == 0 {
-			root = append(root, d)
+			root.AppendChild(d)
 		}
 	}
 

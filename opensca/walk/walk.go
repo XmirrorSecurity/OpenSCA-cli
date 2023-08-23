@@ -66,7 +66,10 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 		}
 
 		rel := filepath.Join(parent.Relpath, strings.TrimPrefix(path, parent.Abspath))
-		files = append(files, &model.File{Abspath: path, Relpath: rel})
+
+		if filter == nil || filter(rel) {
+			files = append(files, &model.File{Abspath: path, Relpath: rel})
+		}
 
 		wg.Add(1)
 		go func() {

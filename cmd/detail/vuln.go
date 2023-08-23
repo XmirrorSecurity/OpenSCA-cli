@@ -74,7 +74,7 @@ func SearchDetail(depRoot *model.DepGraph) (detailRoot *DepDetailGraph, err erro
 
 	detailRoot = &DepDetailGraph{}
 	depRoot.Expand = detailRoot
-	depRoot.ForEachOnce(func(n *model.DepGraph) bool {
+	depRoot.ForEachNode(func(p, n *model.DepGraph) bool {
 		detail := n.Expand.(*DepDetailGraph)
 		detail.Update(n)
 		for c := range n.Children {
