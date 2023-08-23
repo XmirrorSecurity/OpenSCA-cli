@@ -1,4 +1,4 @@
-package maven
+package java
 
 import "github.com/xmirrorsecurity/opensca-cli/opensca/model"
 

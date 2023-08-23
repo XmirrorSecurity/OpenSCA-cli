@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/gomod"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/maven"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/npm"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/pip"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/golang"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/python"
 )
 
 type Sca interface {
@@ -16,10 +16,10 @@ type Sca interface {
 }
 
 var allSca = []Sca{
-	maven.Sca{},
-	pip.Sca{},
-	npm.Sca{},
-	gomod.Sca{},
+	java.Sca{},
+	python.Sca{},
+	javascript.Sca{},
+	golang.Sca{},
 }
 
 func Filter(relpath string) bool {
