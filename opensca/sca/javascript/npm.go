@@ -148,7 +148,7 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) 
 		var subjs *PackageJson
 		if len(nodeMap) > 0 {
 			// 从node_modules中查找
-			_, subjs = findFromNodeModules(name, basedir, false, nodeMap)
+			_, subjs = findFromNodeModules(name, basedir, nodeMap)
 		} else {
 			// 从外部数据源下载
 			subjs = npmOrigin(name, version)
@@ -271,8 +271,8 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 
 	_dep := (&depSet{}).Dep
 
-	findDep := func(name, basedir string, peer bool) *model.DepGraph {
-		jspath, subjs := findFromNodeModules(name, basedir, peer, lock.Packages)
+	findDep := func(name, basedir string) *model.DepGraph {
+		jspath, subjs := findFromNodeModules(name, basedir, lock.Packages)
 		if subjs == nil {
 			return nil
 		}
@@ -296,7 +296,7 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 		}
 
 		for name := range njs.js.Dependencies {
-			n.AppendChild(findDep(name, njs.path, false))
+			n.AppendChild(findDep(name, njs.path))
 		}
 
 		for name := range njs.js.PeerDependencies {
@@ -305,11 +305,11 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 					continue
 				}
 			}
-			n.AppendChild(findDep(name, njs.path, true))
+			n.AppendChild(findDep(name, njs.path))
 		}
 
 		for name := range njs.js.DevDependencies {
-			dep := findDep(name, njs.path, false)
+			dep := findDep(name, njs.path)
 			if dep != nil {
 				dep.Develop = true
 				n.AppendChild(dep)
@@ -346,7 +346,7 @@ func findMaxVersion(version string, versions []string) string {
 	return version
 }
 
-func findFromNodeModules(name, basedir string, peer bool, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
+func findFromNodeModules(name, basedir string, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
 	dir := basedir
 	var paths []string
 	for {
@@ -356,11 +356,6 @@ func findFromNodeModules(name, basedir string, peer bool, nodePathMap map[string
 			break
 		}
 		dir = dir[:i]
-	}
-	if !peer {
-		for i, j := 0, len(paths)-1; i < j; i, j = i+1, j-1 {
-			paths[i], paths[j] = paths[j], paths[i]
-		}
 	}
 	for _, jspath := range paths {
 		if js, ok := nodePathMap[jspath]; ok {
