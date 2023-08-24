@@ -17,13 +17,16 @@ import (
 )
 
 type PackageJson struct {
-	Name             string            `json:"name"`
-	Version          string            `json:"version"`
-	License          string            `json:"license"`
-	DevDependencies  map[string]string `json:"devDependencies"`
-	Dependencies     map[string]string `json:"dependencies"`
-	PeerDependencies map[string]string `json:"peerDependencies"`
-	File             *model.File       `json:"-"`
+	Name                 string            `json:"name"`
+	Version              string            `json:"version"`
+	License              string            `json:"license"`
+	Dependencies         map[string]string `json:"dependencies"`
+	DevDependencies      map[string]string `json:"devDependencies"`
+	PeerDependencies     map[string]string `json:"peerDependencies"`
+	PeerDependenciesMeta map[string]struct {
+		Optional bool `json:"optional"`
+	} `json:"peerDependenciesMeta"`
+	File *model.File `json:"-"`
 }
 
 type NpmJson struct {
@@ -289,6 +292,11 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 		}
 
 		for name := range njs.js.PeerDependencies {
+			if meta, ok := njs.js.PeerDependenciesMeta[name]; ok {
+				if meta.Optional {
+					continue
+				}
+			}
 			n.AppendChild(findDep(name, njs.path, true))
 		}
 

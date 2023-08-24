@@ -79,6 +79,7 @@ func (dep *DepGraph) IsDevelop() bool {
 }
 
 // Tree 依赖树
+// path: true=>记录全部路径 false=>记录全部节点
 func (dep *DepGraph) Tree(path bool) string {
 
 	if dep == nil {
@@ -105,12 +106,12 @@ func (dep *DepGraph) Tree(path bool) string {
 	return sb.String()
 }
 
-// ForEach 遍历依赖图路径
-// deep: 深度优先遍历
-// path: 遍历所有路径
+// ForEach 遍历依赖图
+// deep: true=>深度优先 false=>广度优先
+// path: true=>遍历所有路径 false=>遍历所有节点
 // do: 对当前节点的操作 返回true代表继续迭代子节点
-// do.p: 路径起点(遍历当前节点的父节点)
-// do.n: 路径终点(当前节点)
+// do.p: 路径父节点
+// do.n: 路径子节点
 func (dep *DepGraph) ForEach(deep, path bool, do func(p, n *DepGraph) bool) {
 
 	if dep == nil {
