@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/titanous/json5"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
 type Config struct {
@@ -151,4 +151,5 @@ func ParseArgs() {
 	flag.StringVar(&_config.LogFile, "log", _config.LogFile, "(可选) 指定日志文件路径")
 	LoadConfig(config)
 	flag.Parse()
+	logs.CreateLog(_config.LogFile)
 }

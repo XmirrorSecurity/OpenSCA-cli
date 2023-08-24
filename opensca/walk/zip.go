@@ -32,7 +32,7 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 		}
 
 		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(fp, 0755); err != nil {
+			if err := os.MkdirAll(fp, 0777); err != nil {
 				logs.Warn(err)
 			}
 			continue

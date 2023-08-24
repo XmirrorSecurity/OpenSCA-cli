@@ -106,7 +106,7 @@ func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *m
 		}
 	}
 
-	for name, version := range js.Deps {
+	for name, version := range js.Dependencies {
 		lock := yarn[npmkey(name, version)]
 		if lock != nil {
 			root.AppendChild(_dep(lock.Name, lock.Version))
@@ -115,7 +115,7 @@ func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *m
 		}
 	}
 
-	for name, version := range js.DevDeps {
+	for name, version := range js.DevDependencies {
 		lock := yarn[npmkey(name, version)]
 		if lock != nil {
 			dep := _dep(lock.Name, lock.Version)

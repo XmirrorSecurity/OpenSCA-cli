@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime/debug"
-	"sort"
-	"strconv"
-	"strings"
 )
 
 type LogConfig struct {
@@ -55,41 +52,20 @@ func DefalutLogConfig() LogConfig {
 }
 
 func CreateLog(logPath string) {
+
+	if logPath != "" {
+		if f, err := os.Open(logPath); err == nil {
+			log.SetOutput(f)
+			return
+		} else {
+			Warnf("open logfile %s fail %s, use default log\n", err, logPath)
+		}
+	}
+
 	execfile, _ := os.Executable()
-	logDir := path.Join(path.Dir(execfile), "log")
-	logPre := "log-"
-	if f, err := os.Stat(logDir); err != nil {
-		if err = os.Mkdir(logDir, 0755); err != nil {
-			Warnf("create %s error: %v", logDir, err)
-			return
-		}
-	} else {
-		if !f.IsDir() {
-			Warnf("%s is not a directory", logDir)
-			return
-		}
-	}
-	fs, err := os.ReadDir(logDir)
+	f, err := os.Create(filepath.Join(filepath.Dir(execfile), "opensca.log"))
 	if err != nil {
-		Warnf("read %s err: %v", logDir, err)
-		return
-	}
-	nums := []int{} // 记录日志编号
-	for _, f := range fs {
-		if strings.HasPrefix(f.Name(), logPre) {
-			if n, err := strconv.Atoi(f.Name()[len(logPre):]); err == nil {
-				nums = append(nums, n)
-			}
-		}
-	}
-	sort.Ints(nums)
-	id := 1
-	if len(nums) > 0 {
-		id = nums[len(nums)-1] + 1
-	}
-	f, err := os.OpenFile(path.Join(logDir, fmt.Sprintf("log-%d", id)), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		Warnf("open logfile err: %v", err)
+		Warnf("open logfile err: %s", err)
 	} else {
 		log.SetOutput(f)
 	}
