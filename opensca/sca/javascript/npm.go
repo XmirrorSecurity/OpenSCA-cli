@@ -20,6 +20,7 @@ type PackageJson struct {
 	Name                 string            `json:"name"`
 	Version              string            `json:"version"`
 	License              string            `json:"license"`
+	Develop              bool              `json:"dev"` // lock v3
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
 	PeerDependencies     map[string]string `json:"peerDependencies"`
@@ -133,6 +134,7 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
+	root.AppendLicense(js.License)
 
 	if js.File != nil {
 		root.Path = js.File.Relpath
@@ -156,6 +158,7 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) 
 		}
 		dep := _dep(subjs.Name, subjs.Version)
 		if dep.Expand == nil {
+			dep.AppendLicense(subjs.License)
 			dep.Expand = subjs
 		}
 		return dep
@@ -195,6 +198,7 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 	}
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
+	root.AppendLicense(js.License)
 	if js.File != nil {
 		root.Path = js.File.Relpath
 	}
@@ -205,7 +209,8 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 
 	// 记录依赖
 	for name, lockDep := range lock.Dependencies {
-		depNameMap[name] = _dep(name, lockDep.Version)
+		dep := _dep(name, lockDep.Version)
+		depNameMap[name] = dep
 	}
 
 	// 构建依赖关系
@@ -253,6 +258,7 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 	}
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
+	root.AppendLicense(js.License)
 	if js.File != nil {
 		root.Path = js.File.Relpath
 	}
@@ -271,6 +277,8 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 			return nil
 		}
 		dep := _dep(name, subjs.Version)
+		dep.AppendLicense(subjs.License)
+		dep.Develop = subjs.Develop
 		if dep.Expand == nil {
 			dep.Expand = expand{
 				path: jspath,
