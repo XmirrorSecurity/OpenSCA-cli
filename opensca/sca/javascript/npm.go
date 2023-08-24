@@ -14,7 +14,6 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
 
 type PackageJson struct {
@@ -125,60 +124,6 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 	if origin != nil {
 		npmOrigin = origin
 	}
-}
-
-// files: package.json package-lock.json
-func ParseNpm(files []*model.File) []*model.DepGraph {
-
-	var root []*model.DepGraph
-
-	// map[name]
-	jsonMap := map[string]*PackageJson{}
-	// map[name]
-	lockMap := map[string]*PackageLock{}
-	// map[path]
-	nodeMap := map[string]*PackageJson{}
-
-	// 将npm相关文件按上述方案分类
-	for _, f := range files {
-		if filter.JavaScriptPackageJson(f.Relpath) {
-			var js *PackageJson
-			f.OpenReader(func(reader io.Reader) {
-				js = readJson[PackageJson](reader)
-				if js == nil {
-					return
-				}
-				js.File = f
-				if strings.Contains(f.Relpath, "node_modules") {
-					nodeMap[f.Relpath] = js
-				} else {
-					jsonMap[js.Name] = js
-				}
-			})
-		}
-		if filter.JavaScriptPackageLock(f.Relpath) {
-			f.OpenReader(func(reader io.Reader) {
-				lock := readJson[PackageLock](reader)
-				if lock == nil {
-					return
-				}
-				lockMap[lock.Name] = lock
-			})
-		}
-	}
-
-	// 遍历非node_modules下的package.json
-	for dir, js := range jsonMap {
-		var dep *model.DepGraph
-		if lock, ok := lockMap[dir]; ok {
-			dep = ParsePackageJsonWithLock(js, lock)
-		} else {
-			dep = ParsePackageJsonWithNode(js, nodeMap)
-		}
-		root = append(root, dep)
-	}
-
-	return root
 }
 
 func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGraph {

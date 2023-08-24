@@ -85,17 +85,7 @@ func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *m
 		root.Path = js.File.Relpath
 	}
 
-	// map[key]
-	depKeyMap := map[string]*model.DepGraph{}
-	_dep := func(name, version string) *model.DepGraph {
-		key := npmkey(name, version)
-		dep, ok := depKeyMap[key]
-		if !ok {
-			dep = &model.DepGraph{Name: name, Version: version}
-			depKeyMap[key] = dep
-		}
-		return dep
-	}
+	_dep := (&depSet{}).Dep
 
 	// 记录依赖
 	for _, lock := range yarn {
