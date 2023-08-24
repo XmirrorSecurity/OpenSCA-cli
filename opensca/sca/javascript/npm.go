@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"path"
 	"sort"
 	"strings"
 
@@ -347,17 +346,16 @@ func findMaxVersion(version string, versions []string) string {
 }
 
 func findFromNodeModules(name, basedir string, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
-	dir := basedir
-	var paths []string
-	for {
-		paths = append(paths, path.Join(dir, "node_modules", name))
-		i := strings.LastIndex(dir, "node_modules")
-		if i == -1 {
-			break
+	const node_modules = "node_modules"
+	paths := strings.Split(basedir, "/")
+	for i := range paths {
+		tail := len(paths) - i
+		dirs := paths[:tail]
+		if paths[tail-1] != node_modules {
+			dirs = append(dirs, node_modules)
 		}
-		dir = dir[:i]
-	}
-	for _, jspath := range paths {
+		dirs = append(dirs, name)
+		jspath = strings.TrimLeft(strings.Join(dirs, "/"), "/")
 		if js, ok := nodePathMap[jspath]; ok {
 			return jspath, js
 		}
