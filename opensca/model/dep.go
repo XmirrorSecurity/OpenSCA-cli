@@ -51,6 +51,10 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 	delete(child.Parents, dep)
 }
 
+func (dep *DepGraph) AppendLicense(lic string) {
+	dep.Licenses = append(dep.Licenses, lic)
+}
+
 func (dep *DepGraph) Index() string {
 	if dep.Vendor == "" {
 		return fmt.Sprintf("[%s:%s]", dep.Name, dep.Version)

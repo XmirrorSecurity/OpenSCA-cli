@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
 	"github.com/xmirrorsecurity/opensca-cli/opensca"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/util/config"
 )
 
 var version string

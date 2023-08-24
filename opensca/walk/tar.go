@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
 func xtar(filter ExtractFileFilter, input, output string) bool {

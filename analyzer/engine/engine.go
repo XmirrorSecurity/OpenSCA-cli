@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/args"
 	"github.com/xmirrorsecurity/opensca-cli/util/filter"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/model"
 	"github.com/xmirrorsecurity/opensca-cli/util/report"
 	"github.com/xmirrorsecurity/opensca-cli/util/vuln"

@@ -8,6 +8,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/golang"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/python"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/ruby"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/rust"
@@ -27,6 +28,7 @@ var allSca = []Sca{
 	ruby.Sca{},
 	rust.Sca{},
 	erlang.Sca{},
+	php.Sca{},
 }
 
 func RegisterSca(sca ...Sca) { allSca = sca }

@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/bar"
 	"github.com/xmirrorsecurity/opensca-cli/util/cache"
 	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/model"
 
 	"github.com/Masterminds/semver/v3"

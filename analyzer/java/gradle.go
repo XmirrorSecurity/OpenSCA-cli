@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 

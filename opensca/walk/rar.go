@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 
 	"github.com/nwaples/rardecode"
 )

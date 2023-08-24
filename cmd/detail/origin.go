@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/args"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

@@ -13,10 +13,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/args"
 	"github.com/xmirrorsecurity/opensca-cli/util/cache"
 	"github.com/xmirrorsecurity/opensca-cli/util/enum/language"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 	"github.com/xmirrorsecurity/opensca-cli/util/model"
 )
 

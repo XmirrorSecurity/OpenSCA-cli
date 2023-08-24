@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/util/logs"
 )
 
 var (
