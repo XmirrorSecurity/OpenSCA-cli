@@ -30,7 +30,8 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 
 func ParseRebarLock(file *model.File) *model.DepGraph {
 	reg := regexp.MustCompile(`<<"([\w\d]+)">>\S*?pkg,<<"[\w\d]+">>,<<"([.\d]+)">>`)
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{}
+	root.AppendFile(file)
 	file.ReadLine(func(line string) {
 		match := reg.FindStringSubmatch(line)
 		root.AppendChild(&model.DepGraph{

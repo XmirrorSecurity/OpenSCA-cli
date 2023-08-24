@@ -49,7 +49,7 @@ type License struct {
 
 type DepDetailGraph struct {
 	Dep
-	Path            string            `json:"path,omitempty" xml:"path,omitempty"`
+	Path            []string          `json:"path,omitempty" xml:"path,omitempty"`
 	Licenses        []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
 	Children        []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
@@ -60,7 +60,7 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Vendor = dep.Vendor
 	d.Version = dep.Version
 	d.Language = string(dep.Language)
-	d.Path = dep.Path
+	d.Path = dep.Paths
 	for _, lic := range dep.Licenses {
 		d.Licenses = append(d.Licenses, License{ShortName: lic})
 	}

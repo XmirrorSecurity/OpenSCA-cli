@@ -48,11 +48,14 @@ func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent *model.Fi
 			for _, dep := range sca.Sca(ctx, parent, files) {
 				dep.ForEachNode(func(p, n *model.DepGraph) bool {
 					// 补全路径
-					if p != nil && n.Path == "" {
-						n.Path = p.Path
+					if p != nil && len(n.Paths) == 0 {
+						n.Paths = make([]string, len(p.Paths))
+						copy(n.Paths, p.Paths)
 					}
 					if n.Name != "" {
-						n.Path += n.Index()
+						for i := range n.Paths {
+							n.Paths[i] += n.Index()
+						}
 					}
 					// 补全语言
 					if n.Language == model.Lan_None {

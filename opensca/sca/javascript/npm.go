@@ -134,10 +134,7 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) 
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
 	root.AppendLicense(js.License)
-
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
+	root.AppendFile(js.File)
 
 	_dep := (&depSet{}).Dep
 
@@ -198,9 +195,7 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
 	root.AppendLicense(js.License)
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
+	root.AppendFile(js.File)
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
@@ -258,9 +253,7 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
 	root.AppendLicense(js.License)
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
+	root.AppendFile(js.File)
 
 	type expand struct {
 		js   *PackageJson

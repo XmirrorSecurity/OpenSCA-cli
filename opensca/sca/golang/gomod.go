@@ -8,7 +8,8 @@ import (
 )
 
 func ParseGomod(file *model.File) *model.DepGraph {
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{}
+	root.AppendFile(file)
 	reg := regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)[\s\n]`)
 	file.ReadLine(func(line string) {
 		if !reg.MatchString(line) {
