@@ -17,12 +17,13 @@ import (
 )
 
 type PackageJson struct {
-	Name            string            `json:"name"`
-	Version         string            `json:"version"`
-	License         string            `json:"license"`
-	DevDependencies map[string]string `json:"devDependencies"`
-	Dependencies    map[string]string `json:"dependencies"`
-	File            *model.File       `json:"-"`
+	Name             string            `json:"name"`
+	Version          string            `json:"version"`
+	License          string            `json:"license"`
+	DevDependencies  map[string]string `json:"devDependencies"`
+	Dependencies     map[string]string `json:"dependencies"`
+	PeerDependencies map[string]string `json:"peerDependencies"`
+	File             *model.File       `json:"-"`
 }
 
 type NpmJson struct {
@@ -31,11 +32,11 @@ type NpmJson struct {
 }
 
 type PackageLock struct {
-	Name         string                     `json:"name"`
-	LockVersion  int                        `json:"lockVersion"`
-	Version      string                     `json:"version"`
-	Dependencies map[string]*PackageLockDep `json:"dependencies"`
-	Packages     map[string]*PackageJson    `json:"packages"`
+	Name            string                     `json:"name"`
+	LockfileVersion int                        `json:"lockfileVersion"`
+	Version         string                     `json:"version"`
+	Dependencies    map[string]*PackageLockDep `json:"dependencies"`
+	Packages        map[string]*PackageJson    `json:"packages"`
 }
 type PackageLockDep struct {
 	name         string
@@ -67,7 +68,7 @@ func (s *depSet) Dep(name, version string) *model.DepGraph {
 
 func readJson[T any](reader io.Reader) *T {
 	var data T
-	err := json.NewDecoder(reader).Decode(data)
+	err := json.NewDecoder(reader).Decode(&data)
 	if err != nil {
 		return nil
 	}
@@ -126,65 +127,67 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 	}
 }
 
-func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGraph {
-
-	if lock.LockVersion != 3 {
-		return nil
-	}
+func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
+
 	if js.File != nil {
 		root.Path = js.File.Relpath
 	}
 
-	type expand struct {
-		js   *PackageJson
-		path string
-	}
-	root.Expand = expand{js: js, path: ""}
-
 	_dep := (&depSet{}).Dep
 
-	findDep := func(name, basedir string) *model.DepGraph {
-		jspath, subjs := findFromNodeModules(name, basedir, lock.Packages)
+	root.Expand = js
+
+	findDep := func(name, version, basedir string) *model.DepGraph {
+		var subjs *PackageJson
+		if len(nodeMap) > 0 {
+			// 从node_modules中查找
+			_, subjs = findFromNodeModules(name, basedir, false, nodeMap)
+		} else {
+			// 从外部数据源下载
+			subjs = npmOrigin(name, version)
+		}
 		if subjs == nil {
 			return nil
 		}
 		dep := _dep(subjs.Name, subjs.Version)
 		if dep.Expand == nil {
-			dep.Expand = expand{
-				path: jspath,
-				js:   subjs,
-			}
+			dep.Expand = subjs
 		}
 		return dep
 	}
 
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
 
-		njs := n.Expand.(expand)
-		if njs.js == nil {
-			return false
+		njs := n.Expand.(*PackageJson)
+		var basedir string
+		if njs.File != nil {
+			basedir = njs.File.Relpath
 		}
 
-		for name := range njs.js.Dependencies {
-			n.AppendChild(findDep(name, njs.path))
+		for name, version := range njs.Dependencies {
+			n.AppendChild(findDep(name, version, basedir))
 		}
 
-		for name := range njs.js.DevDependencies {
-			dep := findDep(name, njs.path)
-			dep.Develop = true
-			n.AppendChild(dep)
+		for name, version := range njs.DevDependencies {
+			dep := findDep(name, version, basedir)
+			if dep != nil {
+				dep.Develop = true
+				n.AppendChild(dep)
+			}
 		}
 
 		return true
 	})
-	return nil
+	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
+
+	return root
 }
 
 func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGraph {
 
-	if lock.LockVersion == 3 {
+	if lock.LockfileVersion == 3 {
 		return ParsePackageJsonWithLockV3(js, lock)
 	}
 
@@ -231,65 +234,74 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 
 	for name := range js.DevDependencies {
 		dep := depNameMap[name]
-		dep.Develop = true
-		root.AppendChild(dep)
+		if dep != nil {
+			dep.Develop = true
+			root.AppendChild(dep)
+		}
 	}
 
 	return root
 }
 
-func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
+func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGraph {
+
+	if lock.LockfileVersion != 3 {
+		return nil
+	}
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
-
 	if js.File != nil {
 		root.Path = js.File.Relpath
 	}
 
+	type expand struct {
+		js   *PackageJson
+		path string
+	}
+	root.Expand = expand{js: js, path: ""}
+
 	_dep := (&depSet{}).Dep
 
-	root.Expand = js
-
-	findDep := func(name, version, basedir string) *model.DepGraph {
-		var subjs *PackageJson
-		if len(nodeMap) > 0 {
-			// 从node_modules中查找
-			_, subjs = findFromNodeModules(name, basedir, nodeMap)
-		} else {
-			// 从外部数据源下载
-			subjs = npmOrigin(name, version)
-		}
+	findDep := func(name, basedir string, peer bool) *model.DepGraph {
+		jspath, subjs := findFromNodeModules(name, basedir, peer, lock.Packages)
 		if subjs == nil {
 			return nil
 		}
-		dep := _dep(subjs.Name, subjs.Version)
+		dep := _dep(name, subjs.Version)
 		if dep.Expand == nil {
-			dep.Expand = subjs
+			dep.Expand = expand{
+				path: jspath,
+				js:   subjs,
+			}
 		}
 		return dep
 	}
 
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
 
-		njs := n.Expand.(*PackageJson)
-		var basedir string
-		if njs.File != nil {
-			basedir = njs.File.Relpath
+		njs := n.Expand.(expand)
+		if njs.js == nil {
+			return false
 		}
 
-		for name, version := range njs.Dependencies {
-			n.AppendChild(findDep(name, version, basedir))
+		for name := range njs.js.Dependencies {
+			n.AppendChild(findDep(name, njs.path, false))
 		}
 
-		for name, version := range njs.DevDependencies {
-			dep := findDep(name, version, basedir)
-			dep.Develop = true
-			n.AppendChild(dep)
+		for name := range njs.js.PeerDependencies {
+			n.AppendChild(findDep(name, njs.path, true))
+		}
+
+		for name := range njs.js.DevDependencies {
+			dep := findDep(name, njs.path, false)
+			if dep != nil {
+				dep.Develop = true
+				n.AppendChild(dep)
+			}
 		}
 
 		return true
 	})
-	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
 
 	return root
 }
@@ -318,18 +330,26 @@ func findMaxVersion(version string, versions []string) string {
 	return version
 }
 
-func findFromNodeModules(name, basedir string, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
+func findFromNodeModules(name, basedir string, peer bool, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
 	dir := basedir
+	var paths []string
 	for {
-		jspath = path.Join(dir, "node_modules", name)
-		if js, ok := nodePathMap[jspath]; ok {
-			return jspath, js
-		}
+		paths = append(paths, path.Join(dir, "node_modules", name))
 		i := strings.LastIndex(dir, "node_modules")
 		if i == -1 {
 			break
 		}
 		dir = dir[:i]
+	}
+	if !peer {
+		for i, j := 0, len(paths)-1; i < j; i, j = i+1, j-1 {
+			paths[i], paths[j] = paths[j], paths[i]
+		}
+	}
+	for _, jspath := range paths {
+		if js, ok := nodePathMap[jspath]; ok {
+			return jspath, js
+		}
 	}
 	return
 }

@@ -2,7 +2,7 @@ package opensca
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -27,7 +27,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 	}
 
 	if arg.Name == "" {
-		arg.Name = path.Base(arg.DataOrigin)
+		arg.Name = filepath.Base(arg.DataOrigin)
 	}
 
 	if arg.Timeout > 0 {

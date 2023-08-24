@@ -74,8 +74,8 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			decompress(path, filter, func(tmpdir string) {
-				parent := &model.File{Relpath: rel, Abspath: tempdir}
+			decompress(path, filter, func(dir string) {
+				parent := &model.File{Relpath: rel, Abspath: dir}
 				if err := walk(ctx, parent, filter, do); err != nil {
 					logs.Warn(err)
 				}

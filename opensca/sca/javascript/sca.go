@@ -23,12 +23,12 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	deps := ParseNpm(files)
+	deps := ParsePackageJson(files)
 	return deps
 }
 
 // files: package.json package-lock.json yarn.lock
-func ParseNpm(files []*model.File) []*model.DepGraph {
+func ParsePackageJson(files []*model.File) []*model.DepGraph {
 
 	var root []*model.DepGraph
 

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -58,7 +59,11 @@ func (dep *DepGraph) Index() string {
 }
 
 func (dep *DepGraph) String() string {
-	return fmt.Sprintf("%s<%s>(%s)", dep.Index(), dep.Language, dep.Path)
+	dev := ""
+	if dep.Develop {
+		dev = "<dev>"
+	}
+	return fmt.Sprintf("%s%s<%s>(%s)", dev, dep.Index(), dep.Language, dep.Path)
 }
 
 func (dep *DepGraph) IsDevelop() bool {
@@ -73,66 +78,118 @@ func (dep *DepGraph) IsDevelop() bool {
 	return true
 }
 
-// Tree 无重复依赖树
-func (dep *DepGraph) Tree() string {
+// Tree 依赖树
+func (dep *DepGraph) Tree(path bool) string {
+
+	if dep == nil {
+		return ""
+	}
 
 	sb := strings.Builder{}
-	depSet := map[*DepGraph]bool{}
-	dep.Expand = 0
 
-	q := []*DepGraph{dep}
-	for len(q) > 0 {
-		l := len(q)
-		n := q[l-1]
-		q = q[:l-1]
+	dep.ForEach(true, path, func(p, n *DepGraph) bool {
 
-		if depSet[n] {
-			continue
+		if p == nil {
+			n.Expand = 0
+		} else {
+			n.Expand = p.Expand.(int) + 1
 		}
-		depSet[n] = true
 
-		deep := n.Expand.(int)
-		for c := range n.Children {
-			c.Expand = deep + 1
-			q = append(q, c)
-		}
-		n.Expand = nil
-
-		sb.WriteString(strings.Repeat("  ", deep))
+		sb.WriteString(strings.Repeat("  ", n.Expand.(int)))
 		sb.WriteString(n.String())
 		sb.WriteString("\n")
-	}
+
+		return true
+	})
+
 	return sb.String()
 }
 
-// ForEachPath 遍历依赖图路径
+// ForEach 遍历依赖图路径
+// deep: 深度优先遍历
+// path: 遍历所有路径
 // do: 对当前节点的操作 返回true代表继续迭代子节点
 // do.p: 路径起点(遍历当前节点的父节点)
 // do.n: 路径终点(当前节点)
-func (dep *DepGraph) ForEachPath(do func(p, n *DepGraph) bool) {
-	q := []*DepGraph{dep}
-	if !do(nil, dep) {
+func (dep *DepGraph) ForEach(deep, path bool, do func(p, n *DepGraph) bool) {
+
+	if dep == nil {
 		return
 	}
-	for len(q) > 0 {
-		n := q[0]
-		q = q[1:]
-		for c := range n.Children {
-			if do(n, c) {
-				q = append(q, c)
+
+	var set func(p, n *DepGraph) bool
+	if path {
+		pathSet := map[*DepGraph]map[*DepGraph]bool{}
+		set = func(p, n *DepGraph) bool {
+			if _, ok := pathSet[p]; !ok {
+				pathSet[p] = map[*DepGraph]bool{}
 			}
+			if pathSet[p][n] {
+				return true
+			}
+			pathSet[p][n] = true
+			return false
+		}
+	} else {
+		nodeSet := map[*DepGraph]bool{}
+		set = func(p, n *DepGraph) bool {
+			if nodeSet[n] {
+				return true
+			}
+			nodeSet[n] = true
+			return false
 		}
 	}
+
+	type pn struct {
+		p *DepGraph
+		n *DepGraph
+	}
+
+	q := []*pn{{nil, dep}}
+	for len(q) > 0 {
+
+		var n *pn
+		if deep {
+			n = q[len(q)-1]
+			q = q[:len(q)-1]
+		} else {
+			n = q[0]
+			q = q[1:]
+		}
+
+		if !do(n.p, n.n) {
+			continue
+		}
+
+		var next []*DepGraph
+		for c := range n.n.Children {
+			next = append(next, c)
+		}
+		sort.Slice(next, func(i, j int) bool { return next[i].Name < next[j].Name })
+
+		if deep {
+			for i, j := 0, len(next)-1; i < j; i, j = i+1, j-1 {
+				next[i], next[j] = next[j], next[i]
+			}
+		}
+
+		for _, c := range next {
+			if set(n.n, c) {
+				continue
+			}
+			q = append(q, &pn{n.n, c})
+		}
+
+	}
+}
+
+// ForEachPath 遍历依赖图路径
+func (dep *DepGraph) ForEachPath(do func(p, n *DepGraph) bool) {
+	dep.ForEach(false, true, do)
 }
 
 // ForEachNode 遍历依赖图节点
 func (dep *DepGraph) ForEachNode(do func(p, n *DepGraph) bool) {
-	depSet := map[*DepGraph]bool{}
-	dep.ForEachPath(func(p, n *DepGraph) bool {
-		if depSet[n] {
-			return false
-		}
-		depSet[n] = true
-		return do(p, n)
-	})
+	dep.ForEach(false, false, do)
 }
