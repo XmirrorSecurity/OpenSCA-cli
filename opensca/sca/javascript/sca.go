@@ -20,5 +20,6 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	return nil
+	deps := ParseNpm(files)
+	return deps
 }

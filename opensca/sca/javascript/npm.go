@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
@@ -35,13 +36,16 @@ type PackageLock struct {
 	Name         string                     `json:"name"`
 	Version      string                     `json:"version"`
 	Dependencies map[string]*PackageLockDep `json:"dependencies"`
-	File         *model.File                `json:"-"`
 }
 type PackageLockDep struct {
 	name         string
 	Version      string                     `json:"version"`
 	Requires     map[string]string          `json:"requires"`
 	Dependencies map[string]*PackageLockDep `json:"dependencies"`
+}
+
+func npmkey(name, version string) string {
+	return fmt.Sprintf("%s:%s", name, version)
 }
 
 func readJson[T any](reader io.Reader) *T {
@@ -76,17 +80,23 @@ var npmOrigin = func(name, version string) *PackageJson {
 	url := fmt.Sprintf(`https://r.cnpmjs.org/%s`, name)
 	if rep, err := http.Get(url); err == nil {
 		defer rep.Body.Close()
-		data, err := io.ReadAll(rep.Body)
-		if err == nil {
-			reader := bytes.NewReader(data)
-			cache.Save(path, reader)
-			reader.Seek(0, io.SeekStart)
-			npm := readJson[NpmJson](reader)
-			vers := []string{}
-			for v := range npm.Versions {
-				vers = append(vers, v)
+		if rep.StatusCode != 200 {
+			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
+			io.Copy(io.Discard, rep.Body)
+		} else {
+			logs.Infof("code:%d url:%s", rep.StatusCode, url)
+			data, err := io.ReadAll(rep.Body)
+			if err == nil {
+				reader := bytes.NewReader(data)
+				cache.Save(path, reader)
+				reader.Seek(0, io.SeekStart)
+				npm := readJson[NpmJson](reader)
+				vers := []string{}
+				for v := range npm.Versions {
+					vers = append(vers, v)
+				}
+				origin = npm.Versions[findMaxVersion(version, vers)]
 			}
-			origin = npm.Versions[findMaxVersion(version, vers)]
 		}
 	}
 
@@ -123,6 +133,7 @@ func ParseNpm(files []*model.File) []*model.DepGraph {
 					}
 					nodeMap[js.Name][js.Version] = js
 				} else {
+					js.File = f
 					jsonMap[js.Name] = js
 				}
 			})
@@ -161,14 +172,14 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 	}
 
 	// map[key]
-	depMap := map[string]*model.DepGraph{}
+	depKeyMap := map[string]*model.DepGraph{}
 	depNameMap := map[string]*model.DepGraph{}
 	_dep := func(name, version string) *model.DepGraph {
-		key := fmt.Sprintf("%s:%s", name, version)
-		dep, ok := depMap[key]
+		key := npmkey(name, version)
+		dep, ok := depKeyMap[key]
 		if !ok {
 			dep = &model.DepGraph{Name: name, Version: version}
-			depMap[key] = dep
+			depKeyMap[key] = dep
 		}
 		return dep
 	}
@@ -179,9 +190,7 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 	}
 
 	// 构建依赖关系
-	for name := range js.Deps {
-
-		lockDep := lock.Dependencies[name]
+	for name, lockDep := range lock.Dependencies {
 		lockDep.name = name
 		q := []*PackageLockDep{lockDep}
 		for len(q) > 0 {
@@ -204,11 +213,11 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 	}
 
 	for name := range js.Deps {
-		root.AppendChild(depMap[name])
+		root.AppendChild(depKeyMap[name])
 	}
 
 	for name := range js.DevDeps {
-		dep := depMap[name]
+		dep := depKeyMap[name]
 		dep.Develop = true
 		root.AppendChild(dep)
 	}
@@ -226,7 +235,7 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]map[string]*Pa
 
 	depMap := map[string]*model.DepGraph{}
 	_dep := func(name, version string) *model.DepGraph {
-		key := fmt.Sprintf("%s:%s", name, version)
+		key := npmkey(name, version)
 		dep, ok := depMap[key]
 		if !ok {
 			dep = &model.DepGraph{Name: name, Version: version}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
@@ -27,7 +28,7 @@ func (file File) ReadLine(do func(line string)) {
 	file.OpenReader(func(reader io.Reader) {
 		scanner := bufio.NewScanner(reader)
 		for scanner.Scan() {
-			do(scanner.Text())
+			do(strings.TrimRight(scanner.Text(), "\n\r"))
 		}
 	})
 }
