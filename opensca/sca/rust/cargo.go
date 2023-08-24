@@ -48,8 +48,7 @@ func ParseCargoLock(file *model.File) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{}
-	root.AppendFile(file)
+	root := &model.DepGraph{Path: file.Relpath}
 	for _, dep := range depMap {
 		if len(dep.Parents) == 0 {
 			root.AppendChild(dep)

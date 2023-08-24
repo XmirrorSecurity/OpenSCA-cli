@@ -17,7 +17,7 @@ type DepGraph struct {
 	// 语言
 	Language Language
 	// 检出路径
-	Paths []string
+	Path string
 	// 许可证
 	Licenses []string
 	// 仅用于开发环境
@@ -55,17 +55,6 @@ func (dep *DepGraph) AppendLicense(lic string) {
 	dep.Licenses = append(dep.Licenses, lic)
 }
 
-func (dep *DepGraph) AppendFile(file *File) {
-	if file == nil {
-		return
-	}
-	dep.Paths = append(dep.Paths, file.Relpath)
-}
-
-func (dep *DepGraph) AppendPath(path string) {
-	dep.Paths = append(dep.Paths, path)
-}
-
 func (dep *DepGraph) Index() string {
 	if dep.Vendor == "" {
 		return fmt.Sprintf("[%s:%s]", dep.Name, dep.Version)
@@ -78,7 +67,7 @@ func (dep *DepGraph) String() string {
 	if dep.Develop {
 		dev = "<dev>"
 	}
-	return fmt.Sprintf("%s%s<%s>%v", dev, dep.Index(), dep.Language, dep.Paths)
+	return fmt.Sprintf("%s%s<%s>(%s)", dev, dep.Index(), dep.Language, dep.Path)
 }
 
 func (dep *DepGraph) IsDevelop() bool {

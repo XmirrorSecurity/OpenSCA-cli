@@ -80,7 +80,10 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *model.DepGraph {
 
 	root := &model.DepGraph{Name: js.Name, Version: js.Version}
-	root.AppendFile(js.File)
+
+	if js.File != nil {
+		root.Path = js.File.Relpath
+	}
 
 	_dep := (&depSet{}).Dep
 
