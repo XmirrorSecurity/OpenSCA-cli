@@ -112,6 +112,7 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                                             |
 | `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                                                      |
 | `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `JSON` 格式 | `-out output.json` </br>`-out output.xml`</br>`-out output.html`</br>`-out output.sqlite`</br>`-out output.csv`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+|`db`  |`string` | 指定本地漏洞库文件，希望使用自己漏洞库时可用，漏洞库文件可为 `json`或 `sql`格式，样例见后文；若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集  | `-db db.json`|
 | `progress` | `bool`   | 显示进度条                                                   | `-progress`                                                  |
 | `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                                                     |
 | `dironly`    | `bool`   | 跳过解压步骤直接分析目录                                                 | `-dironly`                                                     |
