@@ -71,16 +71,16 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 			files = append(files, &model.File{Abspath: path, Relpath: rel})
 		}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			decompress(path, filter, func(dir string) {
+		decompress(path, filter, func(dir string) {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
 				parent := &model.File{Relpath: rel, Abspath: dir}
 				if err := walk(ctx, parent, filter, do); err != nil {
 					logs.Warn(err)
 				}
-			})
-		}()
+			}()
+		})
 
 		return nil
 	})

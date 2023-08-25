@@ -1,6 +1,15 @@
 package format
 
-import "github.com/xmirrorsecurity/opensca-cli/cmd/detail"
+import (
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+)
 
 type Report struct {
 	ToolVersion string `json:"tool_version" xml:"tool_version" `
@@ -19,7 +28,63 @@ type Report struct {
 	*detail.DepDetailGraph
 }
 
-func Save(report Report, out string) {
+func Save(report Report, output string) {
+	for _, out := range strings.Split(output, ",") {
+		switch filepath.Ext(out) {
+		case ".html":
+			Html(report, out)
+		case ".json":
+			if strings.HasSuffix(out, ".spdx.json") {
+				// reportFunc = report.SpdxJson
+			} else if strings.HasSuffix(out, ".cdx.json") {
+				CycloneDXJson(report, out)
+			} else if strings.HasSuffix(out, ".swid.json") {
+				SwidJson(report, out)
+			} else {
+				Json(report, out)
+			}
+		case ".spdx":
+			// reportFunc = report.Spdx
+		case ".xml":
+			if strings.HasSuffix(out, ".spdx.xml") {
+				// reportFunc = report.SpdxXml
+			} else if strings.HasSuffix(out, ".cdx.xml") {
+				CycloneDXXml(report, out)
+			} else if strings.HasSuffix(out, ".swid.xml") {
+				SwidXml(report, out)
+			} else {
+				Xml(report, out)
+			}
+		case ".csv":
+			Csv(report, out)
+		case ".sqlite", ".db":
+			Sqlite(report, out)
+		default:
+			Json(report, out)
+		}
+	}
+}
+
+func outWrite(out string, do func(io.Writer)) {
+
+	if out == "" {
+		do(os.Stdout)
+		return
+	}
+
+	if err := os.MkdirAll(filepath.Dir(out), 0777); err != nil {
+		logs.Warn(err)
+		fmt.Println(err)
+		return
+	}
+
+	w, err := os.Create(out)
+	if err != nil {
+		logs.Warn(err)
+	} else {
+		defer w.Close()
+		do(w)
+	}
 }
 
 // // output 输出结果

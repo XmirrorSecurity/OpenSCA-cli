@@ -1,39 +1,38 @@
-package report
+package format
 
 import (
 	"io"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/util/model"
-
 	"github.com/CycloneDX/cyclonedx-go"
+	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 )
 
-func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
+func cyclonedxbom(dep *detail.DepDetailGraph) *cyclonedx.BOM {
 	metadata := cyclonedx.Metadata{}
 	components := []cyclonedx.Component{}
 	dependencies := []cyclonedx.Dependency{}
-	q := []*model.DepTree{dep}
-	for len(q) > 0 {
-		n := q[0]
-		q = append(q[1:], n.Children...)
+
+	dep.ForEach(func(n *detail.DepDetailGraph) bool {
+
 		if n == dep {
 			metadata.Component = &cyclonedx.Component{
 				BOMRef:     n.Purl(),
 				Type:       cyclonedx.ComponentTypeApplication,
 				Name:       n.Name,
-				Version:    n.VersionStr,
+				Version:    n.Version,
 				PackageURL: n.Purl(),
 			}
-			continue
+			return true
 		}
+
 		if n.Name != "" {
 			components = append(components, cyclonedx.Component{
 				BOMRef:     n.Purl(),
 				Type:       cyclonedx.ComponentTypeLibrary,
 				Author:     n.Vendor,
 				Name:       n.Name[strings.LastIndex(n.Name, "/")+1:],
-				Version:    n.VersionStr,
+				Version:    n.Version,
 				PackageURL: n.Purl(),
 			})
 			var deps []string
@@ -45,7 +44,10 @@ func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
 				Dependencies: &deps,
 			})
 		}
-	}
+
+		return true
+	})
+
 	bom := cyclonedx.NewBOM()
 	bom.Metadata = &metadata
 	bom.Components = &components
@@ -53,17 +55,16 @@ func buildCycBom(dep *model.DepTree, taskInfo TaskInfo) *cyclonedx.BOM {
 	return bom
 }
 
-func CycloneDXJson(dep *model.DepTree, taskInfo TaskInfo) {
-	bom := buildCycBom(dep, taskInfo)
-	outWrite(func(w io.Writer) {
+func CycloneDXJson(report Report, out string) {
+	bom := cyclonedxbom(report.DepDetailGraph)
+	outWrite(out, func(w io.Writer) {
 		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatJSON).SetPretty(true).Encode(bom)
 	})
 }
 
-func CycloneDXXml(dep *model.DepTree, taskInfo TaskInfo) {
-	bom := buildCycBom(dep, taskInfo)
-	outWrite(func(w io.Writer) {
+func CycloneDXXml(report Report, out string) {
+	bom := cyclonedxbom(report.DepDetailGraph)
+	outWrite(out, func(w io.Writer) {
 		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatXML).SetPretty(true).Encode(bom)
 	})
-
 }

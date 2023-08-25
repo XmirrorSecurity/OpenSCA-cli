@@ -2,12 +2,13 @@ package format
 
 import (
 	"encoding/json"
-
-	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
+	"io"
 )
 
-// Json 无重复json
-func Dep2Json(dep *detail.DepDetailGraph) string {
-	data, _ := json.Marshal(dep)
-	return string(data)
+func Json(report Report, out string) {
+	outWrite(out, func(w io.Writer) {
+		encoder := json.NewEncoder(w)
+		encoder.SetIndent("", "  ")
+		encoder.Encode(report)
+	})
 }

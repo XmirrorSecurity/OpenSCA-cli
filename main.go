@@ -62,7 +62,8 @@ func main() {
 		root = deps[0]
 	}
 
-	report.DepDetailGraph, err = detail.SearchDetail(root)
+	report.DepDetailGraph = detail.NewDepDetailGraph(root)
+	err = detail.SearchDetail(report.DepDetailGraph)
 	if err != nil {
 		if report.ErrorString != "" {
 			report.ErrorString += "\n"
@@ -73,5 +74,7 @@ func main() {
 	report.CostTime = time.Since(start).Seconds()
 	report.EndTime = time.Now().Format("2006-01-02 15:04:05")
 
+	fmt.Println(format.Statis(report))
 	format.Save(report, "")
+
 }

@@ -2,14 +2,85 @@ package detail
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/util/args"
 )
+
+type DepDetailGraph struct {
+	Dep
+	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
+	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
+	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
+	Children                []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
+	IndirectVulnerabilities int               `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
+}
+
+func NewDepDetailGraph(dep *model.DepGraph) *DepDetailGraph {
+	detail := &DepDetailGraph{}
+	dep.Expand = detail
+	dep.ForEachNode(func(p, n *model.DepGraph) bool {
+		detail := n.Expand.(*DepDetailGraph)
+		detail.Update(n)
+		for c := range n.Children {
+			cd := &DepDetailGraph{}
+			c.Expand = cd
+			detail.Children = append(detail.Children, cd)
+		}
+		n.Expand = nil
+		return true
+	})
+	return detail
+}
+
+func (d *DepDetailGraph) Update(dep *model.DepGraph) {
+	d.Name = dep.Name
+	d.Vendor = dep.Vendor
+	d.Version = dep.Version
+	d.Language = string(dep.Language)
+	d.Paths = append(d.Paths, dep.Path)
+	for _, lic := range dep.Licenses {
+		d.Licenses = append(d.Licenses, License{ShortName: lic})
+	}
+}
+
+func (d *DepDetailGraph) ForEach(do func(n *DepDetailGraph) bool) {
+	if d == nil {
+		return
+	}
+	q := []*DepDetailGraph{d}
+	for len(q) > 0 {
+		n := q[0]
+		q = q[1:]
+		if do(n) {
+			q = append(q, n.Children...)
+		}
+	}
+}
+
+func (dep *DepDetailGraph) Purl() string {
+	var purlMap = map[model.Language]string{
+		model.Lan_Rust:       "cargo",
+		model.Lan_Php:        "composer",
+		model.Lan_Ruby:       "gem",
+		model.Lan_Golang:     "golang",
+		model.Lan_Java:       "maven",
+		model.Lan_JavaScript: "npm",
+		model.Lan_Python:     "pypi",
+	}
+	group := ""
+	if g, ok := purlMap[model.Language(dep.Language)]; ok {
+		group = g
+	}
+	if dep.Vendor == "" {
+		return fmt.Sprintf("pkg:%s/%s@%s", group, dep.Name, dep.Version)
+	}
+	return fmt.Sprintf("pkg:%s/%s/%s@%s", group, dep.Vendor, dep.Name, dep.Version)
+}
 
 // Vuln 组件漏洞
 type Vuln struct {
@@ -43,48 +114,23 @@ type Dep struct {
 	Language string `json:"language"`
 }
 
+func (d Dep) Key() string {
+	return fmt.Sprintf("%s:%s:%s:%s", d.Vendor, d.Name, d.Version, d.Language)
+}
+
 type License struct {
 	ShortName string `json:"name"`
 }
 
-type DepDetailGraph struct {
-	Dep
-	Path            string            `json:"path,omitempty" xml:"path,omitempty"`
-	Licenses        []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
-	Vulnerabilities []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
-	Children        []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
-}
-
-func (d *DepDetailGraph) Update(dep *model.DepGraph) {
-	d.Name = dep.Name
-	d.Vendor = dep.Vendor
-	d.Version = dep.Version
-	d.Language = string(dep.Language)
-	d.Path = dep.Path
-	for _, lic := range dep.Licenses {
-		d.Licenses = append(d.Licenses, License{ShortName: lic})
-	}
-}
-
 // SearchDetail 查找组件详情:漏洞/许可证
-func SearchDetail(depRoot *model.DepGraph) (detailRoot *DepDetailGraph, err error) {
+func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 
 	var details []*DepDetailGraph
 	var ds []Dep
 
-	detailRoot = &DepDetailGraph{}
-	depRoot.Expand = detailRoot
-	depRoot.ForEachNode(func(p, n *model.DepGraph) bool {
-		detail := n.Expand.(*DepDetailGraph)
-		detail.Update(n)
-		for c := range n.Children {
-			cd := &DepDetailGraph{}
-			c.Expand = cd
-			detail.Children = append(detail.Children, cd)
-		}
-		details = append(details, detail)
-		ds = append(ds, detail.Dep)
-		n.Expand = nil
+	detailRoot.ForEach(func(n *DepDetailGraph) bool {
+		details = append(details, n)
+		ds = append(ds, n.Dep)
 		return true
 	})
 
