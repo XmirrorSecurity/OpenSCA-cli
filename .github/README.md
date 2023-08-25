@@ -70,6 +70,15 @@ Connect to the cloud vulnerability database:
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
+Or use the local vulnerability database:
+
+```shell
+opensca-cli -db db.json -path ${project_path}
+```
+
+### 
+
+
 ### Scan & Report in Files (use the `out` parameter)
 
 Files supported by the `out` parameter are listed below：
@@ -79,6 +88,8 @@ Files supported by the `out` parameter are listed below：
 | REPORT | `json` | `.json`                          | `*`                |
 |        | `xml`  | `.xml`                           | `*`                |
 |        | `html` | `.html`                          | `v1.0.6` and above |
+|        | `sqlite` | `.sqlite`                          | `v1.0.13` and above |
+|        | `csv` | `.csv`                          | `v1.0.13` and above |
 | SBOM   | `spdx` | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above |
 |        | `cdx`  | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above |
 |        | `swid` | `.swid.json` `.swid.xml`         | `v1.0.11`and above |
@@ -100,9 +111,12 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database and set the address of the cloud service. It needs to be used with the `token` parameter.                                                                                                                  | `-url https://opensca.xmirror.cn`                                                                                                                                                                                                                               |
 | `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter.                                                                                                                                                    | `-token xxxxxxx`                                                                                                                                                                                                                                                |
 | `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result.                                                                                                                                  | `-vuln`                                                                                                                                                                                                                                                         |
-| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix. The default is `JSON` </br>v1.0.6 and above support the visualized report in `HTML` </br>v1.0.8 and above support SBOM in `SPDX`</br>v1.0.11 and above support SBOM in `SWID` and `Cyclonedx` | `-out output.json` </br>`-out output.html`</br>`-out output.xml`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix. The default is `JSON` | `-out output.json` </br>`-out output.html`</br>`-out output.xml`</br>`-out output.sqlite`</br>`-out output.csv`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+|`db`    |`string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json` |
 | `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                                                                                                                                                                                                                                                     |
 | `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                                                                                                                                                                                                                                                        |
+| `dironly`    | `bool`   | Scan the directory without decompression                                                                                                                                                                                                                                 | `-dironly`                                                                                                                                                                                                                                                        |
+| `log`    | `bool`   | Specify the path of log file                                                                                                                                                                                                                                                  | `-log`                                                                                                                                                                                                                                                        |
 
 For v1.0.9 and above, local maven component database can be configured in the following format in the configuration file:
 
@@ -160,13 +174,33 @@ For v1.0.9 and above, local maven component database can be configured in the fo
 | `cnnvd_id`          | cnnvd identifier                                                  | N               |
 | `cnvd_id`           | cnvd identifier                                                   | N               |
 | `cwe_id`            | cwe identifier                                                    | N               |
-| `description`       | the Descripation of the vulnerability                              | N               |
-| `description_en`    | the Descripation of the vulnerability in English                   | N               |
+| `description`       | the descripation of the vulnerability                              | N               |
+| `description_en`    | the descripation of the vulnerability in English                   | N               |
 | `suggestion`        | the suggestion for fixing the vulnerability                       | N               |
 | `attack_type`       | the type of attack                                                | N               |
 | `release_date`      | the release date of the vulnerability                             | N               |
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
 | `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
+
+*There are several pre-set values to the "language" field, including java, js, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
+
+Since v1.0.13, OpenSCA supports databases in `sql` format. Once the database is organized according to the format, set them through the configuration file as follows:
+
+```json
+[
+{
+  "origin":{
+    "mysql":{
+      "dsn":"user:password@tcp(ip:port)/dbname",
+      "table":"table_name"
+    },
+    "json":{
+      "dsn":"db.json"
+    }
+  }
+}
+]
+```
 
 ## FAQ
 
