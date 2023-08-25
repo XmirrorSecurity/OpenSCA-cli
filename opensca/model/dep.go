@@ -70,6 +70,40 @@ func (dep *DepGraph) String() string {
 	return fmt.Sprintf("%s%s<%s>(%s)", dev, dep.Index(), dep.Language, dep.Path)
 }
 
+// Flush 刷新依赖图
+func (dep *DepGraph) Flush(lan Language) {
+	dep.ForEachNode(func(p, n *DepGraph) bool {
+		// 补全路径
+		if p != nil && n.Path == "" {
+			n.Path = p.Path
+		}
+		if n.Name != "" {
+			n.Path += n.Index()
+		}
+		// 补全语言
+		if n.Language == Lan_None {
+			n.Language = lan
+		}
+		// 传递develop
+		n.Develop = n.IsDevelop()
+		return true
+	})
+}
+
+// ToTree 转为树状结构 多个父节点时只会保留一个 操作不可逆
+func (dep *DepGraph) ToTree() {
+	dep.ForEachNode(func(p, n *DepGraph) bool {
+		for len(n.Parents) > 1 {
+			for np := range n.Parents {
+				if np != p {
+					np.RemoveChild(n)
+				}
+			}
+		}
+		return true
+	})
+}
+
 func (dep *DepGraph) IsDevelop() bool {
 	if len(dep.Parents) == 0 || dep.Develop {
 		return dep.Develop

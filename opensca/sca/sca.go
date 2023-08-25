@@ -46,22 +46,7 @@ func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent *model.Fi
 	return func(parent *model.File, files []*model.File) {
 		for _, sca := range allSca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
-				dep.ForEachNode(func(p, n *model.DepGraph) bool {
-					// 补全路径
-					if p != nil && n.Path == "" {
-						n.Path = p.Path
-					}
-					if n.Name != "" {
-						n.Path += n.Index()
-					}
-					// 补全语言
-					if n.Language == model.Lan_None {
-						n.Language = sca.Language()
-					}
-					// 传递develop
-					n.Develop = n.IsDevelop()
-					return true
-				})
+				dep.Flush(sca.Language())
 				// 回调
 				do(dep)
 			}
