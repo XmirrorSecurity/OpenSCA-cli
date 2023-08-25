@@ -73,6 +73,12 @@ opensca-cli -path ${project_path}
 opensca-cli -url ${url} -token ${token} -path ${project_path}
 ```
 
+或使用本地漏洞库
+
+```shell
+opensca-cli -db db.json -path ${project_path}
+```
+
 ### 检测并输出检测结果文件（使用`out`参数）
 
 `out`参数支持范围如下：
