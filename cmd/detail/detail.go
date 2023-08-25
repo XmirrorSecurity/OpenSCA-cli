@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/pkg/errors"
+	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/util/args"
 )
 
 type DepDetailGraph struct {
 	Dep
+	ID                      string            `json:"id" xml:"id"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
 	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
@@ -20,14 +23,37 @@ type DepDetailGraph struct {
 	IndirectVulnerabilities int               `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
 }
 
+var (
+	latestTime int64
+	count      int64
+	idMutex    sync.Mutex
+)
+
+// ID 生成一个本地唯一的id
+func ID() string {
+	idMutex.Lock()
+	defer idMutex.Unlock()
+	nowTime := time.Now().UnixNano() / 1e6
+	if latestTime == nowTime {
+		count++
+	} else {
+		latestTime = nowTime
+		count = 0
+	}
+	res := nowTime
+	res <<= 15
+	res += count
+	return fmt.Sprint(res)
+}
+
 func NewDepDetailGraph(dep *model.DepGraph) *DepDetailGraph {
-	detail := &DepDetailGraph{}
+	detail := &DepDetailGraph{ID: ID()}
 	dep.Expand = detail
 	dep.ForEachNode(func(p, n *model.DepGraph) bool {
 		detail := n.Expand.(*DepDetailGraph)
 		detail.Update(n)
 		for c := range n.Children {
-			cd := &DepDetailGraph{}
+			cd := &DepDetailGraph{ID: ID()}
 			c.Expand = cd
 			detail.Children = append(detail.Children, cd)
 		}
@@ -136,7 +162,9 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 
 	serverVulns := [][]*Vuln{}
 	localVulns := GetOrigin().SearchVuln(ds)
-	if args.Config.Url != "" && args.Config.Token != "" {
+
+	c := config.Conf()
+	if c.Url != "" && c.Token != "" {
 		// vulnerability
 		serverVulns, err = GetServerVuln(ds)
 		// license
@@ -145,9 +173,9 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 			details[i].Licenses = append(details[i].Licenses, lics...)
 		}
 	} else if len(localVulns) == 0 {
-		if args.Config.Url == "" && args.Config.Token != "" {
+		if c.Url == "" && c.Token != "" {
 			err = errors.New("url is null")
-		} else if args.Config.Url != "" && args.Config.Token == "" {
+		} else if c.Url != "" && c.Token == "" {
 			err = errors.New("token is null")
 		}
 	}

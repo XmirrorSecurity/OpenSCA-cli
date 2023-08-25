@@ -9,7 +9,6 @@ import (
 
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/util/args"
 
 	_ "github.com/glebarez/go-sqlite"
 )
@@ -34,8 +33,7 @@ func Sqlite(report Report, out string) {
 		}
 	}
 
-	absPath, _ := filepath.Abs(filepath.Clean(args.Config.Path))
-	moduleName := filepath.Base(absPath)
+	moduleName := filepath.Base(report.AppName)
 
 	if report.DepDetailGraph != nil && report.DepDetailGraph.Name != "" {
 		moduleName = report.DepDetailGraph.Name

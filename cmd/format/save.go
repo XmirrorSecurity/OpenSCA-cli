@@ -35,7 +35,7 @@ func Save(report Report, output string) {
 			Html(report, out)
 		case ".json":
 			if strings.HasSuffix(out, ".spdx.json") {
-				// reportFunc = report.SpdxJson
+				SpdxJson(report, out)
 			} else if strings.HasSuffix(out, ".cdx.json") {
 				CycloneDXJson(report, out)
 			} else if strings.HasSuffix(out, ".swid.json") {
@@ -44,10 +44,10 @@ func Save(report Report, output string) {
 				Json(report, out)
 			}
 		case ".spdx":
-			// reportFunc = report.Spdx
+			Spdx(report, out)
 		case ".xml":
 			if strings.HasSuffix(out, ".spdx.xml") {
-				// reportFunc = report.SpdxXml
+				SpdxXml(report, out)
 			} else if strings.HasSuffix(out, ".cdx.xml") {
 				CycloneDXXml(report, out)
 			} else if strings.HasSuffix(out, ".swid.xml") {

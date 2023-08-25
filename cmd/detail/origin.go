@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/util/args"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -69,10 +69,10 @@ func (o *BaseOrigin) LoadDataOrigin(data ...VulnInfo) {
 func GetOrigin() *BaseOrigin {
 	_once.Do(func() {
 		_origin = NewBaseOrigin()
-		if args.Config.DB != "" {
-			_origin.LoadJsonOrigin(args.Config.DB)
+		if config.Conf().LocalDB != "" {
+			_origin.LoadJsonOrigin(config.Conf().LocalDB)
 		}
-		for originType, config := range args.Config.Origin {
+		for originType, config := range config.Conf().Origin {
 			switch originType {
 			case "mysql":
 				_origin.LoadMysqlOrigin(config)
@@ -104,15 +104,15 @@ func (o *BaseOrigin) LoadJsonOrigin(filepath string) {
 	}
 }
 
-func (o *BaseOrigin) LoadMysqlOrigin(cfg args.OriginConfig) {
+func (o *BaseOrigin) LoadMysqlOrigin(cfg config.OriginConfig) {
 	o.LoadSqlOrigin(mysql.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqliteOrigin(cfg args.OriginConfig) {
+func (o *BaseOrigin) LoadSqliteOrigin(cfg config.OriginConfig) {
 	o.LoadSqlOrigin(sqlite.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg args.OriginConfig) {
+func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.OriginConfig) {
 	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
 		logs.Error(err)
