@@ -71,7 +71,9 @@ func (dep *DepGraph) String() string {
 }
 
 // Flush 刷新依赖图
-func (dep *DepGraph) Flush(lan Language) {
+// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
+// lan: 更新依赖语言
+func (dep *DepGraph) Flush(deep bool, lan Language) {
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
@@ -90,9 +92,10 @@ func (dep *DepGraph) Flush(lan Language) {
 	})
 }
 
-// ToTree 转为树状结构 多个父节点时只会保留一个 操作不可逆
-func (dep *DepGraph) ToTree() {
-	dep.ForEachNode(func(p, n *DepGraph) bool {
+// ToTree 转为依赖树结构 多个父节点时只会保留一个 操作不可逆
+// deep: 节点遍历顺序 true=>深度优先 false=>广度优先 推荐false
+func (dep *DepGraph) ToTree(deep bool) {
+	dep.ForEach(deep, false, func(p, n *DepGraph) bool {
 		for len(n.Parents) > 1 {
 			for np := range n.Parents {
 				if np != p {
@@ -104,6 +107,7 @@ func (dep *DepGraph) ToTree() {
 	})
 }
 
+// IsDevelop 判断是否为开发依赖
 func (dep *DepGraph) IsDevelop() bool {
 	if len(dep.Parents) == 0 || dep.Develop {
 		return dep.Develop
@@ -134,6 +138,7 @@ func (dep *DepGraph) RemoveDevelop() {
 }
 
 // Tree 依赖树
+// 注意依赖树固定深度优先遍历 依赖路径是广度优先构建时返回的依赖树结构与实际不一致
 // path: true=>记录全部路径 false=>记录全部节点
 func (dep *DepGraph) Tree(path bool) string {
 
