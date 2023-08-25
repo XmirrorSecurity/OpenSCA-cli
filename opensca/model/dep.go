@@ -82,6 +82,23 @@ func (dep *DepGraph) IsDevelop() bool {
 	return true
 }
 
+// RemoveDevelop 移除develop组件
+func (dep *DepGraph) RemoveDevelop() {
+	dep.ForEachNode(func(p, n *DepGraph) bool {
+		if n.Develop {
+			for c := range n.Children {
+				n.RemoveChild(c)
+			}
+			for p := range n.Parents {
+				p.RemoveChild(n)
+			}
+			n = nil
+			return false
+		}
+		return true
+	})
+}
+
 // Tree 依赖树
 // path: true=>记录全部路径 false=>记录全部节点
 func (dep *DepGraph) Tree(path bool) string {

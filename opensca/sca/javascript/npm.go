@@ -270,8 +270,16 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 
 	_dep := (&depSet{}).Dep
 
-	findDep := func(name, basedir string) *model.DepGraph {
-		jspath, subjs := findFromNodeModules(name, basedir, lock.Packages)
+	findDep := func(peer bool, name, basedir string) *model.DepGraph {
+		var jspath string
+		var subjs *PackageJson
+		if peer {
+			jspath = "node_modules/" + name
+			subjs = lock.Packages[jspath]
+		}
+		if subjs == nil {
+			jspath, subjs = findFromNodeModules(name, basedir, lock.Packages)
+		}
 		if subjs == nil {
 			return nil
 		}
@@ -295,7 +303,7 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 		}
 
 		for name := range njs.js.Dependencies {
-			n.AppendChild(findDep(name, njs.path))
+			n.AppendChild(findDep(false, name, njs.path))
 		}
 
 		for name := range njs.js.PeerDependencies {
@@ -304,11 +312,11 @@ func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGr
 					continue
 				}
 			}
-			n.AppendChild(findDep(name, njs.path))
+			n.AppendChild(findDep(true, name, njs.path))
 		}
 
 		for name := range njs.js.DevDependencies {
-			dep := findDep(name, njs.path)
+			dep := findDep(true, name, njs.path)
 			if dep != nil {
 				dep.Develop = true
 				n.AppendChild(dep)
