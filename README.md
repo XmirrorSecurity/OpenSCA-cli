@@ -82,6 +82,8 @@ opensca-cli -url ${url} -token ${token} -path ${project_path}
 | 检测报告 | `json`   | `.json`                          | `*`             |
 |          | `xml`    | `.xml`                           | `*`             |
 |          | `html`   | `.html`                          | `v1.0.6`及以上  |
+|          | `sqlite`   | `.sqlite`                          | `v1.0.13`及以上  |
+|          | `csv`   | `.csv`                          | `v1.0.13`及以上  |
 | SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8`及以上  |
 |          | `cdx`    | `.cdx.json` `.cdx.xml`           | `v1.0.11`及以上 |
 |          | `swid`   | `.swid.json` `.swid.xml`         | `v1.0.11`及以上 |
@@ -103,9 +105,11 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用 | `-url https://opensca.xmirror.cn`                            |
 | `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用 | `-token xxxxxxx`                                             |
 | `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构 | `-vuln`                                                      |
-| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `JSON` 格式 | `-out output.json` </br>`-out output.xml`</br>`-out output.html`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
+| `out`      | `string` | 将检测结果保存到指定文件，根据后缀生成不同格式的文件，默认为 `JSON` 格式 | `-out output.json` </br>`-out output.xml`</br>`-out output.html`</br>`-out output.sqlite`</br>`-out output.csv`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
 | `progress` | `bool`   | 显示进度条                                                   | `-progress`                                                  |
 | `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                                                     |
+| `dironly`    | `bool`   | 跳过解压步骤直接分析目录                                                 | `-dironly`                                                     |
+| `log`    | `bool`   | 指定日志文件位置                                                 | `-log`                                                     |
 
 **1.0.9及以上版本**支持配置maven私服库，需要在配置文件config.json里进行配置，格式如下：
 
@@ -172,7 +176,8 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
 
 *本地漏洞库中language字段设定值包含java、js、golang、rust、php、ruby、python，其他语言不受设定匹配限制，按实际情况填写即可。
-支持`sql`类的数据源，需要按照上述字段预先创建好数据表并在配置文件中配置：
+
+v1.0.13开始支持`sql`类的数据源，需要按照上述字段预先创建好数据表并在配置文件中作相应配置：
 
 ```json
 {
