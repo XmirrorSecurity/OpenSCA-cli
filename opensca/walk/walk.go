@@ -75,6 +75,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
+				defer os.RemoveAll(dir)
 				parent := &model.File{Relpath: rel, Abspath: dir}
 				if err := walk(ctx, parent, filter, do); err != nil {
 					logs.Warn(err)
@@ -92,10 +93,9 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 // decompress 解压到指定位置
 // input: 压缩包绝对路径
 // do: 对解压后目录的操作
-// do.tmpdir: 临时解压目录绝对路径
+// do.tmpdir: 临时解压目录绝对路径 需要手动删除目录
 func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) {
 	tmp, _ := os.MkdirTemp(tempdir, "decompress")
-	defer os.RemoveAll(tmp)
 	ok := false ||
 		xzip(filter, input, tmp) ||
 		xjar(filter, input, tmp) ||
@@ -106,5 +106,7 @@ func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) 
 		false
 	if ok {
 		do(tmp)
+	} else {
+		os.RemoveAll(tmp)
 	}
 }
