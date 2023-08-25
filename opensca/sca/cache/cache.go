@@ -5,14 +5,18 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
-var cacheDir string = ".opensca-cache"
+var (
+	cacheDir  string = ".opensca-cache"
+	cacheOnce        = sync.Once{}
+)
 
-func init() {
+func initCache() {
 	excpath, _ := os.Executable()
 	cacheDir = filepath.Join(filepath.Dir(excpath), cacheDir)
 	if err := os.MkdirAll(cacheDir, 0777); err != nil {
@@ -40,6 +44,7 @@ func Load(path string, do func(reader io.Reader)) bool {
 }
 
 func Path(vendor, name, version string, language model.Language) string {
+	cacheOnce.Do(initCache)
 	var path string
 	switch language {
 	case model.Lan_Java:
