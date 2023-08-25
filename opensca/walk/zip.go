@@ -38,6 +38,10 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 			continue
 		}
 
+		if !isCompressFile(fp) && filter != nil && !filter(fp) {
+			continue
+		}
+
 		fr, err := f.Open()
 		if err != nil {
 			logs.Warn(err)

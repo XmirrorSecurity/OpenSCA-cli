@@ -67,6 +67,8 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 
 		rel := filepath.Join(parent.Relpath, strings.TrimPrefix(path, parent.Abspath))
 
+		logs.Debugf("find %s", rel)
+
 		if filter == nil || filter(rel) {
 			files = append(files, &model.File{Abspath: path, Relpath: rel})
 		}
@@ -109,4 +111,14 @@ func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) 
 	} else {
 		os.RemoveAll(tmp)
 	}
+}
+
+func isCompressFile(relpath string) bool {
+	return checkFileExt(relpath, ".zip",
+		".jar",
+		".rar",
+		".tar",
+		".gz",
+		".bz2",
+	)
 }

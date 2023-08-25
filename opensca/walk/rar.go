@@ -40,6 +40,10 @@ func xrar(filter ExtractFileFilter, input, output string) bool {
 			continue
 		}
 
+		if !isCompressFile(fp) && filter != nil && !filter(fp) {
+			continue
+		}
+
 		fw, err := os.Create(fp)
 		if err != nil {
 			logs.Warn(err)
