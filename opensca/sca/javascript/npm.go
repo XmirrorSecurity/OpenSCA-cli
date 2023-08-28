@@ -257,16 +257,8 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
-	findDep := func(peer bool, name, basedir string) *model.DepGraph {
-		var jspath string
-		var subjs *PackageJson
-		// if peer {
-		// 	jspath = "node_modules/" + name
-		// 	subjs = pkglock.Packages[jspath]
-		// }
-		if subjs == nil {
-			jspath, subjs = findFromNodeModules(name, basedir, pkglock.Packages)
-		}
+	findDep := func(name, basedir string) *model.DepGraph {
+		jspath, subjs := findFromNodeModules(name, basedir, pkglock.Packages)
 		if subjs == nil {
 			return nil
 		}
@@ -294,7 +286,7 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 		}
 
 		for name := range njs.js.Dependencies {
-			n.AppendChild(findDep(false, name, njs.path))
+			n.AppendChild(findDep(name, njs.path))
 		}
 
 		for name := range njs.js.PeerDependencies {
@@ -303,11 +295,11 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 					continue
 				}
 			}
-			n.AppendChild(findDep(true, name, njs.path))
+			n.AppendChild(findDep(name, njs.path))
 		}
 
 		for name := range njs.js.DevDependencies {
-			dep := findDep(true, name, njs.path)
+			dep := findDep(name, njs.path)
 			if dep != nil {
 				dep.Develop = true
 				n.AppendChild(dep)
