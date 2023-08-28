@@ -70,11 +70,8 @@ func (dep *DepGraph) String() string {
 	return fmt.Sprintf("%s%s<%s>(%s)", dev, dep.Index(), dep.Language, dep.Path)
 }
 
-// Flush 刷新依赖图
-// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
-// lan: 更新依赖语言
-func (dep *DepGraph) Flush(deep bool, lan Language) {
-
+// FlushDevelop 刷新依赖图develop依赖关系
+func (dep *DepGraph) FlushDevelop() {
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 传递develop
 		n.Develop = n.IsDevelop()
@@ -88,8 +85,14 @@ func (dep *DepGraph) Flush(deep bool, lan Language) {
 		}
 		return true
 	})
+}
 
-	dep.ForEachNode(func(p, n *DepGraph) bool {
+// Build 构建依赖图路径
+// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
+// lan: 更新依赖语言
+func (dep *DepGraph) Build(deep bool, lan Language) {
+	dep.FlushDevelop()
+	dep.ForEach(deep, false, func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
 			n.Path = p.Path

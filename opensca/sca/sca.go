@@ -46,7 +46,7 @@ func Do(ctx context.Context, do func(dep *model.DepGraph)) func(parent *model.Fi
 	return func(parent *model.File, files []*model.File) {
 		for _, sca := range allSca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
-				dep.Flush(false, sca.Language())
+				dep.Build(false, sca.Language())
 				// 回调
 				do(dep)
 			}
