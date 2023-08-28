@@ -41,8 +41,8 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 					logs.Warnf("parse file %s line: %s fail", file.Path(), line)
 					continue
 				}
-				name := strings.Trim(tag[:i], `":`)
-				version := strings.Trim(tag[i+1:], `":`)
+				name := strings.Trim(tag[:i], ` ":`)
+				version := strings.Trim(tag[i+1:], ` ":`)
 				lastDep.Name = name
 				lock[npmkey(name, version)] = lastDep
 			}

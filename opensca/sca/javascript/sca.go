@@ -87,6 +87,7 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 		if js.File != nil {
 			if yarn, ok := yarnMap[path2dir(js.File.Relpath)]; ok {
 				root = append(root, ParsePackageJsonWithYarnLock(js, yarn))
+				continue
 			}
 		}
 
