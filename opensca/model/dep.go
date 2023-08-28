@@ -74,6 +74,21 @@ func (dep *DepGraph) String() string {
 // deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
 // lan: 更新依赖语言
 func (dep *DepGraph) Flush(deep bool, lan Language) {
+
+	dep.ForEachNode(func(p, n *DepGraph) bool {
+		// 传递develop
+		n.Develop = n.IsDevelop()
+		// 去除非实际引用的关系
+		if !n.Develop {
+			for p := range n.Parents {
+				if p.Develop {
+					p.RemoveChild(n)
+				}
+			}
+		}
+		return true
+	})
+
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
@@ -86,8 +101,6 @@ func (dep *DepGraph) Flush(deep bool, lan Language) {
 		if n.Language == Lan_None {
 			n.Language = lan
 		}
-		// 传递develop
-		n.Develop = n.IsDevelop()
 		return true
 	})
 }
@@ -96,11 +109,9 @@ func (dep *DepGraph) Flush(deep bool, lan Language) {
 // deep: 节点遍历顺序 true=>深度优先 false=>广度优先 推荐false
 func (dep *DepGraph) ToTree(deep bool) {
 	dep.ForEach(deep, false, func(p, n *DepGraph) bool {
-		for len(n.Parents) > 1 {
-			for np := range n.Parents {
-				if np != p {
-					np.RemoveChild(n)
-				}
+		for np := range n.Parents {
+			if np != p {
+				np.RemoveChild(n)
 			}
 		}
 		return true
