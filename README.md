@@ -116,7 +116,7 @@ opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.$
 | `progress` | `bool`   | 显示进度条                                                   | `-progress`                                                  |
 | `dedup`    | `bool`   | 相同组件去重                                                 | `-dedup`                                                     |
 | `dironly`    | `bool`   | 跳过解压步骤直接分析目录                                                 | `-dironly`                                                     |
-| `log`    | `bool`   | 指定日志文件位置                                                 | `-log`                                                     |
+| `log`    | `string`   | 指定日志文件位置                                                 | `-log`                                                     |
 
 **1.0.9及以上版本**支持配置maven私服库，需要在配置文件config.json里进行配置，格式如下：
 
