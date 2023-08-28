@@ -254,3 +254,31 @@ func (dep *DepGraph) ForEachPath(do func(p, n *DepGraph) bool) {
 func (dep *DepGraph) ForEachNode(do func(p, n *DepGraph) bool) {
 	dep.ForEach(false, false, do)
 }
+
+type DepGraphMap struct {
+	m     map[string]*DepGraph
+	key   func(...string) string
+	store func(...string) *DepGraph
+}
+
+func NewDepGraphMap(key func(...string) string, store func(...string) *DepGraph) *DepGraphMap {
+	if key == nil {
+		key = func(s ...string) string { return strings.Join(s, ":") }
+	}
+	return &DepGraphMap{key: key, store: store, m: map[string]*DepGraph{}}
+}
+
+func (s *DepGraphMap) LoadOrStore(words ...string) *DepGraph {
+
+	if s == nil || s.key == nil || s.store == nil {
+		return nil
+	}
+
+	key := s.key(words...)
+	dep, ok := s.m[key]
+	if !ok {
+		dep = s.store(words...)
+		s.m[key] = dep
+	}
+	return dep
+}

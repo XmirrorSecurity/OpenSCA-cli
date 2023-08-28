@@ -14,6 +14,13 @@ type File struct {
 	Relpath string
 }
 
+func (file *File) Path() string {
+	if file != nil {
+		return file.Relpath
+	}
+	return ""
+}
+
 func (file File) OpenReader(do func(reader io.Reader)) {
 	f, err := os.Open(file.Abspath)
 	if err != nil {

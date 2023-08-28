@@ -52,21 +52,15 @@ func npmkey(name, version string) string {
 	return fmt.Sprintf("%s:%s", name, version)
 }
 
-type depSet struct {
-	m map[string]*model.DepGraph
-}
-
-func (s *depSet) Dep(name, version string) *model.DepGraph {
-	if s.m == nil {
-		s.m = map[string]*model.DepGraph{}
-	}
-	key := npmkey(name, version)
-	dep, ok := s.m[key]
-	if !ok {
-		dep = &model.DepGraph{Name: name, Version: version}
-		s.m[key] = dep
-	}
-	return dep
+func _depSet() *model.DepGraphMap {
+	return model.NewDepGraphMap(func(s ...string) string {
+		return fmt.Sprintf("%s:%s", s[0], s[1])
+	}, func(s ...string) *model.DepGraph {
+		return &model.DepGraph{
+			Name:    s[0],
+			Version: s[1],
+		}
+	})
 }
 
 func readJson[T any](reader io.Reader) *T {
@@ -130,18 +124,14 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 	}
 }
 
-func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
+func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
-	root := &model.DepGraph{Name: js.Name, Version: js.Version}
-	root.AppendLicense(js.License)
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root.AppendLicense(pkgjson.License)
 
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
+	_dep := _depSet().LoadOrStore
 
-	_dep := (&depSet{}).Dep
-
-	root.Expand = js
+	root.Expand = pkgjson
 
 	findDep := func(name, version, basedir string) *model.DepGraph {
 		var subjs *PackageJson
@@ -166,10 +156,7 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) 
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
 
 		njs := n.Expand.(*PackageJson)
-		var basedir string
-		if njs.File != nil {
-			basedir = njs.File.Relpath
-		}
+		basedir := njs.File.Path()
 
 		for name, version := range njs.Dependencies {
 			n.AppendChild(findDep(name, version, basedir))
@@ -190,30 +177,27 @@ func ParsePackageJsonWithNode(js *PackageJson, nodeMap map[string]*PackageJson) 
 	return root
 }
 
-func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGraph {
+func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model.DepGraph {
 
-	if lock.LockfileVersion == 3 {
-		return ParsePackageJsonWithLockV3(js, lock)
+	if pkglock.LockfileVersion == 3 {
+		return ParsePackageJsonWithLockV3(pkgjson, pkglock)
 	}
 
-	root := &model.DepGraph{Name: js.Name, Version: js.Version}
-	root.AppendLicense(js.License)
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root.AppendLicense(pkgjson.License)
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
-	_dep := (&depSet{}).Dep
+	_dep := _depSet().LoadOrStore
 
 	// 记录依赖
-	for name, lockDep := range lock.Dependencies {
+	for name, lockDep := range pkglock.Dependencies {
 		dep := _dep(name, lockDep.Version)
 		depNameMap[name] = dep
 	}
 
 	// 构建依赖关系
-	for name, lockDep := range lock.Dependencies {
+	for name, lockDep := range pkglock.Dependencies {
 		lockDep.name = name
 		q := []*PackageLockDep{lockDep}
 		for len(q) > 0 {
@@ -235,11 +219,11 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 		}
 	}
 
-	for name := range js.Dependencies {
+	for name := range pkgjson.Dependencies {
 		root.AppendChild(depNameMap[name])
 	}
 
-	for name := range js.DevDependencies {
+	for name := range pkgjson.DevDependencies {
 		dep := depNameMap[name]
 		if dep != nil {
 			dep.Develop = true
@@ -250,46 +234,53 @@ func ParsePackageJsonWithLock(js *PackageJson, lock *PackageLock) *model.DepGrap
 	return root
 }
 
-func ParsePackageJsonWithLockV3(js *PackageJson, lock *PackageLock) *model.DepGraph {
+func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *model.DepGraph {
 
-	if lock.LockfileVersion != 3 {
+	if pkglock.LockfileVersion != 3 {
 		return nil
 	}
 
-	root := &model.DepGraph{Name: js.Name, Version: js.Version}
-	root.AppendLicense(js.License)
-	if js.File != nil {
-		root.Path = js.File.Relpath
+	for jspath, js := range pkglock.Packages {
+		if js.File == nil {
+			js.File = &model.File{Relpath: jspath}
+		}
 	}
+
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root.AppendLicense(pkgjson.License)
 
 	type expand struct {
 		js   *PackageJson
 		path string
 	}
-	root.Expand = expand{js: js, path: ""}
+	root.Expand = expand{js: pkgjson, path: ""}
 
-	_dep := (&depSet{}).Dep
+	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
 	findDep := func(peer bool, name, basedir string) *model.DepGraph {
 		var jspath string
 		var subjs *PackageJson
-		if peer {
-			jspath = "node_modules/" + name
-			subjs = lock.Packages[jspath]
-		}
+		// if peer {
+		// 	jspath = "node_modules/" + name
+		// 	subjs = pkglock.Packages[jspath]
+		// }
 		if subjs == nil {
-			jspath, subjs = findFromNodeModules(name, basedir, lock.Packages)
+			jspath, subjs = findFromNodeModules(name, basedir, pkglock.Packages)
 		}
 		if subjs == nil {
 			return nil
 		}
-		dep := _dep(name, subjs.Version)
+		dep := _dep(name, subjs.Version, subjs.File.Path())
 		dep.AppendLicense(subjs.License)
-		dep.Develop = subjs.Develop
 		if dep.Expand == nil {
+			dep.Develop = subjs.Develop
 			dep.Expand = expand{
 				path: jspath,
 				js:   subjs,
+			}
+		} else {
+			if !subjs.Develop {
+				dep.Develop = false
 			}
 		}
 		return dep

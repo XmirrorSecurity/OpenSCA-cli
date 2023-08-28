@@ -38,7 +38,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			for _, tag := range strings.Split(line, ",") {
 				i := strings.Index(tag, "@")
 				if i != -1 {
-					logs.Warnf("parse file %s line: %s fail", file.Relpath, line)
+					logs.Warnf("parse file %s line: %s fail", file.Path(), line)
 					continue
 				}
 				name := strings.Trim(tag[:i], `":`)
@@ -53,7 +53,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			line = strings.TrimSpace(line)
 			i := strings.Index(line, " ")
 			if i != -1 {
-				logs.Warnf("parse file %s line: %s fail", file.Relpath, line)
+				logs.Warnf("parse file %s line: %s fail", file.Path(), line)
 				return
 			}
 			name := strings.Trim(line[:i], `"`)
@@ -77,27 +77,23 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 }
 
 // parseYarn 解析yarn文件
-func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *model.DepGraph {
+func ParsePackageJsonWithYarnLock(pkgjson *PackageJson, yarnlock map[string]*YarnLock) *model.DepGraph {
 
-	root := &model.DepGraph{Name: js.Name, Version: js.Version}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
 
-	if js.File != nil {
-		root.Path = js.File.Relpath
-	}
-
-	_dep := (&depSet{}).Dep
+	_dep := _depSet().LoadOrStore
 
 	// 记录依赖
-	for _, lock := range yarn {
+	for _, lock := range yarnlock {
 		dep := _dep(lock.Name, lock.Version)
 		for name, version := range lock.Dependencies {
-			sub := yarn[npmkey(name, version)]
+			sub := yarnlock[npmkey(name, version)]
 			dep.AppendChild(_dep(sub.Name, sub.Version))
 		}
 	}
 
-	for name, version := range js.Dependencies {
-		lock := yarn[npmkey(name, version)]
+	for name, version := range pkgjson.Dependencies {
+		lock := yarnlock[npmkey(name, version)]
 		if lock != nil {
 			root.AppendChild(_dep(lock.Name, lock.Version))
 		} else {
@@ -105,8 +101,8 @@ func ParsePackageJsonWithYarnLock(js *PackageJson, yarn map[string]*YarnLock) *m
 		}
 	}
 
-	for name, version := range js.DevDependencies {
-		lock := yarn[npmkey(name, version)]
+	for name, version := range pkgjson.DevDependencies {
+		lock := yarnlock[npmkey(name, version)]
 		if lock != nil {
 			dep := _dep(lock.Name, lock.Version)
 			dep.Develop = true
