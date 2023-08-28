@@ -48,13 +48,13 @@ func Path(vendor, name, version string, language model.Language) string {
 	var path string
 	switch language {
 	case model.Lan_Java:
-		path = filepath.Join("maven", vendor, name, version, fmt.Sprintf("%s-%s.pom", name, version))
+		path = filepath.Join(cacheDir, "maven", vendor, name, version, fmt.Sprintf("%s-%s.pom", name, version))
 	case model.Lan_JavaScript:
-		path = filepath.Join("npm", fmt.Sprintf("%s-%s.json", name, version))
+		path = filepath.Join(cacheDir, "npm", fmt.Sprintf("%s.json", name))
 	case model.Lan_Php:
-		path = filepath.Join("composer", fmt.Sprintf("%s-%s.json", name, version))
+		path = filepath.Join(cacheDir, "composer", fmt.Sprintf("%s.json", name))
 	default:
-		path = filepath.Join("none", fmt.Sprintf("%s-%s-%s", vendor, name, version))
+		path = filepath.Join(cacheDir, "none", fmt.Sprintf("%s-%s-%s", vendor, name, version))
 	}
 	return path
 }

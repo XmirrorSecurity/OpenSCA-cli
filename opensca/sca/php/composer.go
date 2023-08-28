@@ -88,11 +88,21 @@ var phpOrigin = func(name, version string) *ComposerJson {
 
 	var origin *ComposerJson
 
+	findComposerJsonFromRepo := func(repo *ComposerRepo) *ComposerJson {
+		vers := []string{}
+		for v := range repo.Packages {
+			vers = append(vers, v)
+		}
+		maxv := findMaxVersion(version, vers)
+		origin := repo.Packages[maxv][0]
+		return origin
+	}
+
 	// 读取缓存
 	path := cache.Path("", name, version, model.Lan_Php)
 	cache.Load(path, func(reader io.Reader) {
 		repo := readJson[ComposerRepo](reader)
-		origin = findComposerJsonFromRepo(repo, version)
+		origin = findComposerJsonFromRepo(repo)
 	})
 
 	if origin != nil {
@@ -114,7 +124,7 @@ var phpOrigin = func(name, version string) *ComposerJson {
 				cache.Save(path, reader)
 				reader.Seek(0, io.SeekStart)
 				repo := readJson[ComposerRepo](reader)
-				origin = findComposerJsonFromRepo(repo, version)
+				origin = findComposerJsonFromRepo(repo)
 			}
 		}
 	}
@@ -126,16 +136,6 @@ func RegisterNpmOrigin(origin func(name, version string) *ComposerJson) {
 	if origin != nil {
 		phpOrigin = origin
 	}
-}
-
-func findComposerJsonFromRepo(repo *ComposerRepo, version string) *ComposerJson {
-	vers := []string{}
-	for v := range repo.Packages {
-		vers = append(vers, v)
-	}
-	maxv := findMaxVersion(version, vers)
-	origin := repo.Packages[maxv][0]
-	return origin
 }
 
 func findMaxVersion(version string, versions []string) string {

@@ -95,23 +95,33 @@ var npmOrigin = func(name, version string) *PackageJson {
 	url := fmt.Sprintf(`https://r.cnpmjs.org/%s`, name)
 	if rep, err := http.Get(url); err == nil {
 		defer rep.Body.Close()
+
 		if rep.StatusCode != 200 {
 			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
 			io.Copy(io.Discard, rep.Body)
 		} else {
+
 			logs.Infof("code:%d url:%s", rep.StatusCode, url)
 			data, err := io.ReadAll(rep.Body)
-			if err == nil {
-				reader := bytes.NewReader(data)
-				cache.Save(path, reader)
-				reader.Seek(0, io.SeekStart)
-				npm := readJson[NpmJson](reader)
-				vers := []string{}
-				for v := range npm.Versions {
-					vers = append(vers, v)
-				}
-				origin = npm.Versions[findMaxVersion(version, vers)]
+			if err != nil {
+				logs.Warn(err)
 			}
+
+			reader := bytes.NewReader(data)
+			var npm NpmJson
+			if err := json.NewDecoder(reader).Decode(&npm); err != nil {
+				logs.Warnf("unmarshal json from %s fail", url)
+				return origin
+			}
+
+			vers := []string{}
+			for v := range npm.Versions {
+				vers = append(vers, v)
+			}
+			origin = npm.Versions[findMaxVersion(version, vers)]
+
+			reader.Seek(0, io.SeekStart)
+			cache.Save(path, reader)
 		}
 	}
 

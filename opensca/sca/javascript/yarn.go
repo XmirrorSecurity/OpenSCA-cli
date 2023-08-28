@@ -36,8 +36,8 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 		if !strings.HasPrefix(line, " ") && strings.HasSuffix(line, ":") {
 			lastDep = &YarnLock{Dependencies: map[string]string{}}
 			for _, tag := range strings.Split(line, ",") {
-				i := strings.Index(tag, "@")
-				if i != -1 {
+				i := strings.LastIndex(tag, "@")
+				if i == -1 {
 					logs.Warnf("parse file %s line: %s fail", file.Path(), line)
 					continue
 				}
@@ -52,7 +52,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 		if strings.HasPrefix(line, "    ") {
 			line = strings.TrimSpace(line)
 			i := strings.Index(line, " ")
-			if i != -1 {
+			if i == -1 {
 				logs.Warnf("parse file %s line: %s fail", file.Path(), line)
 				return
 			}
@@ -88,7 +88,9 @@ func ParsePackageJsonWithYarnLock(pkgjson *PackageJson, yarnlock map[string]*Yar
 		dep := _dep(lock.Name, lock.Version)
 		for name, version := range lock.Dependencies {
 			sub := yarnlock[npmkey(name, version)]
-			dep.AppendChild(_dep(sub.Name, sub.Version))
+			if sub != nil {
+				dep.AppendChild(_dep(sub.Name, sub.Version))
+			}
 		}
 	}
 
