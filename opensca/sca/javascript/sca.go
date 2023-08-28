@@ -41,7 +41,7 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 	// map[dirpath]
 	yarnMap := map[string]map[string]*YarnLock{}
 
-	path2dir := func(relpath string) string { return path.Dir(relpath) }
+	path2dir := func(relpath string) string { return path.Dir(strings.ReplaceAll(relpath, `\`, `/`)) }
 
 	// 将npm相关文件按上述方案分类
 	for _, f := range files {
