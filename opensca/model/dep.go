@@ -75,6 +75,9 @@ func (dep *DepGraph) FlushDevelop() {
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 传递develop
 		n.Develop = n.IsDevelop()
+		return true
+	})
+	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 去除非实际引用的关系
 		if !n.Develop {
 			for p := range n.Parents {
