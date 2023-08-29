@@ -125,8 +125,25 @@ type Vuln struct {
 	ExploitLevelId  int    `json:"exploit_level_id" gorm:"column:exploit_level_id"`
 }
 
-func vulnLanguageKey(language string) string {
-	return language
+func vulnLanguageKey(language model.Language) string {
+	switch language {
+	case model.Lan_Java:
+		return "java"
+	case model.Lan_JavaScript:
+		return "js"
+	case model.Lan_Php:
+		return "php"
+	case model.Lan_Python:
+		return "python"
+	case model.Lan_Golang:
+		return "golang"
+	case model.Lan_Ruby:
+		return "ruby"
+	case model.Lan_Rust:
+		return "rust"
+	default:
+		return ""
+	}
 }
 
 type Dep struct {
@@ -260,7 +277,7 @@ func (o *BaseOrigin) SearchVuln(deps []Dep) (vulns [][]*Vuln) {
 	vulns = make([][]*Vuln, len(deps))
 	for i, dep := range deps {
 		vulns[i] = []*Vuln{}
-		lanKey := vulnLanguageKey(dep.Language)
+		lanKey := vulnLanguageKey(model.Language(dep.Language))
 		if vs, ok := o.data[lanKey][strings.ToLower(dep.Name)]; ok {
 			curVer := newVersion(dep.Version)
 			for _, v := range vs {
