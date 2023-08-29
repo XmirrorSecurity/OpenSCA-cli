@@ -68,6 +68,9 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 		}
 		for _, sca := range arg.Sca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
+				if dep == nil {
+					continue
+				}
 				dep.Build(false, sca.Language())
 				deps = append(deps, dep)
 			}

@@ -38,5 +38,5 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			pomfiles = append(pomfiles, file)
 		}
 	}
-	return Simulate(pomfiles)
+	return ParsePom(pomfiles)
 }
