@@ -16,9 +16,9 @@ import (
 )
 
 type PackageJson struct {
-	Name                 string            `json:"name"`
-	Version              string            `json:"version"`
-	License              string            `json:"license"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	// License              string            `json:"license"`
 	Develop              bool              `json:"dev"` // lock v3
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
@@ -110,7 +110,7 @@ var npmOrigin = func(name, version string) *PackageJson {
 			reader := bytes.NewReader(data)
 			var npm NpmJson
 			if err := json.NewDecoder(reader).Decode(&npm); err != nil {
-				logs.Warnf("unmarshal json from %s fail", url)
+				logs.Warnf("unmarshal json from %s err: %s", url, err)
 				return origin
 			}
 
@@ -137,7 +137,7 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
 	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
-	root.AppendLicense(pkgjson.License)
+	// root.AppendLicense(pkgjson.License)
 
 	_dep := _depSet().LoadOrStore
 
@@ -151,13 +151,17 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 		} else {
 			// 从外部数据源下载
 			subjs = npmOrigin(name, version)
+			if subjs != nil {
+				// 忽略开发环境依赖
+				subjs.DevDependencies = nil
+			}
 		}
 		if subjs == nil {
 			return nil
 		}
 		dep := _dep(subjs.Name, subjs.Version)
 		if dep.Expand == nil {
-			dep.AppendLicense(subjs.License)
+			// dep.AppendLicense(subjs.License)
 			dep.Expand = subjs
 		}
 		return dep
@@ -194,7 +198,7 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	}
 
 	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
-	root.AppendLicense(pkgjson.License)
+	// root.AppendLicense(pkgjson.License)
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
@@ -257,7 +261,7 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 	}
 
 	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
-	root.AppendLicense(pkgjson.License)
+	// root.AppendLicense(pkgjson.License)
 
 	type expand struct {
 		js   *PackageJson
@@ -273,7 +277,7 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 			return nil
 		}
 		dep := _dep(name, subjs.Version, subjs.File.Path())
-		dep.AppendLicense(subjs.License)
+		// dep.AppendLicense(subjs.License)
 		if dep.Expand == nil {
 			dep.Develop = subjs.Develop
 			dep.Expand = expand{
