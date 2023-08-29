@@ -43,7 +43,7 @@ func xtar(filter ExtractFileFilter, input, output string) bool {
 			continue
 		}
 
-		if !isCompressFile(fp) && filter != nil && !filter(fp) {
+		if filter != nil && !filter(fp) {
 			continue
 		}
 

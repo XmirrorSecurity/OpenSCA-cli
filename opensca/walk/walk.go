@@ -113,7 +113,7 @@ func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) 
 	}
 }
 
-func isCompressFile(relpath string) bool {
+func IsCompressFile(relpath string) bool {
 	return checkFileExt(relpath, ".zip",
 		".jar",
 		".rar",

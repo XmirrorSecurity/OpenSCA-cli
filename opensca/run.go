@@ -18,12 +18,22 @@ type TaskArg struct {
 	Name string
 	// 超时时间 单位s
 	Timeout int
+	// 调用的sca(为空时使用默认配置)
+	Sca []sca.Sca
+	// 额外的文件过滤函数
+	ExtractFileFilter walk.ExtractFileFilter
+	// 额外的文件处理函数
+	WalkFileFunc walk.WalkFileFunc
 }
 
 func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err error) {
 
 	if arg == nil {
-		arg = defaultArg
+		arg = &TaskArg{DataOrigin: "./"}
+	}
+
+	if arg.ExtractFileFilter == nil {
+		arg.ExtractFileFilter = walk.IsCompressFile
 	}
 
 	if arg.Name == "" {
@@ -38,13 +48,30 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 		}
 	}
 
-	err = walk.Walk(ctx, arg.Name, arg.DataOrigin, sca.Filter, sca.Do(ctx, func(dep *model.DepGraph) {
-		deps = append(deps, dep)
-	}))
-	return
-}
+	if len(arg.Sca) == 0 {
+		arg.Sca = sca.AllSca
+	}
 
-var defaultArg = &TaskArg{
-	DataOrigin: "./",
-	Name:       "default",
+	err = walk.Walk(ctx, arg.Name, arg.DataOrigin, func(relpath string) bool {
+		if arg.ExtractFileFilter != nil && arg.ExtractFileFilter(relpath) {
+			return true
+		}
+		for _, sca := range arg.Sca {
+			if sca.Filter(relpath) {
+				return true
+			}
+		}
+		return false
+	}, func(parent *model.File, files []*model.File) {
+		if arg.WalkFileFunc != nil {
+			arg.WalkFileFunc(parent, files)
+		}
+		for _, sca := range arg.Sca {
+			for _, dep := range sca.Sca(ctx, parent, files) {
+				dep.Build(false, sca.Language())
+				deps = append(deps, dep)
+			}
+		}
+	})
+	return
 }

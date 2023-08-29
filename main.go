@@ -48,7 +48,12 @@ func main() {
 		report.Size = f.Size()
 	}
 
-	deps, err := opensca.RunTask(context.Background(), &opensca.TaskArg{DataOrigin: path})
+	taskArg := &opensca.TaskArg{DataOrigin: path}
+	if config.Conf().DirOnly {
+		taskArg.ExtractFileFilter = func(relpath string) bool { return false }
+	}
+
+	deps, err := opensca.RunTask(context.Background(), taskArg)
 	if err != nil {
 		report.ErrorString = err.Error()
 	}
