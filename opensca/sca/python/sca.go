@@ -22,5 +22,18 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+	for _, file := range files {
+		if filter.PythonPipfile(file.Relpath) {
+			ParsePipfile(file)
+		} else if filter.PythonPipfileLock(file.Relpath) {
+			ParsePipfileLock(file)
+		} else if filter.PythonRequirementsIn(file.Relpath) {
+			// TODO
+		} else if filter.PythonRequirementsTxt(file.Relpath) {
+			// TODO
+		} else if filter.PythonSetup(file.Relpath) {
+			ParseSetup(file)
+		}
+	}
 	return nil
 }
