@@ -1,0 +1,74 @@
+import groovy.json.JsonOutput
+
+class DepTree{
+	def children
+	def dep
+	def dict
+	DepTree(dep){
+		this.dict = [:]
+		if (dep){
+			this.dict.groupId = dep.moduleGroup
+			this.dict.artifactId = dep.moduleName
+			this.dict.version = dep.moduleVersion
+			this.dep = dep
+		}
+		this.dict.children = []
+	}
+	def key(){
+		return "${this.dict.("groupId")}:${this.dict.get("artifactId")}"
+	}
+}
+
+def getDepsList(deps){
+	def nodes = []
+	deps.each{ dep ->
+		nodes += new DepTree(dep)
+	}
+	return nodes
+}
+
+def getDepsTree(deps){
+	def result = []
+	deps.each{ ds ->
+		def exist = [:]
+		def q = getDepsList(ds)
+		q.each{ d ->
+			result += d.dict
+		}
+		while (!q.isEmpty()){
+			def node = q.get(0)
+			q.remove(0)
+			if (!exist.get(node.key())){
+				exist.put(node.key(), true)
+				def children = getDepsList(node.dep.children)
+				q += children
+				children.each{ d ->
+					node.dict.children += d.dict
+				}
+			}
+			node.dep = null
+		}
+	}
+	return result
+}
+
+allprojects {
+	task opensca {
+		doLast {
+			def deps = []
+			rootProject.allprojects.each{ proj->
+			 	def ds = []
+				proj.configurations.each({ conf ->
+					try {
+						ds += conf.resolvedConfiguration.firstLevelModuleDependencies
+					} catch (Exception ex) {
+					}
+				})
+				deps.add(ds)
+			}
+			println("openscaDepStart")
+			println(JsonOutput.toJson(getDepsTree(deps)))
+			println("openscaDepEnd")
+		}
+	}
+}

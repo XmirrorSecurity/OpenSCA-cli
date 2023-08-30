@@ -18,6 +18,10 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	// TODO
-	return nil
+	roots := GradleTree(parent.Abspath)
+	if len(roots) == 0 {
+		// TODO
+		roots = ParseGradle(files)
+	}
+	return roots
 }
