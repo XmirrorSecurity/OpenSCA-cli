@@ -3,14 +3,219 @@ package java
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
 )
+
+func ParsePoms(poms []*Pom) []*model.DepGraph {
+
+	// 记录module信息
+	modules := map[string]*Pom{}
+	for _, pom := range poms {
+		modules[filepath.Base(pom.File.Path())] = pom
+	}
+
+	// 记录当前项目的pom信息
+	gavMap := map[string]*Pom{}
+	for _, pom := range poms {
+		pom.Update(&pom.PomDependency)
+		gavMap[pom.GAV()] = pom
+	}
+
+	// 获取对应的pom信息
+	getpom := func(dep PomDependency) *Pom {
+		if p, ok := gavMap[dep.GAV()]; ok {
+			return p
+		} else {
+			return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version)
+		}
+	}
+
+	// 将revision主动推送到所有modules
+	for _, pom := range poms {
+		if revision, ok := pom.Properties["revision"]; ok {
+			_ = revision
+			for _, name := range pom.Modules {
+				if p, ok := modules[name]; ok {
+					if _, ok := p.Properties["revision"]; !ok {
+						p.Properties["revision"] = revision
+					}
+				}
+			}
+		}
+	}
+
+	var roots []*model.DepGraph
+
+	for _, pom := range poms {
+
+		// 补全nil值
+		if pom.Properties == nil {
+			pom.Properties = PomProperties{}
+		}
+
+		// 继承parent
+		parent := pom.Parent
+		for parent.ArtifactId != "" {
+
+			pom.Update(&parent)
+
+			p := getpom(parent)
+			if p == nil {
+				break
+			}
+			parent = p.Parent
+
+			// 继承properties
+			for k, v := range p.Properties {
+				pom.Properties[k] = v
+			}
+
+			// 继承dependencyManagement
+			pom.DependencyManagement = append(pom.DependencyManagement, p.DependencyManagement...)
+
+			// 继承dependencies
+			pom.Dependencies = append(pom.Dependencies, p.Dependencies...)
+		}
+
+		// 删除重复依赖项
+		depIndex2Set := map[string]bool{}
+		for i := len(pom.Dependencies); i > 0; i-- {
+			dep := pom.Dependencies[i]
+			if depIndex2Set[dep.Index2()] {
+				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
+			} else {
+				depIndex2Set[dep.Index2()] = true
+			}
+		}
+		depIndex2Set = map[string]bool{}
+
+		// 处理dependencyManagement
+		depManagement := map[string]*PomDependency{}
+		for i := 0; i < len(pom.DependencyManagement); {
+
+			dep := pom.DependencyManagement[i]
+
+			// 去重 保留第一个声明
+			if depIndex2Set[dep.Index2()] {
+				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
+				continue
+			} else {
+				i++
+				depIndex2Set[dep.Index2()] = true
+			}
+
+			if dep.Scope != "import" {
+				depManagement[dep.Index2()] = dep
+				continue
+			}
+
+			// 引入scope为import的pom
+			pom.Update(dep)
+			ipom := getpom(*dep)
+			if ipom == nil {
+				continue
+			}
+
+			// 复制dependencyManagement内容
+			for _, idep := range ipom.DependencyManagement {
+				if depIndex2Set[idep.Index2()] {
+					continue
+				}
+				// import的dependencyManagement优先使用自身pom属性而非根pom属性
+				ipom.Update(idep)
+				pom.DependencyManagement = append(pom.DependencyManagement, idep)
+			}
+		}
+
+		// 查询子依赖构建依赖关系
+		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Path()}
+		root.Expand = pom
+
+		_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+			return &model.DepGraph{
+				Vendor:  s[0],
+				Name:    s[1],
+				Version: s[2],
+			}
+		}).LoadOrStore
+
+		root.ForEachNode(func(p, n *model.DepGraph) bool {
+
+			np := n.Expand.(*Pom)
+
+			for _, dep := range np.Dependencies {
+
+				if dep.Scope == "provided" {
+					continue
+				}
+
+				// 间接依赖优先通过dependencyManagement补全
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						dep = d
+					}
+				}
+
+				pom.Update(dep)
+				np.Update(dep)
+
+				// 查看是否在Exclusion列表中
+				if np.NeedExclusion(*dep) {
+					continue
+				}
+
+				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
+				if dep.Scope == "test" {
+					sub.Develop = true
+				}
+				if sub.Expand == nil {
+					subpom := getpom(*dep)
+					subpom.Exclusions = dep.Exclusions
+					sub.Expand = subpom
+				}
+				n.AppendChild(sub)
+			}
+
+			return true
+		})
+
+		roots = append(roots, root)
+	}
+
+	return roots
+}
+
+var mavenOrigin = func(groupId, artifactId, version string) *Pom {
+	var p *Pom
+
+	path := cache.Path(groupId, artifactId, version, model.Lan_Java)
+	cache.Load(path, func(reader io.Reader) {
+		p = ReadPom(reader)
+	})
+
+	if p != nil {
+		return p
+	}
+
+	// TODO: 从maven仓库获取
+
+	return nil
+}
+
+func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) {
+	if origin != nil {
+		mavenOrigin = origin
+	}
+}
 
 func MvnTree(dirpath string) []*model.DepGraph {
 

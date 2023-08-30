@@ -21,7 +21,10 @@ func (file *File) Path() string {
 	return ""
 }
 
-func (file File) OpenReader(do func(reader io.Reader)) {
+func (file *File) OpenReader(do func(reader io.Reader)) {
+	if file == nil || file.Abspath == "" {
+		return
+	}
 	f, err := os.Open(file.Abspath)
 	if err != nil {
 		logs.Warnf("open file %s fail: %s", file.Relpath, err)

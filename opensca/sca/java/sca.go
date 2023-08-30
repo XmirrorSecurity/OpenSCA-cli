@@ -2,6 +2,7 @@ package java
 
 import (
 	"context"
+	"io"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -32,11 +33,14 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	// 模拟maven构建
-	pomfiles := []*model.File{}
+	poms := []*Pom{}
 	for _, file := range files {
-		if sca.Filter(parent.Relpath) {
-			pomfiles = append(pomfiles, file)
+		if sca.Filter(file.Relpath) {
+			file.OpenReader(func(reader io.Reader) {
+				poms = append(poms, ReadPom(reader))
+			})
 		}
 	}
-	return ParsePom(pomfiles)
+	deps = append(deps, ParsePoms(poms)...)
+	return deps
 }
