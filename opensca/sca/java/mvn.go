@@ -3,12 +3,16 @@ package java
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
+	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -31,12 +35,15 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	}
 
 	// 获取对应的pom信息
-	getpom := func(dep PomDependency) *Pom {
+	getpom := func(dep PomDependency, repos ...[]MvnRepo) *Pom {
 		if p, ok := gavMap[dep.GAV()]; ok {
 			return p
-		} else {
-			return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version)
 		}
+		var rs []MvnRepo
+		for _, repo := range repos {
+			rs = append(rs, repo...)
+		}
+		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
 	}
 
 	// 将revision主动推送到所有modules
@@ -68,7 +75,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			pom.Update(&parent)
 
-			p := getpom(parent)
+			p := getpom(parent, pom.Repositories, pom.Mirrors)
 			if p == nil {
 				break
 			}
@@ -84,6 +91,10 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			// 继承dependencies
 			pom.Dependencies = append(pom.Dependencies, p.Dependencies...)
+
+			// 继承repo&mirror
+			pom.Repositories = append(pom.Repositories, p.Repositories...)
+			pom.Mirrors = append(pom.Mirrors, p.Mirrors...)
 		}
 
 		// 删除重复依赖项
@@ -120,7 +131,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			// 引入scope为import的pom
 			pom.Update(dep)
-			ipom := getpom(*dep)
+			ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
 			if ipom == nil {
 				continue
 			}
@@ -136,10 +147,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			}
 		}
 
-		// 查询子依赖构建依赖关系
-		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Path()}
-		root.Expand = pom
-
 		_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
 			return &model.DepGraph{
 				Vendor:  s[0],
@@ -148,9 +155,17 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			}
 		}).LoadOrStore
 
+		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Path()}
+		root.Expand = pom
+
+		// 解析子依赖构建依赖关系
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 
 			np := n.Expand.(*Pom)
+
+			for _, lic := range np.Licenses {
+				n.AppendLicense(lic)
+			}
 
 			for _, dep := range np.Dependencies {
 
@@ -174,13 +189,15 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				}
 
 				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
-				if dep.Scope == "test" {
-					sub.Develop = true
-				}
 				if sub.Expand == nil {
-					subpom := getpom(*dep)
+					subpom := getpom(*dep, pom.Repositories, pom.Mirrors)
 					subpom.Exclusions = dep.Exclusions
 					sub.Expand = subpom
+					sub.Develop = dep.Scope == "test"
+				} else {
+					if dep.Scope != "test" {
+						sub.Develop = false
+					}
 				}
 				n.AppendChild(sub)
 			}
@@ -194,7 +211,8 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	return roots
 }
 
-var mavenOrigin = func(groupId, artifactId, version string) *Pom {
+var mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *Pom {
+
 	var p *Pom
 
 	path := cache.Path(groupId, artifactId, version, model.Lan_Java)
@@ -202,18 +220,92 @@ var mavenOrigin = func(groupId, artifactId, version string) *Pom {
 		p = ReadPom(reader)
 	})
 
-	if p != nil {
-		return p
-	}
+	download(PomDependency{GroupId: groupId, ArtifactId: artifactId, Version: version}, func(r io.Reader) {
 
-	// TODO: 从maven仓库获取
+		data, err := io.ReadAll(r)
+		if err != nil {
+			logs.Warn(err)
+			return
+		}
+		reader := bytes.NewReader(data)
 
-	return nil
+		p = ReadPom(reader)
+		if p == nil {
+			return
+		}
+
+		reader.Seek(0, io.SeekStart)
+		cache.Save(path, reader)
+	}, repos...)
+
+	return p
 }
 
-func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) {
+func RegisterMavenOrigin(origin func(groupId, artifactId, version string, repos ...MvnRepo) *Pom) {
 	if origin != nil {
 		mavenOrigin = origin
+	}
+}
+
+var httpClient = http.Client{
+	Transport: &http.Transport{
+		MaxIdleConns:        500,
+		MaxConnsPerHost:     500,
+		MaxIdleConnsPerHost: 500,
+		IdleConnTimeout:     30 * time.Second,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	},
+	Timeout: 10 * time.Second,
+}
+
+func download(dep PomDependency, do func(r io.Reader), repos ...MvnRepo) {
+
+	if !dep.Check() {
+		return
+	}
+
+	if len(repos) == 0 {
+		repos = defaultRepo
+	}
+
+	for _, repo := range repos {
+
+		if repo.Url == "" {
+			continue
+		}
+
+		url := fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
+			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version,
+			dep.ArtifactId, dep.Version)
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			logs.Warn(err)
+			continue
+		}
+		if repo.Username+repo.Password != "" {
+			req.SetBasicAuth(repo.Username, repo.Password)
+		}
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			logs.Warn(err)
+			continue
+		}
+
+		defer resp.Body.Close()
+		defer io.Copy(io.Discard, resp.Body)
+
+		if resp.StatusCode != 200 {
+			logs.Warnf("%s [GET]%s", resp.StatusCode, url)
+			continue
+		} else {
+			logs.Debugf("%s [GET]%s", resp.StatusCode, url)
+			do(resp.Body)
+			break
+		}
 	}
 }
 

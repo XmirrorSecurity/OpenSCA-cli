@@ -6,6 +6,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/erlang"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/golang"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/groovy"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
@@ -28,4 +29,6 @@ var AllSca = []Sca{java.Sca{},
 	rust.Sca{},
 	erlang.Sca{},
 	php.Sca{},
+	java.Sca{},
+	groovy.Sca{},
 }

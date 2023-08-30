@@ -1,4 +1,4 @@
-package java
+package groovy
 
 import (
 	"context"

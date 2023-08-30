@@ -18,15 +18,10 @@ type Pom struct {
 	DependencyManagement []*PomDependency `xml:"dependencyManagement>dependencies>dependency"`
 	Dependencies         []*PomDependency `xml:"dependencies>dependency"`
 	Modules              []string         `xml:"modules>module"`
-	Repositories         []string         `xml:"repositories>repository>url"`
-	Mirrors              []string         `xml:"mirrors>mirror>url"`
+	Repositories         []MvnRepo        `xml:"repositories>repository"`
+	Mirrors              []MvnRepo        `xml:"mirrors>mirror"`
 	Licenses             []string         `xml:"licenses>license>name"`
-	Profile              []struct {
-		Pom
-		Default bool `xml:"activation>activeByDefault"`
-	} `xml:"profiles>profile" json:"-"`
-
-	File *model.File `xml:"-" json:"-"`
+	File                 *model.File      `xml:"-" json:"-"`
 }
 
 type PomDependency struct {
@@ -208,4 +203,8 @@ func trimSpace(p *PomDependency) {
 	p.Scope = trim(p.Scope)
 	p.Classifier = trim(p.Classifier)
 	p.Type = trim(p.Type)
+}
+
+func (dep PomDependency) Check() bool {
+	return dep.ArtifactId == "" || dep.GroupId == "" || dep.Version == "" || strings.Contains(dep.GAV(), "$")
 }

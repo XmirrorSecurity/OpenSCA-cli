@@ -44,3 +44,15 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	deps = append(deps, ParsePoms(poms)...)
 	return deps
 }
+
+type MvnRepo struct {
+	Url      string `json:"url" xml:"url"`
+	Username string
+	Password string
+}
+
+var defaultRepo []MvnRepo
+
+func RegisterRepo(repos ...MvnRepo) {
+	defaultRepo = append(repos, repos...)
+}

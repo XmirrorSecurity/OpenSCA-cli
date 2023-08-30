@@ -18,7 +18,7 @@ type TaskArg struct {
 	Name string
 	// 超时时间 单位s
 	Timeout int
-	// 调用的sca(为空时使用默认配置)
+	// 使用的sca(为空时使用默认配置)
 	Sca []sca.Sca
 	// 额外的文件过滤函数
 	ExtractFileFilter walk.ExtractFileFilter
@@ -26,6 +26,8 @@ type TaskArg struct {
 	WalkFileFunc walk.WalkFileFunc
 }
 
+// RunTask 运行检测任务
+// arg: 任务参数
 func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err error) {
 
 	if arg == nil {
