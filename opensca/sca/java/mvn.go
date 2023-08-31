@@ -75,31 +75,31 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			pom.Update(&parent)
 
-			p := getpom(parent, pom.Repositories, pom.Mirrors)
-			if p == nil {
+			parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
+			if parentPom == nil {
 				break
 			}
-			parent = p.Parent
+			parent = parentPom.Parent
 
 			// 继承properties
-			for k, v := range p.Properties {
+			for k, v := range parentPom.Properties {
 				pom.Properties[k] = v
 			}
 
 			// 继承dependencyManagement
-			pom.DependencyManagement = append(pom.DependencyManagement, p.DependencyManagement...)
+			pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
 
 			// 继承dependencies
-			pom.Dependencies = append(pom.Dependencies, p.Dependencies...)
+			pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
 
 			// 继承repo&mirror
-			pom.Repositories = append(pom.Repositories, p.Repositories...)
-			pom.Mirrors = append(pom.Mirrors, p.Mirrors...)
+			pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
+			pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
 		}
 
 		// 删除重复依赖项
 		depIndex2Set := map[string]bool{}
-		for i := len(pom.Dependencies); i > 0; i-- {
+		for i := len(pom.Dependencies) - 1; i > 0; i-- {
 			dep := pom.Dependencies[i]
 			if depIndex2Set[dep.Index2()] {
 				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
@@ -117,7 +117,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			// 去重 保留第一个声明
 			if depIndex2Set[dep.Index2()] {
-				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
+				pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
 				continue
 			} else {
 				i++
@@ -161,6 +161,10 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		// 解析子依赖构建依赖关系
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 
+			if n.Expand == nil {
+				return true
+			}
+
 			np := n.Expand.(*Pom)
 
 			for _, lic := range np.Licenses {
@@ -169,12 +173,12 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			for _, dep := range np.Dependencies {
 
-				if dep.Scope == "provided" {
+				if dep.Scope == "provided" || dep.Optional {
 					continue
 				}
 
 				// 间接依赖优先通过dependencyManagement补全
-				if np != pom {
+				if np != pom || dep.Version == "" {
 					if d, ok := depManagement[dep.Index2()]; ok {
 						dep = d
 					}
@@ -190,10 +194,13 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
 				if sub.Expand == nil {
-					subpom := getpom(*dep, pom.Repositories, pom.Mirrors)
-					subpom.Exclusions = dep.Exclusions
-					sub.Expand = subpom
-					sub.Develop = dep.Scope == "test"
+					subpom := getpom(*dep, np.Repositories, np.Mirrors)
+					if subpom != nil {
+						subpom.PomDependency = *dep
+						subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
+						sub.Expand = subpom
+						sub.Develop = dep.Scope == "test"
+					}
 				} else {
 					if dep.Scope != "test" {
 						sub.Develop = false
@@ -220,7 +227,11 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *P
 		p = ReadPom(reader)
 	})
 
-	download(PomDependency{GroupId: groupId, ArtifactId: artifactId, Version: version}, func(r io.Reader) {
+	if p != nil {
+		return p
+	}
+
+	DownloadPomFromRepo(PomDependency{GroupId: groupId, ArtifactId: artifactId, Version: version}, func(r io.Reader) {
 
 		data, err := io.ReadAll(r)
 		if err != nil {
@@ -260,7 +271,7 @@ var httpClient = http.Client{
 	Timeout: 10 * time.Second,
 }
 
-func download(dep PomDependency, do func(r io.Reader), repos ...MvnRepo) {
+func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRepo) {
 
 	if !dep.Check() {
 		return
@@ -299,10 +310,10 @@ func download(dep PomDependency, do func(r io.Reader), repos ...MvnRepo) {
 		defer io.Copy(io.Discard, resp.Body)
 
 		if resp.StatusCode != 200 {
-			logs.Warnf("%s [GET]%s", resp.StatusCode, url)
+			logs.Warnf("%d %s", resp.StatusCode, url)
 			continue
 		} else {
-			logs.Debugf("%s [GET]%s", resp.StatusCode, url)
+			logs.Debugf("%d %s", resp.StatusCode, url)
 			do(resp.Body)
 			break
 		}

@@ -23,19 +23,16 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 	defer rf.Close()
 	for _, f := range rf.File {
 
+		if f.FileInfo().IsDir() {
+			continue
+		}
+
 		fp := filepath.Join(output, f.Name)
 
 		if f.Flags == 0 {
 			gbk := mahonia.NewDecoder("gbk").ConvertString(f.Name)
 			_, cdata, _ := mahonia.NewDecoder("utf-8").Translate([]byte(gbk), true)
 			fp = filepath.Join(output, string(cdata))
-		}
-
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(fp, 0777); err != nil {
-				logs.Warn(err)
-			}
-			continue
 		}
 
 		if filter != nil && !filter(fp) {
@@ -48,6 +45,7 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 			continue
 		}
 
+		os.MkdirAll(filepath.Dir(fp), 0777)
 		fw, err := os.Create(fp)
 		if err != nil {
 			logs.Warn(err)

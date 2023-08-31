@@ -33,7 +33,7 @@ type PomDependency struct {
 	Classifier   string           `xml:"classifier"`
 	RelativePath string           `xml:"relativePath"`
 	Optional     bool             `xml:"optional"`
-	Exclusions   []*PomDependency `xml:"exclusions"`
+	Exclusions   []*PomDependency `xml:"exclusions>exclusion"`
 	// Start        int              `xml:",start"`
 	// End          int              `xml:",end"`
 	Define *Pom `xml:"-"`
@@ -128,7 +128,7 @@ func ReadPom(reader io.Reader) *Pom {
 		p.GroupId = p.Parent.GroupId
 	}
 	if p.Version == "" {
-		p.GroupId = p.Parent.Version
+		p.Version = p.Parent.Version
 	}
 
 	p.Parent.Define = p
@@ -141,6 +141,26 @@ func ReadPom(reader io.Reader) *Pom {
 	for _, d := range p.Dependencies {
 		trimSpace(d)
 		d.Define = p
+	}
+
+	// 处理版本范围
+	for _, d := range p.Dependencies {
+		if strings.ContainsAny(d.Version, "()[]") {
+			if !strings.Contains(d.Version, ",") {
+				d.Version = strings.Trim(d.Version, "()[]")
+			} else {
+				lr := strings.Split(strings.Split(d.Version, "!")[0], ",")
+				if len(lr) == 2 {
+					l, r := lr[0], lr[1]
+					if strings.HasPrefix(l, "[") {
+						d.Version = strings.TrimLeft(l, "[")
+					}
+					if strings.HasSuffix(r, "]") {
+						d.Version = strings.TrimRight(l, "]")
+					}
+				}
+			}
+		}
 	}
 
 	return p
@@ -206,5 +226,5 @@ func trimSpace(p *PomDependency) {
 }
 
 func (dep PomDependency) Check() bool {
-	return dep.ArtifactId == "" || dep.GroupId == "" || dep.Version == "" || strings.Contains(dep.GAV(), "$")
+	return !(dep.ArtifactId == "" || dep.GroupId == "" || dep.Version == "" || strings.Contains(dep.GAV(), "$"))
 }
