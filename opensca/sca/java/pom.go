@@ -36,10 +36,12 @@ type PomDependency struct {
 	Exclusions   []*PomDependency `xml:"exclusions>exclusion"`
 	// Start        int              `xml:",start"`
 	// End          int              `xml:",end"`
-	Define *Pom `xml:"-"`
+	Define      *Pom      `xml:"-"`
+	RefProperty *Property `xml:"-"`
 }
 
 type Property struct {
+	Key   string
 	Value string
 	// Start  int
 	// End    int
@@ -64,6 +66,7 @@ func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error 
 			return err
 		}
 		(*pp)[e.XMLName.Local] = &Property{
+			Key:   e.XMLName.Local,
 			Value: e.Value,
 			// Start: e.Start,
 			// End:   e.End,
@@ -143,6 +146,18 @@ func ReadPom(reader io.Reader) *Pom {
 		d.Define = p
 	}
 
+	// 添加内置属性
+	p.Properties["project.groupId"] = &Property{Key: "project.groupId", Value: p.GroupId}
+	p.Properties["groupId"] = &Property{Key: "groupId", Value: p.GroupId}
+	p.Properties["pom.groupId"] = &Property{Key: "pom.groupId", Value: p.GroupId}
+	p.Properties["project.parent.groupId"] = &Property{Key: "project.parent.groupId", Value: p.Parent.GroupId}
+	p.Properties["parent.groupId"] = &Property{Key: "parent.groupId", Value: p.Parent.GroupId}
+	p.Properties["project.version"] = &Property{Key: "project.version", Value: p.Version}
+	p.Properties["version"] = &Property{Key: "version", Value: p.Version}
+	p.Properties["pom.version"] = &Property{Key: "pom.version", Value: p.Version}
+	p.Properties["project.parent.version"] = &Property{Key: "project.parent.version", Value: p.Parent.Version}
+	p.Properties["parent.version"] = &Property{Key: "parent.version", Value: p.Parent.Version}
+
 	// 处理版本范围
 	for _, d := range p.Dependencies {
 		if strings.ContainsAny(d.Version, "()[]") {
@@ -166,26 +181,11 @@ func ReadPom(reader io.Reader) *Pom {
 	return p
 }
 
-func (p *Pom) Update(dep *PomDependency) {
-	dep.Version = p.GetProperty(dep.Version)
-}
-
 var propertyReg = regexp.MustCompile(`\$\{[^{}]*\}`)
 
-func (p *Pom) GetProperty(key string) string {
-	switch key {
-	case "${project.version}", "${version}", "${pom.version}":
-		return p.Version
-	case "${project.groupId}", "${groupId}", "${pom.groupId}":
-		return p.GroupId
-	case "${project.artifactId}":
-		return p.ArtifactId
-	case "${project.parent.version}", "${parent.version}":
-		return p.Parent.Version
-	case "${project.parent.groupId}", "${parent.groupId}":
-		return p.Parent.GroupId
-	default:
-		return propertyReg.ReplaceAllStringFunc(key,
+func (p *Pom) Update(dep *PomDependency) {
+	rep := func(value string) string {
+		return propertyReg.ReplaceAllStringFunc(value,
 			func(s string) string {
 				exist := map[string]struct{}{}
 				for strings.HasPrefix(s, "$") {
@@ -198,6 +198,7 @@ func (p *Pom) GetProperty(key string) string {
 					if v, ok := p.Properties[k]; ok {
 						if len(v.Value) > 0 {
 							s = v.Value
+							p.RefProperty = v
 							continue
 						}
 					}
@@ -206,6 +207,8 @@ func (p *Pom) GetProperty(key string) string {
 				return s
 			})
 	}
+	dep.Version = rep(dep.Version)
+	dep.GroupId = rep(dep.GroupId)
 }
 
 var reg = regexp.MustCompile(`\s`)
@@ -244,7 +247,14 @@ func (dep PomDependency) ImportPath() []PomDependency {
 func (dep PomDependency) ImportPathStack() string {
 	var paths []string
 	for _, p := range dep.ImportPath() {
-		paths = append(paths, fmt.Sprintf("[%s]", p.Index4()))
+		var ref, rpom string
+		if p.RefProperty != nil {
+			if p.Define != nil {
+				rpom = fmt.Sprintf("#[%s]", p.Define.Index4())
+			}
+			ref = fmt.Sprintf("${%s}=%s", p.RefProperty.Key, p.RefProperty.Value)
+		}
+		paths = append(paths, fmt.Sprintf("[%s]%s%s", p.Index4(), rpom, ref))
 	}
 	return strings.Join(paths, "<=")
 }

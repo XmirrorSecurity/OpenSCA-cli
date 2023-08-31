@@ -24,7 +24,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	// 记录module信息
 	modules := map[string]*Pom{}
 	for _, pom := range poms {
-		modules[filepath.Base(pom.File.Path())] = pom
+		modules[filepath.Base(filepath.Dir(pom.File.Path()))] = pom
 	}
 
 	// 记录当前项目的pom信息
@@ -49,7 +49,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	// 将revision主动推送到所有modules
 	for _, pom := range poms {
 		if revision, ok := pom.Properties["revision"]; ok {
-			_ = revision
 			for _, name := range pom.Modules {
 				if p, ok := modules[name]; ok {
 					if _, ok := p.Properties["revision"]; !ok {
@@ -68,6 +67,8 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		if pom.Properties == nil {
 			pom.Properties = PomProperties{}
 		}
+
+		pom.Update(&pom.PomDependency)
 
 		// 继承parent
 		parent := pom.Parent
@@ -147,7 +148,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				}
 				// import的dependencyManagement优先使用自身pom属性而非根pom属性
 				ipom.Update(idep)
-				// pom.Update(idep)
+				pom.Update(idep)
 				pom.DependencyManagement = append(pom.DependencyManagement, idep)
 			}
 		}
@@ -182,10 +183,18 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 					continue
 				}
 
+				// 丢弃子依赖的test依赖
+				if np != pom && dep.Scope == "test" {
+					continue
+				}
+
 				// 间接依赖优先通过dependencyManagement补全
 				if np != pom || dep.Version == "" {
 					if d, ok := depManagement[dep.Index2()]; ok {
+						// exclusion 需要保留
+						exclusion := append(dep.Exclusions, d.Exclusions...)
 						dep = d
+						dep.Exclusions = exclusion
 					}
 				}
 
