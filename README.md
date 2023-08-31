@@ -44,8 +44,7 @@
    ```shell
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
-   go work init cli analyzer util
-   go build -o opensca-cli cli/main.go
+   go build -o opensca-cli main.go
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
@@ -53,9 +52,9 @@
    - 禁用`CGO_ENABLED`
      `CGO_ENABLED=0`
    - 指定操作系统
-     `GOOS=${OS} \\ darwin,freebsd,liunx,windows`
+     `GOOS=${OS} \\ darwin,liunx,windows`
    - 指定体系架构
-     `GOARCH=${arch} \\ 386,amd64,arm`
+     `GOARCH=${arch} \\ amd64,arm64`
 
 ## 使用样例
 
