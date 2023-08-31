@@ -79,11 +79,14 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			if parentPom == nil {
 				break
 			}
+			parentPom.PomDependency = parent
 			parent = parentPom.Parent
 
 			// 继承properties
 			for k, v := range parentPom.Properties {
-				pom.Properties[k] = v
+				if _, ok := pom.Properties[k]; !ok {
+					pom.Properties[k] = v
+				}
 			}
 
 			// 继承dependencyManagement
@@ -135,6 +138,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			if ipom == nil {
 				continue
 			}
+			ipom.PomDependency = *dep
 
 			// 复制dependencyManagement内容
 			for _, idep := range ipom.DependencyManagement {
@@ -143,6 +147,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				}
 				// import的dependencyManagement优先使用自身pom属性而非根pom属性
 				ipom.Update(idep)
+				// pom.Update(idep)
 				pom.DependencyManagement = append(pom.DependencyManagement, idep)
 			}
 		}
@@ -191,6 +196,8 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				if np.NeedExclusion(*dep) {
 					continue
 				}
+
+				logs.Debugf("find %s", dep.ImportPathStack())
 
 				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
 				if sub.Expand == nil {
@@ -320,7 +327,11 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRe
 	}
 }
 
-func MvnTree(dirpath string) []*model.DepGraph {
+func MvnTree(dir *model.File) []*model.DepGraph {
+
+	if dir == nil {
+		return nil
+	}
 
 	if _, err := exec.LookPath("mvn"); err != nil {
 		return nil
@@ -333,7 +344,7 @@ func MvnTree(dirpath string) []*model.DepGraph {
 	}
 	defer os.Chdir(pwd)
 
-	os.Chdir(dirpath)
+	os.Chdir(dir.Abspath)
 	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -361,6 +372,7 @@ func MvnTree(dirpath string) []*model.DepGraph {
 			tree = false
 			root := parseMvnTree(lines)
 			if root != nil {
+				root.Path = dir.Relpath
 				roots = append(roots, root)
 			}
 			lines = nil

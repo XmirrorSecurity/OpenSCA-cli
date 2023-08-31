@@ -45,7 +45,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	// 调用mvn解析
-	deps := MvnTree(parent.Abspath)
+	deps := MvnTree(parent)
 	if len(deps) > 0 {
 		return deps
 	}
@@ -55,7 +55,9 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	for _, file := range files {
 		if filter.JavaPom(file.Relpath) {
 			file.OpenReader(func(reader io.Reader) {
-				poms = append(poms, ReadPom(reader))
+				pom := ReadPom(reader)
+				pom.File = file
+				poms = append(poms, pom)
 			})
 		}
 	}

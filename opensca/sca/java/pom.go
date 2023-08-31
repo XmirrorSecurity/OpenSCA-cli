@@ -228,3 +228,23 @@ func trimSpace(p *PomDependency) {
 func (dep PomDependency) Check() bool {
 	return !(dep.ArtifactId == "" || dep.GroupId == "" || dep.Version == "" || strings.Contains(dep.GAV(), "$"))
 }
+
+// ImportPath 引入路径
+func (dep PomDependency) ImportPath() []PomDependency {
+	paths := []PomDependency{dep}
+	pom := dep.Define
+	for pom != nil {
+		paths = append(paths, pom.PomDependency)
+		pom = pom.Define
+	}
+	return paths
+}
+
+// ImportPathStack 引入路径栈
+func (dep PomDependency) ImportPathStack() string {
+	var paths []string
+	for _, p := range dep.ImportPath() {
+		paths = append(paths, fmt.Sprintf("[%s]", p.Index4()))
+	}
+	return strings.Join(paths, "<=")
+}
