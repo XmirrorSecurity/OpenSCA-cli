@@ -268,9 +268,11 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *P
 	return p
 }
 
-func RegisterMavenOrigin(origin func(groupId, artifactId, version string, repos ...MvnRepo) *Pom) {
+func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) {
 	if origin != nil {
-		mavenOrigin = origin
+		mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *Pom {
+			return origin(groupId, artifactId, version)
+		}
 	}
 }
 
@@ -293,15 +295,17 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRe
 		return
 	}
 
-	if len(repos) == 0 {
-		repos = defaultRepo
-	}
+	repoSet := map[string]bool{}
 
-	for _, repo := range repos {
+	for _, repo := range append(defaultRepo, repos...) {
 
 		if repo.Url == "" {
 			continue
 		}
+		if repoSet[repo.Url] {
+			continue
+		}
+		repoSet[repo.Url] = true
 
 		url := fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
 			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version,
@@ -399,7 +403,7 @@ func MvnTree(dir *model.File) []*model.DepGraph {
 func parseMvnTree(lines []string) *model.DepGraph {
 
 	// 记录当前的顶点节点列表
-	var tops []*model.DepGraph
+	var tops = []*model.DepGraph{}
 	// 上一层级
 	lastLevel := -1
 
@@ -443,9 +447,11 @@ func parseMvnTree(lines []string) *model.DepGraph {
 			dep.Develop = true
 		}
 
-		tops[len(tops)-1].AppendChild(dep)
+		if level > 0 {
+			tops[level-1].AppendChild(dep)
+		}
 
-		tops = append(tops[:len(tops)-lastLevel+level-1], dep)
+		tops = append(tops[:level], dep)
 
 		lastLevel = level
 	}

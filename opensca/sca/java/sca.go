@@ -46,7 +46,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		return deps
 	}
 
-	// 调用mvn解析
+	// 调用mvn
 	if !sca.NotUseMvn {
 		deps := MvnTree(parent)
 		if len(deps) > 0 {
@@ -54,7 +54,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 
-	// 模拟maven构建
+	// 静态解析
 	poms := []*Pom{}
 	for _, file := range files {
 		if filter.JavaPom(file.Relpath) {
