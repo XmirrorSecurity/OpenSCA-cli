@@ -44,15 +44,14 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
    ```shell
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
    cd opensca
-   go work init cli analyzer util
-   go build -o opensca-cli cli/main.go
+   go build -o opensca-cli main.go
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
 
    - Disable `CGO_ENABLED` `CGO_ENABLED=0`
-   - Set the operating system `GOOS=${OS} \\ darwin,freebsd,liunx,windows`
-   - Set the architecture `GOARCH=${arch} \\ 386,amd64,arm`
+   - Set the operating system `GOOS=${OS} \\ darwin,liunx,windows`
+   - Set the architecture `GOARCH=${arch} \\ amd64,arm64`
 
 ## Samples
 

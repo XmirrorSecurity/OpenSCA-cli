@@ -22,7 +22,7 @@ builds:
     id: opensca-cli
     dir: .
     binary: opensca-cli
-    main: ./cli/
+    main: ./
 archives:
   - name_template: >-
       {{.ProjectName}}_{{.Tag}}_{{- title .Os}}_
