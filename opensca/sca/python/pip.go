@@ -66,3 +66,56 @@ func ParsePipfileLock(file *model.File) *model.DepGraph {
 
 	return root
 }
+
+func ParseRequirementTxt(file *model.File) *model.DepGraph {
+
+	root := &model.DepGraph{Path: file.Path()}
+
+	file.ReadLine(func(line string) {
+
+		if strings.HasPrefix(line, `-r`) {
+			return
+		}
+
+		if i := strings.Index(line, "#"); i != -1 {
+			line = line[:i]
+		}
+
+		line = strings.TrimSpace(strings.Split(line, ";")[0])
+		if strings.ContainsAny(line, `#$%`) || len(line) == 0 {
+			return
+		}
+
+		if i := strings.IndexAny(line, "=!<>~"); i == -1 {
+			root.AppendChild(&model.DepGraph{Name: line})
+		} else {
+			root.AppendChild(&model.DepGraph{Name: line[:i], Version: line[i:]})
+		}
+
+	})
+
+	return root
+}
+
+func ParseRequirementIn(file *model.File) *model.DepGraph {
+
+	root := &model.DepGraph{Path: file.Path()}
+
+	file.ReadLine(func(line string) {
+
+		if strings.HasPrefix(line, `#`) {
+			return
+		}
+
+		words := strings.Fields(line)
+		if len(words) > 0 {
+			dep := &model.DepGraph{}
+			dep.Name = words[0]
+			dep.Version = strings.Join(words[1:], "")
+			root.AppendChild(dep)
+		}
+
+	})
+
+	return root
+}

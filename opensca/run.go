@@ -55,19 +55,25 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 	}
 
 	err = walk.Walk(ctx, arg.Name, arg.DataOrigin, func(relpath string) bool {
+
 		if arg.ExtractFileFilter != nil && arg.ExtractFileFilter(relpath) {
 			return true
 		}
+
 		for _, sca := range arg.Sca {
 			if sca.Filter(relpath) {
 				return true
 			}
 		}
+
 		return false
+
 	}, func(parent *model.File, files []*model.File) {
+
 		if arg.WalkFileFunc != nil {
 			arg.WalkFileFunc(parent, files)
 		}
+
 		for _, sca := range arg.Sca {
 			for _, dep := range sca.Sca(ctx, parent, files) {
 				if dep == nil {
@@ -77,6 +83,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 				deps = append(deps, dep)
 			}
 		}
+
 	})
 	return
 }
