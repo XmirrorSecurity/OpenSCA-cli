@@ -105,6 +105,16 @@ func Test_Java(t *testing.T) {
 				),
 			),
 		)},
+
+		// 同一个pom中存在厂商和组件相同的依赖时使用后声明的依赖
+		{"7", tool.Dep("", "", "",
+			tool.Dep("my.foo", "demo", "1.4.10",
+				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.6.20",
+					tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib-common", "1.6.20"),
+					tool.Dep("org.jetbrains", "annotations", "13.0"),
+				),
+			),
+		)},
 	}
 
 	for _, c := range cases {

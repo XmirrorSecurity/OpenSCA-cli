@@ -103,7 +103,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 		// 删除重复依赖项
 		depIndex2Set := map[string]bool{}
-		for i := len(pom.Dependencies) - 1; i > 0; i-- {
+		for i := len(pom.Dependencies) - 1; i >= 0; i-- {
 			dep := pom.Dependencies[i]
 			if depIndex2Set[dep.Index2()] {
 				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)

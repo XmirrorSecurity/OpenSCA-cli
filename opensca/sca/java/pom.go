@@ -178,6 +178,16 @@ func ReadPom(reader io.Reader) *Pom {
 		}
 	}
 
+	// 存在厂商和组件相同的依赖时保留最后声明的
+	depSet := map[string]bool{}
+	for i := len(p.Dependencies) - 1; i >= 0; i-- {
+		if depSet[p.Dependencies[i].Index2()] {
+			p.Dependencies = append(p.Dependencies[:i], p.Dependencies[i+1:]...)
+		} else {
+			depSet[p.Dependencies[i].Index2()] = true
+		}
+	}
+
 	return p
 }
 
