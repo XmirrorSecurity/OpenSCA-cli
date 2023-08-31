@@ -9,7 +9,9 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
 
-type Sca struct{}
+type Sca struct {
+	NotUseMvn bool
+}
 
 func (sca Sca) Language() model.Language {
 	return model.Lan_Java
@@ -45,9 +47,11 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	// 调用mvn解析
-	deps := MvnTree(parent)
-	if len(deps) > 0 {
-		return deps
+	if !sca.NotUseMvn {
+		deps := MvnTree(parent)
+		if len(deps) > 0 {
+			return deps
+		}
 	}
 
 	// 模拟maven构建
@@ -61,8 +65,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			})
 		}
 	}
-	deps = append(deps, ParsePoms(poms)...)
-	return deps
+	return ParsePoms(poms)
 }
 
 type MvnRepo struct {
