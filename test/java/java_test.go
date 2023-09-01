@@ -90,7 +90,7 @@ func Test_Java(t *testing.T) {
 			),
 		)},
 
-		// import属性优先使用自身pom而非根pom中的属性
+		// import使用自身pom而非根pom中的属性
 		{"6", tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.4.10",
 				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.6.21",
@@ -112,6 +112,15 @@ func Test_Java(t *testing.T) {
 				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.6.20",
 					tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib-common", "1.6.20"),
 					tool.Dep("org.jetbrains", "annotations", "13.0"),
+				),
+			),
+		)},
+
+		// 子依赖使用本身的pom而非根pom
+		{"8", tool.Dep("", "", "",
+			tool.Dep("my.foo", "demo", "1.0",
+				tool.Dep("org.redisson", "redisson-spring-boot-starter", "3.18.0",
+					tool.Dep("org.redisson", "redisson", "3.18.0"),
 				),
 			),
 		)},
