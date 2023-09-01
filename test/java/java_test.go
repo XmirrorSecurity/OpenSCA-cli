@@ -118,6 +118,20 @@ func Test_Java(t *testing.T) {
 				),
 			),
 		)},
+
+		// 存在多个厂商和组件名相同的间接依赖时保留最新声明的
+		{"9", tool.Dep("", "", "",
+			tool.Dep("my.foo", "demo", "1.0",
+				tool.Dep("org.springframework.boot", "spring-boot-starter-json", "2.7.14",
+					tool.Dep("com.fasterxml.jackson.core", "jackson-databind", "2.13.5",
+						tool.Dep("com.fasterxml.jackson.core", "jackson-annotations", "2.13.5"),
+					),
+				),
+				tool.Dep("com.alibaba.nacos", "nacos-client", "2.0.4",
+					tool.Dep("com.fasterxml.jackson.core", "jackson-core", "2.12.2"),
+				),
+			),
+		)},
 	}
 
 	for _, c := range cases {
@@ -133,10 +147,9 @@ func Test_Java(t *testing.T) {
 			for _, dep := range deps {
 				result.AppendChild(dep)
 			}
-			result.ForEachNode(func(p, n *model.DepGraph) bool { n.Path = ""; return true })
 
 			if tool.Diff(result, c.Result) {
-				t.Errorf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false), c.Result.Tree(false))
+				t.Errorf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false, true), c.Result.Tree(false, true))
 			}
 
 		})

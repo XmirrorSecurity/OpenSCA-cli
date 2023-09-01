@@ -117,9 +117,9 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				depIndex2Set[dep.Index2()] = true
 			}
 		}
-		depIndex2Set = map[string]bool{}
 
 		// 处理dependencyManagement
+		depIndex2Set = map[string]bool{}
 		depManagement := map[string]*PomDependency{}
 		for i := 0; i < len(pom.DependencyManagement); {
 
@@ -171,6 +171,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		root.Expand = pom
 
 		// 解析子依赖构建依赖关系
+		depIndex2Set = map[string]bool{}
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 
 			if n.Expand == nil {
@@ -212,22 +213,49 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 					continue
 				}
 
+				// 保留先声明的组件
+				if depIndex2Set[dep.Index2()] {
+					continue
+				}
+				depIndex2Set[dep.Index2()] = true
+
 				logs.Debugf("find %s", dep.ImportPathStack())
 
 				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
-				if sub.Expand == nil {
-					subpom := getpom(*dep, np.Repositories, np.Mirrors)
-					if subpom != nil {
-						subpom.PomDependency = *dep
-						subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-						sub.Expand = subpom
-						sub.Develop = dep.Scope == "test"
-					}
-				} else {
+
+				if sub.Expand != nil {
 					if dep.Scope != "test" {
 						sub.Develop = false
 					}
+					continue
 				}
+
+				subpom := getpom(*dep, np.Repositories, np.Mirrors)
+				if subpom == nil {
+					continue
+				}
+
+				subpom.PomDependency = *dep
+				// 继承根pom的exclusion
+				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
+
+				// 子依赖继承自身parent属性
+				subParent := subpom.Parent
+				for subParent.ArtifactId != "" {
+					subParentPom := getpom(subParent, np.Repositories, np.Mirrors)
+					if subParentPom == nil {
+						break
+					}
+					for k, v := range subParentPom.Properties {
+						if _, ok := subpom.Properties[k]; !ok {
+							subpom.Properties[k] = v
+						}
+					}
+					subParent = subParentPom.Parent
+				}
+
+				sub.Expand = subpom
+				sub.Develop = dep.Scope == "test"
 				n.AppendChild(sub)
 			}
 

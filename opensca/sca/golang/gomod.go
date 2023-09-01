@@ -28,7 +28,7 @@ func ParseGosum(file *model.File) *model.DepGraph {
 	root := ParseGomod(file)
 
 	exist := map[string]bool{}
-	for dep := range root.Children {
+	for _, dep := range root.Children {
 		exist[dep.Name] = true
 	}
 

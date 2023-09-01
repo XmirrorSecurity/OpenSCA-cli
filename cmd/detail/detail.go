@@ -53,7 +53,7 @@ func NewDepDetailGraph(dep *model.DepGraph) *DepDetailGraph {
 	dep.ForEachNode(func(p, n *model.DepGraph) bool {
 		detail := n.Expand.(*DepDetailGraph)
 		detail.Update(n)
-		for c := range n.Children {
+		for _, c := range n.Children {
 			cd := &DepDetailGraph{ID: ID(), Parent: detail}
 			c.Expand = cd
 			detail.Children = append(detail.Children, cd)

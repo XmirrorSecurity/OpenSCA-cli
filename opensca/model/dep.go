@@ -23,9 +23,9 @@ type DepGraph struct {
 	// 仅用于开发环境
 	Develop bool
 	// 父节点
-	Parents map[*DepGraph]bool
+	Parents []*DepGraph
 	// 子节点
-	Children map[*DepGraph]bool
+	Children []*DepGraph
 	// 附加信息
 	Expand any
 }
@@ -35,20 +35,24 @@ func (dep *DepGraph) AppendChild(child *DepGraph) {
 	if dep == nil || child == nil {
 		return
 	}
-	if dep.Children == nil {
-		dep.Children = map[*DepGraph]bool{}
-	}
-	if child.Parents == nil {
-		child.Parents = map[*DepGraph]bool{}
-	}
-	dep.Children[child] = true
-	child.Parents[dep] = true
+	dep.Children = append(dep.Children, child)
+	child.Parents = append(child.Parents, dep)
 }
 
 // RemoveChild 移除子依赖
 func (dep *DepGraph) RemoveChild(child *DepGraph) {
-	delete(dep.Children, child)
-	delete(child.Parents, dep)
+	for i, c := range dep.Children {
+		if c == child {
+			dep.Children = append(dep.Children[:i], dep.Children[i+1:]...)
+			break
+		}
+	}
+	for i, p := range child.Parents {
+		if p == dep {
+			child.Parents = append(child.Parents[:i], child.Parents[i+1:]...)
+			break
+		}
+	}
 }
 
 func (dep *DepGraph) AppendLicense(lic string) {
@@ -80,7 +84,7 @@ func (dep *DepGraph) FlushDevelop() {
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 去除非实际引用的关系
 		if !n.Develop {
-			for p := range n.Parents {
+			for _, p := range n.Parents {
 				if p.Develop {
 					p.RemoveChild(n)
 				}
@@ -95,7 +99,7 @@ func (dep *DepGraph) FlushDevelop() {
 // lan: 更新依赖语言
 func (dep *DepGraph) Build(deep bool, lan Language) {
 	dep.FlushDevelop()
-	dep.ForEach(deep, false, func(p, n *DepGraph) bool {
+	dep.ForEach(deep, false, false, func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
 			n.Path = p.Path
@@ -111,25 +115,12 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 	})
 }
 
-// ToTree 转为依赖树结构 多个父节点时只会保留一个 操作不可逆
-// deep: 节点遍历顺序 true=>深度优先 false=>广度优先 推荐false
-func (dep *DepGraph) ToTree(deep bool) {
-	dep.ForEach(deep, false, func(p, n *DepGraph) bool {
-		for np := range n.Parents {
-			if np != p {
-				np.RemoveChild(n)
-			}
-		}
-		return true
-	})
-}
-
 // IsDevelop 判断是否为开发依赖
 func (dep *DepGraph) IsDevelop() bool {
 	if len(dep.Parents) == 0 || dep.Develop {
 		return dep.Develop
 	}
-	for p := range dep.Parents {
+	for _, p := range dep.Parents {
 		if !p.Develop {
 			return false
 		}
@@ -141,10 +132,10 @@ func (dep *DepGraph) IsDevelop() bool {
 func (dep *DepGraph) RemoveDevelop() {
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		if n.Develop {
-			for c := range n.Children {
+			for _, c := range n.Children {
 				n.RemoveChild(c)
 			}
-			for p := range n.Parents {
+			for _, p := range n.Parents {
 				p.RemoveChild(n)
 			}
 			n = nil
@@ -157,7 +148,8 @@ func (dep *DepGraph) RemoveDevelop() {
 // Tree 依赖树
 // 注意依赖树固定深度优先遍历 依赖路径是广度优先构建时返回的依赖树结构与实际不一致
 // path: true=>记录全部路径 false=>记录全部节点
-func (dep *DepGraph) Tree(path bool) string {
+// name: true=>名称升序排序 false=>添加顺序排列
+func (dep *DepGraph) Tree(path, name bool) string {
 
 	if dep == nil {
 		return ""
@@ -165,7 +157,7 @@ func (dep *DepGraph) Tree(path bool) string {
 
 	sb := strings.Builder{}
 
-	dep.ForEach(true, path, func(p, n *DepGraph) bool {
+	dep.ForEach(true, path, name, func(p, n *DepGraph) bool {
 
 		if p == nil {
 			n.Expand = 0
@@ -186,10 +178,11 @@ func (dep *DepGraph) Tree(path bool) string {
 // ForEach 遍历依赖图
 // deep: true=>深度优先 false=>广度优先
 // path: true=>遍历所有路径 false=>遍历所有节点
+// name: true=>按名称顺序迭代子节点 false=>按添加顺序迭代子节点
 // do: 对当前节点的操作 返回true代表继续迭代子节点
 // do.p: 路径父节点
 // do.n: 路径子节点
-func (dep *DepGraph) ForEach(deep, path bool, do func(p, n *DepGraph) bool) {
+func (dep *DepGraph) ForEach(deep, path, name bool, do func(p, n *DepGraph) bool) {
 
 	if dep == nil {
 		return
@@ -240,11 +233,12 @@ func (dep *DepGraph) ForEach(deep, path bool, do func(p, n *DepGraph) bool) {
 			continue
 		}
 
-		var next []*DepGraph
-		for c := range n.n.Children {
-			next = append(next, c)
+		next := make([]*DepGraph, len(n.n.Children))
+		copy(next, n.n.Children)
+
+		if name {
+			sort.Slice(next, func(i, j int) bool { return next[i].Name < next[j].Name })
 		}
-		sort.Slice(next, func(i, j int) bool { return next[i].Name < next[j].Name })
 
 		if deep {
 			for i, j := 0, len(next)-1; i < j; i, j = i+1, j-1 {
@@ -264,12 +258,12 @@ func (dep *DepGraph) ForEach(deep, path bool, do func(p, n *DepGraph) bool) {
 
 // ForEachPath 遍历依赖图路径
 func (dep *DepGraph) ForEachPath(do func(p, n *DepGraph) bool) {
-	dep.ForEach(false, true, do)
+	dep.ForEach(false, true, false, do)
 }
 
 // ForEachNode 遍历依赖图节点
 func (dep *DepGraph) ForEachNode(do func(p, n *DepGraph) bool) {
-	dep.ForEach(false, false, do)
+	dep.ForEach(false, false, false, do)
 }
 
 type DepGraphMap struct {
