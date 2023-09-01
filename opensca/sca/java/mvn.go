@@ -27,6 +27,19 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		modules[filepath.Base(filepath.Dir(pom.File.Path()))] = pom
 	}
 
+	// 将revision主动推送到所有modules
+	for _, pom := range poms {
+		if revision, ok := pom.Properties["revision"]; ok {
+			for _, name := range pom.Modules {
+				if p, ok := modules[name]; ok {
+					if _, ok := p.Properties["revision"]; !ok {
+						p.Properties["revision"] = revision
+					}
+				}
+			}
+		}
+	}
+
 	// 记录当前项目的pom信息
 	gavMap := map[string]*Pom{}
 	for _, pom := range poms {
@@ -44,19 +57,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			rs = append(rs, repo...)
 		}
 		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
-	}
-
-	// 将revision主动推送到所有modules
-	for _, pom := range poms {
-		if revision, ok := pom.Properties["revision"]; ok {
-			for _, name := range pom.Modules {
-				if p, ok := modules[name]; ok {
-					if _, ok := p.Properties["revision"]; !ok {
-						p.Properties["revision"] = revision
-					}
-				}
-			}
-		}
 	}
 
 	var roots []*model.DepGraph
@@ -148,7 +148,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				}
 				// import的dependencyManagement优先使用自身pom属性而非根pom属性
 				ipom.Update(idep)
-				pom.Update(idep)
 				pom.DependencyManagement = append(pom.DependencyManagement, idep)
 			}
 		}
