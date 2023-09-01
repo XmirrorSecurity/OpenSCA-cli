@@ -40,16 +40,22 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		}
 	}
 
-	// 记录当前项目的pom信息
-	gavMap := map[string]*Pom{}
+	// 记录当前项目的pom文件信息
+	gavMap := map[string]*model.File{}
 	for _, pom := range poms {
 		pom.Update(&pom.PomDependency)
-		gavMap[pom.GAV()] = pom
+		gavMap[pom.GAV()] = pom.File
 	}
 
 	// 获取对应的pom信息
 	getpom := func(dep PomDependency, repos ...[]MvnRepo) *Pom {
-		if p, ok := gavMap[dep.GAV()]; ok {
+		var p *Pom
+		if f, ok := gavMap[dep.GAV()]; ok {
+			f.OpenReader(func(reader io.Reader) {
+				p = ReadPom(reader)
+			})
+		}
+		if p != nil {
 			return p
 		}
 		var rs []MvnRepo
@@ -119,6 +125,8 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 			dep := pom.DependencyManagement[i]
 
+			pom.Update(dep)
+
 			// 去重 保留第一个声明
 			if depIndex2Set[dep.Index2()] {
 				pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
@@ -134,7 +142,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			}
 
 			// 引入scope为import的pom
-			pom.Update(dep)
 			ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
 			if ipom == nil {
 				continue
@@ -146,7 +153,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				if depIndex2Set[idep.Index2()] {
 					continue
 				}
-				// import的dependencyManagement优先使用自身pom属性而非根pom属性
+				// import的dependencyManagement使用自身pom属性而非根pom属性
 				ipom.Update(idep)
 				pom.DependencyManagement = append(pom.DependencyManagement, idep)
 			}
@@ -194,10 +201,10 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 						exclusion := append(dep.Exclusions, d.Exclusions...)
 						dep = d
 						dep.Exclusions = exclusion
+						pom.Update(dep)
 					}
 				}
 
-				pom.Update(dep)
 				np.Update(dep)
 
 				// 查看是否在Exclusion列表中

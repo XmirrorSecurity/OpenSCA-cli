@@ -34,18 +34,18 @@ type PomDependency struct {
 	RelativePath string           `xml:"relativePath"`
 	Optional     bool             `xml:"optional"`
 	Exclusions   []*PomDependency `xml:"exclusions>exclusion"`
+	Define       *Pom             `xml:"-"`
+	RefProperty  *Property        `xml:"-"`
 	// Start        int              `xml:",start"`
 	// End          int              `xml:",end"`
-	Define      *Pom      `xml:"-"`
-	RefProperty *Property `xml:"-"`
 }
 
 type Property struct {
-	Key   string
-	Value string
+	Key    string
+	Value  string
+	Define *Pom
 	// Start  int
 	// End    int
-	Define *Pom
 }
 
 type PomProperties map[string]*Property
@@ -246,7 +246,12 @@ func (dep PomDependency) Check() bool {
 func (dep PomDependency) ImportPath() []PomDependency {
 	paths := []PomDependency{dep}
 	pom := dep.Define
+	pomset := map[*Pom]bool{}
 	for pom != nil {
+		if pomset[pom] {
+			break
+		}
+		pomset[pom] = true
 		paths = append(paths, pom.PomDependency)
 		pom = pom.Define
 	}
