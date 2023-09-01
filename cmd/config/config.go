@@ -28,6 +28,8 @@ type Config struct {
 	Maven []RepoConfig `json:"maven"`
 	// data origin
 	Origin map[string]OriginConfig `json:"origin"`
+
+	Version bool `json:"-"`
 }
 
 type RepoConfig struct {
@@ -41,21 +43,15 @@ type OriginConfig struct {
 	Table string `json:"table"`
 }
 
-var _config = DefalutConfig()
+var _config = &Config{
+	Maven: []RepoConfig{
+		{Repo: `https://repo.maven.apache.org/maven2/`},
+		{Repo: `https://maven.aliyun.com/repository/public`},
+	},
+}
 
 func Conf() *Config {
 	return _config
-}
-
-// DefalutConfig 默认配置
-func DefalutConfig() *Config {
-	return &Config{
-		Url: "https://opensca.xmirror.cn",
-		Maven: []RepoConfig{
-			{Repo: `https://repo.maven.apache.org/maven2/`},
-			{Repo: `https://maven.aliyun.com/repository/public`},
-		},
-	}
 }
 
 // WriteConfig 写入配置
@@ -139,6 +135,7 @@ func CreateConfigFile(filepath string) {
 func ParseArgs() {
 	var config string
 	flag.StringVar(&config, "config", "", "(可选) 指定配置文件路径,指定后启动程序时将默认使用配置参数，配置参数与命令行输入参数冲突时优先使用输入参数")
+	flag.BoolVar(&_config.Version, "version", false, "-version 打印版本信息")
 	flag.StringVar(&_config.Path, "path", _config.Path, "(必须) 指定要检测的文件或目录路径,例: -path ./foo 或 -path ./foo.zip")
 	flag.StringVar(&_config.Url, "url", _config.Url, "(可选,与token需一起使用) 从云漏洞库查询漏洞,指定要连接云服务的地址,例:-url https://opensca.xmirror.cn")
 	flag.StringVar(&_config.Token, "token", _config.Url, "(可选,与url需一起使用) 云服务验证token,需要在云服务平台申请")
@@ -149,7 +146,7 @@ func ParseArgs() {
 	flag.BoolVar(&_config.Dedup, "dedup", _config.Dedup, "(可选) 相同组件去重")
 	flag.BoolVar(&_config.DirOnly, "dironly", _config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
 	flag.StringVar(&_config.LogFile, "log", _config.LogFile, "(可选) 指定日志文件路径")
+	flag.Parse()
 	LoadConfig(config)
 	flag.Parse()
-	logs.CreateLog(_config.LogFile)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
 	"github.com/xmirrorsecurity/opensca-cli/opensca"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
 )
@@ -59,6 +60,7 @@ func main() {
 	} else if len(deps) == 1 {
 		root = deps[0]
 	}
+	logs.Debugf("dependencies tree:\n%s", root.Tree(false, false))
 
 	report.DepDetailGraph = detail.NewDepDetailGraph(root)
 
@@ -102,17 +104,13 @@ func main() {
 
 func args() {
 
-	var v bool
-	flag.BoolVar(&v, "version", false, "-version 打印版本信息")
+	config.ParseArgs()
+	logs.CreateLog(config.Conf().LogFile)
 
-	flag.Parse()
-
-	if v {
+	if config.Conf().Version {
 		fmt.Println(version)
 		os.Exit(0)
 	}
-
-	config.ParseArgs()
 
 	path := config.Conf().Path
 	if len(path) == 0 {

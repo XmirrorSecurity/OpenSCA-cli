@@ -54,11 +54,11 @@ func DefalutLogConfig() LogConfig {
 func CreateLog(logPath string) {
 
 	if logPath != "" {
-		if f, err := os.Open(logPath); err == nil {
+		if f, err := os.Create(logPath); err == nil {
 			log.SetOutput(f)
 			return
 		} else {
-			Warnf("open logfile %s fail %s, use default log\n", err, logPath)
+			Warnf("create logfile %s fail %s, use default log\n", logPath, err)
 		}
 	}
 
