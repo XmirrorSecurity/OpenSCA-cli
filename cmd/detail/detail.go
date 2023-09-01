@@ -20,6 +20,7 @@ type DepDetailGraph struct {
 	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
 	Children                []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
+	Parent                  *DepDetailGraph   `json:"-" xml:"-"`
 	IndirectVulnerabilities int               `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
 }
 
@@ -53,7 +54,7 @@ func NewDepDetailGraph(dep *model.DepGraph) *DepDetailGraph {
 		detail := n.Expand.(*DepDetailGraph)
 		detail.Update(n)
 		for c := range n.Children {
-			cd := &DepDetailGraph{ID: ID()}
+			cd := &DepDetailGraph{ID: ID(), Parent: detail}
 			c.Expand = cd
 			detail.Children = append(detail.Children, cd)
 		}
@@ -86,6 +87,25 @@ func (d *DepDetailGraph) ForEach(do func(n *DepDetailGraph) bool) {
 			q = append(q, n.Children...)
 		}
 	}
+}
+
+func (d *DepDetailGraph) Dedup() {
+	// map[key]
+	depSet := map[string]*DepDetailGraph{}
+	d.ForEach(func(n *DepDetailGraph) bool {
+		dep, ok := depSet[n.Key()]
+		if !ok {
+			depSet[n.Key()] = n
+			return true
+		}
+		dep.Paths = append(dep.Paths, n.Paths...)
+		for i, c := range dep.Parent.Children {
+			if c.ID == n.ID {
+				dep.Parent.Children = append(dep.Parent.Children[:i], dep.Parent.Children[i+1:]...)
+			}
+		}
+		return true
+	})
 }
 
 func (dep *DepDetailGraph) Purl() string {
@@ -197,8 +217,8 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 		}
 	}
 
+	// 合并本地和云端库搜索的漏洞
 	for i, detail := range details {
-		// 合并本地和云端库搜索的漏洞
 		exist := map[string]struct{}{}
 		if len(localVulns) != 0 {
 			for _, vuln := range localVulns[i] {
@@ -223,6 +243,31 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 			}
 		}
 	}
+
+	// 统计关联/间接漏洞
+	var deps []*DepDetailGraph
+	detailRoot.ForEach(func(n *DepDetailGraph) bool {
+		deps = append(deps, n)
+		return true
+	})
+	indirect := map[string]map[string]struct{}{}
+	for i := len(deps) - 1; i >= 0; i-- {
+		dep := deps[i]
+		// 记录当前依赖的关联漏洞
+		m := map[string]struct{}{}
+		for _, v := range dep.Vulnerabilities {
+			m[v.Id] = struct{}{}
+		}
+		for _, c := range dep.Children {
+			for id := range indirect[c.ID] {
+				m[id] = struct{}{}
+			}
+			delete(indirect, c.ID)
+		}
+		dep.IndirectVulnerabilities = len(m)
+		indirect[dep.ID] = m
+	}
+
 	return
 }
 

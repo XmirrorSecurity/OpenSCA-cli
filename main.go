@@ -60,14 +60,32 @@ func main() {
 		root = deps[0]
 	}
 
-	// 查询组件详情(漏洞/许可证)
 	report.DepDetailGraph = detail.NewDepDetailGraph(root)
+
+	// 组件去重
+	if config.Conf().Dedup {
+		report.Dedup()
+	}
+
+	// 查询组件详情(漏洞/许可证)
 	err = detail.SearchDetail(report.DepDetailGraph)
 	if err != nil {
 		if report.ErrorString != "" {
 			report.ErrorString += "\n"
 		}
 		report.ErrorString += err.Error()
+	}
+
+	// 仅保留漏洞组件
+	if config.Conf().VulnOnly {
+		var deps []*detail.DepDetailGraph
+		report.ForEach(func(n *detail.DepDetailGraph) bool {
+			if len(n.Vulnerabilities) > 0 {
+				deps = append(deps, n)
+			}
+			return true
+		})
+		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
 	}
 
 	// 记录检测时长

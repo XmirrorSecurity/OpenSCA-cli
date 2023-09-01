@@ -39,8 +39,6 @@ func Html(report Report, out string) {
 	// 遍历所有组件
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 
-		n.IndirectVulnerabilities = 0
-
 		// 组件风险
 		secid := 5
 		// 不同风险等级的漏洞数
