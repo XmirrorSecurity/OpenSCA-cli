@@ -462,7 +462,7 @@ func parseMvnTree(lines []string) *model.DepGraph {
 		lastLevel = level
 	}
 
-	if len(tops) > 1 {
+	if len(tops) > 0 {
 		return tops[0]
 	} else {
 		return nil
