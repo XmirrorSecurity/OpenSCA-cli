@@ -49,6 +49,9 @@ func dsdxDoc(report Report) *model.DsdxDocument {
 
 		childrenIds := []string{}
 		for _, c := range n.Children {
+			if c.Name == "" {
+				continue
+			}
 			childrenIds = append(childrenIds, c.ID)
 		}
 		doc.AppendDependencies(n.ID, childrenIds)

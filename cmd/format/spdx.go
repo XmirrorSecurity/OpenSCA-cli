@@ -48,6 +48,9 @@ func spdxDoc(report Report) *model.SpdxDocument {
 		doc.AddPackage(n.ID, n.Vendor, n.Name, n.Version, lics)
 
 		for _, c := range n.Children {
+			if c.Name == "" {
+				continue
+			}
 			doc.AddRelation(n.ID, c.ID)
 		}
 
