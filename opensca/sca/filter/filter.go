@@ -65,3 +65,11 @@ var (
 	}
 	PythonRequirementsIn = filterFunc(strings.HasSuffix, "requirements.in")
 )
+
+var (
+	SbomSpdx = filterFunc(strings.HasSuffix, ".spdx")
+	SbomDsdx = filterFunc(strings.HasSuffix, ".dsdx")
+	SbomJson = filterFunc(strings.HasSuffix, ".json")
+	SbomXml  = filterFunc(strings.HasSuffix, ".xml")
+	// SbomRdf  = filterFunc(strings.HasSuffix, ".rdf")
+)

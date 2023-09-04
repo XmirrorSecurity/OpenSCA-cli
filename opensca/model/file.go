@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
 type File struct {
@@ -21,17 +19,17 @@ func (file *File) Path() string {
 	return ""
 }
 
-func (file *File) OpenReader(do func(reader io.Reader)) {
+func (file *File) OpenReader(do func(reader io.Reader)) error {
 	if file == nil || file.Abspath == "" {
-		return
+		return nil
 	}
 	f, err := os.Open(file.Abspath)
 	if err != nil {
-		logs.Warnf("open file %s fail: %s", file.Relpath, err)
-		return
+		return err
 	}
 	defer f.Close()
 	do(f)
+	return nil
 }
 
 func (file File) ReadLine(do func(line string)) {

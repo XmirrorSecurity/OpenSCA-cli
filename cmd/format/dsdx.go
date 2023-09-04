@@ -10,42 +10,47 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
-func Spdx(report Report, out string) {
+func Dsdx(report Report, out string) {
 	outWrite(out, func(w io.Writer) {
-		err := spdxDoc(report).WriteSpdx(w)
+		err := dsdxDoc(report).WriteDsdx(w)
 		if err != nil {
 			logs.Warn(err)
 		}
 	})
 }
 
-func SpdxJson(report Report, out string) {
+func DsdxJson(report Report, out string) {
 	outWrite(out, func(w io.Writer) {
 		json.NewEncoder(w).Encode(spdxDoc(report))
 	})
 }
 
-func SpdxXml(report Report, out string) {
+func DsdxXml(report Report, out string) {
 	outWrite(out, func(w io.Writer) {
 		xml.NewEncoder(w).Encode(spdxDoc(report))
 	})
 }
 
-func spdxDoc(report Report) *model.SpdxDocument {
+func dsdxDoc(report Report) *model.DsdxDocument {
 
-	doc := model.NewSpdxDocument(report.AppName, report.EndTime)
+	doc := model.NewDsdxDocument(report.AppName, "opensca-cli", report.AppName)
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
+
 		lics := []string{}
 		for _, lic := range n.Licenses {
 			lics = append(lics, lic.ShortName)
 		}
-		doc.AddPackage(n.ID, n.Vendor, n.Name, n.Version, lics)
+		doc.AppendComponents(n.ID, n.Vendor, n.Name, n.Version, n.Language, lics)
+
+		childrenIds := []string{}
 		for _, c := range n.Children {
-			doc.AddRelation(n.ID, c.ID)
+			childrenIds = append(childrenIds, c.ID)
 		}
+		doc.AppendDependencies(n.ID, childrenIds)
+
 		return true
 	})
 
-	return doc
+	return nil
 }
