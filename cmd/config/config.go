@@ -44,6 +44,7 @@ type OriginConfig struct {
 }
 
 var _config = &Config{
+	ProgressBar: true,
 	Maven: []RepoConfig{
 		{Repo: `https://repo.maven.apache.org/maven2/`},
 		{Repo: `https://maven.aliyun.com/repository/public`},

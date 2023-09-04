@@ -3,7 +3,7 @@
   "out": "output.json",
 
   "vuln": false,
-  "dedup": true,
+  "dedup": false,
   "progress": true,
 
   "url": "https://opensca.xmirror.cn",
@@ -15,9 +15,10 @@
 
   "maven": [
     {
-      "repo": "",
-      "user": "",
-      "password": ""
+      "repo": "https://maven.aliyun.com/repository/public"
+    },
+    {
+      "repo": "https://repo.maven.apache.org/maven2/"
     }
   ]
 }

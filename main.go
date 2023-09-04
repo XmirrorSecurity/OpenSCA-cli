@@ -105,19 +105,21 @@ func main() {
 func args() {
 
 	config.ParseArgs()
-	logs.CreateLog(config.Conf().LogFile)
 
 	if config.Conf().Version {
 		fmt.Println(version)
 		os.Exit(0)
 	}
 
+	logs.CreateLog(config.Conf().LogFile)
+
 	path := config.Conf().Path
 	if len(path) == 0 {
 		flag.PrintDefaults()
-		return
+		os.Exit(0)
 	}
 
+	// 添加java使用的maven仓库
 	var repos []java.MvnRepo
 	for _, repo := range config.Conf().Maven {
 		repos = append(repos, java.MvnRepo{
