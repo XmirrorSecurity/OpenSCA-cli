@@ -45,7 +45,7 @@ func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
 	}).LoadOrStore
 
 	for _, pkg := range doc.Packages {
-		depIdMap[pkg.SPDXID] = _dep(pkg.PackageSupplier, pkg.PackageName, pkg.PackageVersion)
+		depIdMap[pkg.SPDXID] = _dep(pkg.Supplier, pkg.Name, pkg.Version)
 	}
 
 	for _, relation := range doc.Relationships {

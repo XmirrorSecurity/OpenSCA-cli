@@ -33,17 +33,24 @@ func SpdxXml(report Report, out string) {
 
 func spdxDoc(report Report) *model.SpdxDocument {
 
-	doc := model.NewSpdxDocument(report.AppName, report.EndTime)
+	doc := model.NewSpdxDocument(report.AppName)
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
+
+		if n.Name == "" {
+			return true
+		}
+
 		lics := []string{}
 		for _, lic := range n.Licenses {
 			lics = append(lics, lic.ShortName)
 		}
 		doc.AddPackage(n.ID, n.Vendor, n.Name, n.Version, lics)
+
 		for _, c := range n.Children {
 			doc.AddRelation(n.ID, c.ID)
 		}
+
 		return true
 	})
 

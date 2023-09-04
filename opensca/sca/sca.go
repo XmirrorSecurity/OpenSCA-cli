@@ -13,6 +13,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/python"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/ruby"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/rust"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/sbom"
 )
 
 type Sca interface {
@@ -31,4 +32,5 @@ var AllSca = []Sca{java.Sca{},
 	php.Sca{},
 	java.Sca{},
 	groovy.Sca{},
+	sbom.Sca{},
 }

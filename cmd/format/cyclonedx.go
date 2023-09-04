@@ -9,6 +9,7 @@ import (
 )
 
 func cyclonedxbom(dep *detail.DepDetailGraph) *cyclonedx.BOM {
+
 	metadata := cyclonedx.Metadata{}
 	components := []cyclonedx.Component{}
 	dependencies := []cyclonedx.Dependency{}

@@ -4,13 +4,26 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
 func ParseDsdx(f *model.File) *model.DepGraph {
-	// TODO
-	return nil
+	root := &model.DepGraph{}
+	f.ReadLine(func(line string) {
+
+		line = strings.TrimSpace(line)
+
+		if len(line) == 0 {
+			// new
+			return
+		}
+
+		// TODO
+
+	})
+	return root
 }
 
 func ParseDsdxJson(f *model.File) *model.DepGraph {
@@ -48,7 +61,6 @@ func parseDsdxDoc(doc *model.DsdxDocument) *model.DepGraph {
 		dep := _dep(c.Group, c.Name, c.Version)
 		dep.Language = model.Language(c.Language)
 		dep.Licenses = c.License
-		dep.Path = c.URL
 		depIdMap[c.ID] = dep
 	}
 

@@ -33,9 +33,13 @@ func DsdxXml(report Report, out string) {
 
 func dsdxDoc(report Report) *model.DsdxDocument {
 
-	doc := model.NewDsdxDocument(report.AppName, "opensca-cli", report.AppName)
+	doc := model.NewDsdxDocument(report.AppName, "opensca-cli")
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
+
+		if n.Name == "" {
+			return true
+		}
 
 		lics := []string{}
 		for _, lic := range n.Licenses {

@@ -44,14 +44,14 @@ type DsdxComponent struct {
 
 type DsdxDependencies map[string][]string
 
-func NewDsdxDocument(name, creator, project string) *DsdxDocument {
-	create := time.Now().Format("2006-01-02 15:04:05")
+func NewDsdxDocument(name, creator string) *DsdxDocument {
 	version := "DSDX-1.0"
+	create := time.Now().Format("2006-01-02 15:04:05.000000 -0700 -07")
 	id := fmt.Sprintf("DSDX-%s-%s-%s", name, version, create)
 	return &DsdxDocument{
 		Name:        name,
 		Creator:     creator,
-		ProjectName: project,
+		ProjectName: name,
 		CreateTime:  create,
 		DSDXVersion: version,
 		DSDXID:      id,
