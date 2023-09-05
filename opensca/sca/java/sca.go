@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
@@ -68,14 +69,14 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	return ParsePoms(poms)
 }
 
-type MvnRepo struct {
-	Url      string `json:"url" xml:"url"`
-	Username string
-	Password string
+var defaultMavenRepo = []common.RepoConfig{
+	{Url: "https://maven.aliyun.com/repository/public"},
+	{Url: "https://repo1.maven.org/maven2"},
 }
 
-var defaultRepo []MvnRepo
-
-func RegisterRepo(repos ...MvnRepo) {
-	defaultRepo = append(repos, repos...)
+func RegisterMavenRepo(repos ...common.RepoConfig) {
+	newRepo := common.TrimRepo(repos...)
+	if len(newRepo) > 0 {
+		defaultMavenRepo = newRepo
+	}
 }

@@ -18,8 +18,8 @@ type Pom struct {
 	DependencyManagement []*PomDependency `xml:"dependencyManagement>dependencies>dependency"`
 	Dependencies         []*PomDependency `xml:"dependencies>dependency"`
 	Modules              []string         `xml:"modules>module"`
-	Repositories         []MvnRepo        `xml:"repositories>repository"`
-	Mirrors              []MvnRepo        `xml:"mirrors>mirror"`
+	Repositories         []string         `xml:"repositories>repository>url"`
+	Mirrors              []string         `xml:"mirrors>mirror>url"`
 	Licenses             []string         `xml:"licenses>license>name"`
 	File                 *model.File      `xml:"-" json:"-"`
 }

@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
@@ -52,4 +53,15 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	return root
+}
+
+var defaultComposerRepo = []common.RepoConfig{
+	{Url: "https://repo.packagist.org/p2"},
+}
+
+func RegisterComposerRepo(repos ...common.RepoConfig) {
+	newRepo := common.TrimRepo(repos...)
+	if len(newRepo) > 0 {
+		defaultComposerRepo = newRepo
+	}
 }

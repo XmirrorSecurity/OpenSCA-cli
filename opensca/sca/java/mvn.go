@@ -3,7 +3,6 @@ package java
 import (
 	"bufio"
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,8 +11,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
@@ -48,7 +47,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	}
 
 	// 获取对应的pom信息
-	getpom := func(dep PomDependency, repos ...[]MvnRepo) *Pom {
+	getpom := func(dep PomDependency, repos ...[]string) *Pom {
 		var p *Pom
 		if f, ok := gavMap[dep.GAV()]; ok {
 			f.OpenReader(func(reader io.Reader) {
@@ -58,9 +57,11 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		if p != nil {
 			return p
 		}
-		var rs []MvnRepo
-		for _, repo := range repos {
-			rs = append(rs, repo...)
+		var rs []common.RepoConfig
+		for _, urls := range repos {
+			for _, url := range urls {
+				rs = append(rs, common.RepoConfig{Url: url})
+			}
 		}
 		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
 	}
@@ -268,7 +269,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	return roots
 }
 
-var mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *Pom {
+var mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {
 
 	var p *Pom
 
@@ -304,26 +305,13 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *P
 
 func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) {
 	if origin != nil {
-		mavenOrigin = func(groupId, artifactId, version string, repos ...MvnRepo) *Pom {
+		mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {
 			return origin(groupId, artifactId, version)
 		}
 	}
 }
 
-var httpClient = http.Client{
-	Transport: &http.Transport{
-		MaxIdleConns:        500,
-		MaxConnsPerHost:     500,
-		MaxIdleConnsPerHost: 500,
-		IdleConnTimeout:     30 * time.Second,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	},
-	Timeout: 10 * time.Second,
-}
-
-func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRepo) {
+func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...common.RepoConfig) {
 
 	if !dep.Check() {
 		return
@@ -331,7 +319,7 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRe
 
 	repoSet := map[string]bool{}
 
-	for _, repo := range append(defaultRepo, repos...) {
+	for _, repo := range append(defaultMavenRepo, repos...) {
 
 		if repo.Url == "" {
 			continue
@@ -354,7 +342,7 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...MvnRe
 			req.SetBasicAuth(repo.Username, repo.Password)
 		}
 
-		resp, err := httpClient.Do(req)
+		resp, err := common.HttpClient.Do(req)
 		if err != nil {
 			logs.Warn(err)
 			continue

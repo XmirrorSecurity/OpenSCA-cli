@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/titanous/json5"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
@@ -23,19 +24,13 @@ type Config struct {
 	Url   string `json:"url"`
 	Token string `json:"token"`
 	// local db
-	LocalDB string `json:"db"`
-	// prvate repository
-	Maven []RepoConfig `json:"maven"`
+	LocalDB  string              `json:"db"`
+	Maven    []common.RepoConfig `json:"maven"`
+	Composer []common.RepoConfig `json:"composer"`
 	// data origin
 	Origin map[string]OriginConfig `json:"origin"`
 
 	Version bool `json:"-"`
-}
-
-type RepoConfig struct {
-	Repo     string `json:"repo"`
-	User     string `json:"user"`
-	Password string `json:"password"`
 }
 
 type OriginConfig struct {
@@ -45,9 +40,12 @@ type OriginConfig struct {
 
 var _config = &Config{
 	ProgressBar: true,
-	Maven: []RepoConfig{
-		{Repo: `https://repo.maven.apache.org/maven2/`},
-		{Repo: `https://maven.aliyun.com/repository/public`},
+	Maven: []common.RepoConfig{
+		{Url: `https://repo.maven.apache.org/maven2/`},
+		{Url: `https://maven.aliyun.com/repository/public`},
+	},
+	Composer: []common.RepoConfig{
+		{Url: `https://repo.packagist.org/p2`},
 	},
 }
 

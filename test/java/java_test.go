@@ -1,29 +1,19 @@
 package java
 
 import (
-	"context"
 	"testing"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
 	"github.com/xmirrorsecurity/opensca-cli/test/tool"
 )
 
-func init() {
-	java.RegisterRepo(java.MvnRepo{Url: "https://maven.aliyun.com/repository/public"})
-}
-
 func Test_Java(t *testing.T) {
-
-	cases := []struct {
-		Path   string
-		Result *model.DepGraph
-	}{
+	java.RegisterMavenRepo(common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"})
+	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})([]tool.TaskCase{
 
 		// 使用parent属性
-		{"1", tool.Dep("", "", "",
+		{Path: "1", Result: tool.Dep("", "", "",
 			tool.Dep("com.foo", "demo", "1.0"),
 			tool.Dep("com.foo", "mod", "1.0",
 				tool.Dep("org.springframework", "spring-context", "4.3.6.RELEASE",
@@ -36,7 +26,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// exclusion排除子依赖
-		{"2", tool.Dep("", "", "",
+		{Path: "2", Result: tool.Dep("", "", "",
 			tool.Dep("com.foo", "demo", "1.0"),
 			tool.Dep("com.foo", "mod", "1.0",
 				tool.Dep("org.springframework", "spring-context", "4.3.6.RELEASE",
@@ -48,7 +38,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// dependencyManagement传递scope
-		{"3", tool.Dep("", "", "",
+		{Path: "3", Result: tool.Dep("", "", "",
 			tool.Dep("com.foo", "demo", "1.0"),
 			tool.Dep("com.foo", "mod", "1.0",
 				tool.Dep("org.springframework", "spring-context", "4.3.6.RELEASE",
@@ -61,7 +51,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// 继承parent依赖项 优先使用根pom的属性
-		{"4", tool.Dep("", "", "",
+		{Path: "4", Result: tool.Dep("", "", "",
 			tool.Dep("com.foo", "demo", "1.0",
 				tool.Dep("org.springframework", "spring-expression", "4.3.7.RELEASE"),
 				tool.Dep("org.springframework", "spring-context", "4.3.7.RELEASE",
@@ -81,7 +71,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// 属性多级引用
-		{"5", tool.Dep("", "", "",
+		{Path: "5", Result: tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.4.10",
 				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.4.10",
 					tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib-common", "1.4.10"),
@@ -91,7 +81,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// import使用自身pom而非根pom中的属性
-		{"6", tool.Dep("", "", "",
+		{Path: "6", Result: tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.4.10",
 				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.6.21",
 					tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib-common", "1.6.20"),
@@ -101,7 +91,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// 同一个pom中存在厂商和组件相同的依赖时使用后声明的依赖
-		{"7", tool.Dep("", "", "",
+		{Path: "7", Result: tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.4.10",
 				tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib", "1.6.20",
 					tool.Dep("org.jetbrains.kotlin", "kotlin-stdlib-common", "1.6.20"),
@@ -111,7 +101,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// 子依赖使用本身的pom而非根pom
-		{"8", tool.Dep("", "", "",
+		{Path: "8", Result: tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.0",
 				tool.Dep("org.redisson", "redisson-spring-boot-starter", "3.18.0",
 					tool.Dep("org.redisson", "redisson", "3.18.0"),
@@ -120,7 +110,7 @@ func Test_Java(t *testing.T) {
 		)},
 
 		// 存在多个厂商和组件名相同的间接依赖时保留最新声明的
-		{"9", tool.Dep("", "", "",
+		{Path: "9", Result: tool.Dep("", "", "",
 			tool.Dep("my.foo", "demo", "1.0",
 				tool.Dep("org.springframework.boot", "spring-boot-starter-json", "2.7.14",
 					tool.Dep("com.fasterxml.jackson.core", "jackson-databind", "2.13.5",
@@ -132,27 +122,5 @@ func Test_Java(t *testing.T) {
 				),
 			),
 		)},
-	}
-
-	for _, c := range cases {
-
-		t.Run(c.Path, func(t *testing.T) {
-
-			deps, _ := opensca.RunTask(context.Background(), &opensca.TaskArg{
-				DataOrigin: c.Path,
-				Sca:        []sca.Sca{java.Sca{NotUseMvn: true}},
-			})
-
-			result := &model.DepGraph{}
-			for _, dep := range deps {
-				result.AppendChild(dep)
-			}
-
-			if tool.Diff(result, c.Result) {
-				t.Errorf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false, true), c.Result.Tree(false, true))
-			}
-
-		})
-	}
-
+	})
 }

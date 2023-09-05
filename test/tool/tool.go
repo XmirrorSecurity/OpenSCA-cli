@@ -1,7 +1,12 @@
 package tool
 
 import (
+	"context"
+	"testing"
+
+	"github.com/xmirrorsecurity/opensca-cli/opensca"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
 )
 
 func Diff(a, b *model.DepGraph) bool {
@@ -31,4 +36,27 @@ func DevDep(vendor, name, version string, children ...*model.DepGraph) *model.De
 	root := Dep(vendor, name, version, children...)
 	root.Develop = true
 	return root
+}
+
+type TaskCase struct {
+	Path   string
+	Result *model.DepGraph
+}
+
+func RunTaskCase(t *testing.T, sca ...sca.Sca) func(cases []TaskCase) {
+	return func(cases []TaskCase) {
+		for _, c := range cases {
+			deps, _ := opensca.RunTask(context.Background(), &opensca.TaskArg{
+				DataOrigin: c.Path,
+				Sca:        sca,
+			})
+			result := &model.DepGraph{}
+			for _, dep := range deps {
+				result.AppendChild(dep)
+			}
+			if Diff(result, c.Result) {
+				t.Errorf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false, true), c.Result.Tree(false, true))
+			}
+		}
+	}
 }

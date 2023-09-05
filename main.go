@@ -14,6 +14,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 )
 
 var version string
@@ -119,21 +120,7 @@ func args() {
 		os.Exit(0)
 	}
 
-	// 添加java使用的maven仓库
-	var repos []java.MvnRepo
-	for _, repo := range config.Conf().Maven {
-		repos = append(repos, java.MvnRepo{
-			Url:      repo.Repo,
-			Username: repo.User,
-			Password: repo.Password,
-		})
-	}
-	if len(repos) == 0 {
-		repos = []java.MvnRepo{
-			{Url: "https://maven.aliyun.com/repository/public"},
-			{Url: "https://repo1.maven.org/maven2"},
-		}
-	}
-	java.RegisterRepo(repos...)
+	java.RegisterMavenRepo(config.Conf().Maven...)
+	php.RegisterComposerRepo(config.Conf().Composer...)
 
 }

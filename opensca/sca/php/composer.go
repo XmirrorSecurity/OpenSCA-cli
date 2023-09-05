@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
@@ -101,6 +102,10 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 	root.ForEachNode(func(p, n *model.DepGraph) bool {
 
+		if n.Expand == nil {
+			return true
+		}
+
 		pkg := n.Expand.(*ComposerPackage)
 		for _, lic := range pkg.License {
 			n.AppendLicense(lic)
@@ -108,7 +113,7 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 		for name, version := range pkg.Require {
 
-			subpkg := phpOrigin(name, version)
+			subpkg := composerOrigin(name, version)
 
 			if subpkg == nil {
 				n.AppendChild(_dep(name, version))
@@ -122,7 +127,7 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 		for name, version := range pkg.RequireDev {
 
-			subpkg := phpOrigin(name, version)
+			subpkg := composerOrigin(name, version)
 
 			if subpkg == nil {
 				dep := _dep(name, version)
@@ -145,9 +150,7 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 	return root
 }
 
-var phpOrigin = func(name, version string) *ComposerPackage {
-
-	var origin *ComposerPackage
+var composerOrigin = func(name, version string) *ComposerPackage {
 
 	findComposerJsonFromRepo := func(repo ComposerRepo) *ComposerPackage {
 		vers := []string{}
@@ -159,6 +162,7 @@ var phpOrigin = func(name, version string) *ComposerPackage {
 	}
 
 	// 读取缓存
+	var origin *ComposerPackage
 	path := cache.Path("", name, version, model.Lan_Php)
 	cache.Load(path, func(reader io.Reader) {
 		var repo ComposerRepo
@@ -174,41 +178,51 @@ var phpOrigin = func(name, version string) *ComposerPackage {
 	}
 
 	// 从composer仓库下载
-	url := fmt.Sprintf("https://repo.packagist.org/p2/%s.json", name)
-	if rep, err := http.Get(url); err == nil {
+	for _, repo := range defaultComposerRepo {
+
+		url := fmt.Sprintf("%s/%s.json", strings.TrimRight(repo.Url, "/"), name)
+		rep, err := common.HttpClient.Get(url)
+		if err != nil {
+			logs.Warnf("download %s err: %s", url, err)
+			continue
+		}
 		defer rep.Body.Close()
 
 		if rep.StatusCode != 200 {
 			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
 			io.Copy(io.Discard, rep.Body)
-		} else {
+			continue
+		}
 
-			logs.Infof("code:%d url:%s", rep.StatusCode, url)
-			data, err := io.ReadAll(rep.Body)
-			if err != nil {
-				logs.Warn(err)
-				return origin
-			}
+		logs.Infof("code:%d url:%s", rep.StatusCode, url)
+		data, err := io.ReadAll(rep.Body)
+		if err != nil {
+			logs.Warn(err)
+			continue
+		}
 
-			reader := bytes.NewReader(data)
-			var repo ComposerRepo
-			if err := json.NewDecoder(reader).Decode(&repo); err != nil {
-				logs.Warnf("unmarshal json from %s err: %s", url, err)
-				return origin
-			}
+		reader := bytes.NewReader(data)
+		var repo ComposerRepo
+		if err := json.NewDecoder(reader).Decode(&repo); err != nil {
+			logs.Warnf("unmarshal json from %s err: %s", url, err)
+			continue
+		}
 
-			reader.Seek(0, io.SeekStart)
-			cache.Save(path, reader)
-			origin = findComposerJsonFromRepo(repo)
+		reader.Seek(0, io.SeekStart)
+		cache.Save(path, reader)
+
+		origin = findComposerJsonFromRepo(repo)
+		if origin != nil {
+			return origin
 		}
 	}
 
-	return origin
+	return nil
 }
 
-func RegisterNpmOrigin(origin func(name, version string) *ComposerPackage) {
+func RegisterComposerOrigin(origin func(name, version string) *ComposerPackage) {
 	if origin != nil {
-		phpOrigin = origin
+		composerOrigin = origin
 	}
 }
 

@@ -1,7 +1,6 @@
 package walk
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jlaffaye/ftp"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 )
 
 // isHttp 是否为http/https协议
@@ -47,19 +47,6 @@ func download(origin string) (delete bool, output string, err error) {
 	return
 }
 
-var downloadHttpClient = &http.Client{
-	Transport: &http.Transport{
-		MaxIdleConns:        50,
-		MaxConnsPerHost:     50,
-		MaxIdleConnsPerHost: 50,
-		IdleConnTimeout:     30 * time.Second,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	},
-	Timeout: 10 * time.Second,
-}
-
 // downloadFromHttp 下载url并保存到目标文件 支持分片下载
 func downloadFromHttp(url, output string) error {
 
@@ -68,7 +55,7 @@ func downloadFromHttp(url, output string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := downloadHttpClient.Do(req)
+	resp, err := common.HttpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -115,7 +102,7 @@ func downloadFromHttp(url, output string) error {
 			next = size - 1
 		}
 		r.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", offset, next))
-		resp, err := downloadHttpClient.Do(r)
+		resp, err := common.HttpClient.Do(r)
 		if err != nil {
 			return err
 		}
