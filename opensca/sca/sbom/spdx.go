@@ -11,60 +11,83 @@ import (
 
 func ParseSpdx(f *model.File) *model.DepGraph {
 
-	depRelation := map[string][]string{}
 	depIdMap := map[string]*model.DepGraph{}
-	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+	_dep := model.NewDepGraphMap(func(s ...string) string {
+		return s[0]
+	}, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
-			Vendor:  s[0],
-			Name:    s[1],
-			Version: s[2],
+			Vendor:  s[1],
+			Name:    s[2],
+			Version: s[3],
 		}
 	}).LoadOrStore
 
-	var group, name, version, id string
+	// 记录spdx中的tag信息
+	tags := map[string]string{}
+	checkAndSet := func(k, v string) {
+		if _, ok := tags[k]; ok {
+			depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"])
+			tags = map[string]string{}
+		}
+		tags[k] = strings.TrimSpace(v)
+	}
+	// 记录relationship
+	relation := map[string][]string{}
+
 	f.ReadLine(func(line string) {
 		i := strings.Index(line, ":")
 		if strings.HasPrefix(line, "#") || i == -1 {
-			if id != "" {
-				depIdMap[id] = _dep(group, name, version)
-			}
-			group, name, version, id = "", "", "", ""
 			return
 		}
 		k := strings.TrimSpace(line[:i])
 		v := strings.TrimSpace(line[i+1:])
 		switch k {
+		case "DocumentName":
+			checkAndSet("name", v)
 		case "PackageName":
-			name = v
+			checkAndSet("name", v)
 		case "PackageVersion":
-			version = v
+			checkAndSet("version", v)
 		case "PackageSupplier":
-			group = strings.TrimPrefix(v, "Organization: ")
+			checkAndSet("group", strings.TrimPrefix(v, "Organization:"))
 		case "SPDXID":
-			id = v
-		case "Relationships":
+			checkAndSet("id", v)
+		case "Relationship":
 			ids := strings.Split(v, "DEPENDS_ON")
 			if len(ids) == 2 {
 				parent := strings.TrimSpace(ids[0])
 				child := strings.TrimSpace(ids[1])
-				depRelation[parent] = append(depRelation[parent], child)
+				relation[parent] = append(relation[parent], child)
 			}
 		}
 	})
+	depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"])
 
-	for parent, children := range depRelation {
-		for _, c := range children {
-			depIdMap[parent].AppendChild(depIdMap[c])
+	if len(depIdMap) == 0 {
+		return nil
+	}
+
+	for parent, children := range relation {
+		for _, child := range children {
+			depIdMap[parent].AppendChild(depIdMap[child])
 		}
 	}
 
-	root := &model.DepGraph{}
+	var roots []*model.DepGraph
 	for _, dep := range depIdMap {
-		if len(dep.Parents) == 0 {
-			root.AppendChild(dep)
+		if len(dep.Parents) == 0 && dep.Name != "" {
+			roots = append(roots, dep)
 		}
 	}
 
+	if len(roots) == 1 {
+		return roots[0]
+	}
+
+	root := &model.DepGraph{Path: f.Path()}
+	for _, r := range roots {
+		root.AppendChild(r)
+	}
 	return root
 }
 

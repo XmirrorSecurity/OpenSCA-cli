@@ -21,13 +21,13 @@ func Dsdx(report Report, out string) {
 
 func DsdxJson(report Report, out string) {
 	outWrite(out, func(w io.Writer) {
-		json.NewEncoder(w).Encode(spdxDoc(report))
+		json.NewEncoder(w).Encode(dsdxDoc(report))
 	})
 }
 
 func DsdxXml(report Report, out string) {
 	outWrite(out, func(w io.Writer) {
-		xml.NewEncoder(w).Encode(spdxDoc(report))
+		xml.NewEncoder(w).Encode(dsdxDoc(report))
 	})
 }
 
@@ -59,5 +59,5 @@ func dsdxDoc(report Report) *model.DsdxDocument {
 		return true
 	})
 
-	return nil
+	return doc
 }

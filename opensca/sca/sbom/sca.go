@@ -14,7 +14,7 @@ func (sca Sca) Language() model.Language {
 }
 
 func (sca Sca) Filter(relpath string) bool {
-	return filter.SbomJson(relpath) || filter.SbomXml(relpath) || filter.SbomSpdx(relpath)
+	return filter.SbomJson(relpath) || filter.SbomXml(relpath) || filter.SbomSpdx(relpath) || filter.SbomDsdx(relpath)
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {

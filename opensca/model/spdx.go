@@ -1,9 +1,9 @@
 package model
 
 import (
-	"html/template"
 	"io"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -88,7 +88,6 @@ Created: {{ .CreationInfo.Created }}
 {{ range .CreationInfo.Creators -}}
 Creator: {{ . }}
 {{ end }}
-
 {{- range .Packages }}
 PackageName: {{ .Name }}
 SPDXID: {{ .SPDXID }}
@@ -96,7 +95,6 @@ PackageVersion: {{ .Version }}
 PackageSupplier: {{ .Supplier }}
 # PackageLicenseConcluded: {{ .LicenseConcluded }}
 {{ end }}
-
 {{- range .Relationships }}
 Relationship: {{ .SPDXElementID }} {{ .RelationshipType }} {{ .RelatedSPDXElement }}
 {{- end }}`

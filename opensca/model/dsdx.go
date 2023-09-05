@@ -3,8 +3,8 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
+	"text/template"
 	"time"
 )
 
@@ -25,28 +25,23 @@ type DsdxDocument struct {
 	Components []DsdxComponent `json:"components" xml:"components"`
 	// 依赖关系
 	Dependencies DsdxDependencies `json:"dependencies" xml:"dependencies"`
-	// 自动生成
-	DependenciesJson string `json:"-" xml:"-"`
 }
 
 type DsdxComponent struct {
 	// DSDX-xxx
-	ID       string `json:"id" xml:"id"`
-	Group    string `json:"group" xml:"group"`
-	Name     string `json:"name" xml:"name"`
-	Version  string `json:"version" xml:"version"`
-	Language string `json:"language" xml:"language"`
-	// json list
-	License []string `json:"license" xml:"license"`
-	// 自动生成
-	LicenseJson string `json:"-" xml:"-"`
+	ID       string   `json:"id" xml:"id"`
+	Group    string   `json:"group,omitempty" xml:"group,omitempty"`
+	Name     string   `json:"name" xml:"name"`
+	Version  string   `json:"version" xml:"version"`
+	Language string   `json:"language,omitempty" xml:"language,omitempty"`
+	License  []string `json:"license,omitempty" xml:"license,omitempty"`
 }
 
 type DsdxDependencies map[string][]string
 
 func NewDsdxDocument(name, creator string) *DsdxDocument {
 	version := "DSDX-1.0"
-	create := time.Now().Format("2006-01-02 15:04:05.000000 -0700 -07")
+	create := time.Now().Format("2006-01-02 15:04:05")
 	id := fmt.Sprintf("DSDX-%s-%s-%s", name, version, create)
 	return &DsdxDocument{
 		Name:        name,
@@ -62,26 +57,32 @@ func (doc *DsdxDocument) AppendComponents(id, group, name, version, language str
 	if id == "" {
 		id = fmt.Sprintf("DSDX-%s-%s-%s", group, name, version)
 	}
-	lic, _ := json.Marshal(license)
 	doc.Components = append(doc.Components, DsdxComponent{
-		ID:          id,
-		Group:       group,
-		Name:        name,
-		Version:     version,
-		Language:    language,
-		License:     license,
-		LicenseJson: string(lic),
+		ID:       id,
+		Group:    group,
+		Name:     name,
+		Version:  version,
+		Language: language,
+		License:  license,
 	})
 }
 
 func (doc *DsdxDocument) AppendDependencies(parentId string, childrenIds []string) {
-	doc.Dependencies[parentId] = childrenIds
+	if doc.Dependencies == nil {
+		doc.Dependencies = DsdxDependencies{}
+	}
+	if len(childrenIds) > 0 {
+		doc.Dependencies[parentId] = childrenIds
+	}
 }
 
 func (doc *DsdxDocument) WriteDsdx(w io.Writer) error {
-	depJson, _ := json.Marshal(doc.Dependencies)
-	doc.DependenciesJson = string(depJson)
-	tmpl, err := template.New("tagValue").Parse(dsdxtpl)
+	tmpl, err := template.New("tagValue").Funcs(template.FuncMap{
+		"tojson": func(o any) string {
+			data, _ := json.Marshal(o)
+			return string(data)
+		},
+	}).Parse(dsdxtpl)
 	if err != nil {
 		return err
 	}
@@ -94,17 +95,13 @@ DSDXID: {{ .DSDXID }}
 Creator: {{ .Creator }}
 CreateTime: {{ .CreateTime }}
 ProjectName: {{ .ProjectName }}
-
 {{ range .Components }}
-
 ComponentName: {{ .Name }}
 ComponentGroup: {{ .Group }}
 ComponentVersion: {{ .Version }}
-ComponentLanguage: {{ .Language }}
-ComponentLicenses: {{ .LicenseJson }}
 ComponentID: {{ .ID }}
-
+ComponentLanguage: {{ .Language }}
+ComponentLicense: {{ .License|tojson }}
 {{ end }}
-
-Dependencies: {{ .DependenciesJson }}
+Dependencies: {{ .Dependencies|tojson }}
 `
