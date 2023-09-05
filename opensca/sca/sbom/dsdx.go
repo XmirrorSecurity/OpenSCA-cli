@@ -10,19 +10,62 @@ import (
 )
 
 func ParseDsdx(f *model.File) *model.DepGraph {
-	root := &model.DepGraph{}
+
+	dependencies := map[string][]string{}
+	depIdMap := map[string]*model.DepGraph{}
+	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+		return &model.DepGraph{
+			Vendor:  s[0],
+			Name:    s[1],
+			Version: s[2],
+		}
+	}).LoadOrStore
+
+	var group, name, version, id, language string
 	f.ReadLine(func(line string) {
-
-		line = strings.TrimSpace(line)
-
-		if len(line) == 0 {
-			// new
+		i := strings.Index(line, ":")
+		if strings.HasPrefix(line, "#") || i == -1 {
+			if id != "" {
+				dep := _dep(group, name, version)
+				dep.Language = model.Language(language)
+				depIdMap[id] = dep
+			}
+			group, name, version, id, language = "", "", "", "", ""
 			return
 		}
-
-		// TODO
-
+		k := strings.TrimSpace(line[:i])
+		v := strings.TrimSpace(line[i+1:])
+		switch k {
+		case "ComponentName":
+			name = v
+		case "ComponentGroup":
+			group = v
+		case "ComponentVersion":
+			group = v
+		case "ComponentLanguage":
+			language = v
+		case "Dependencies":
+			json.Unmarshal([]byte(v), &dependencies)
+		}
 	})
+
+	for parentId, childrenIds := range dependencies {
+		parent, ok := depIdMap[parentId]
+		if !ok {
+			continue
+		}
+		for _, childId := range childrenIds {
+			parent.AppendChild(depIdMap[childId])
+		}
+	}
+
+	root := &model.DepGraph{}
+	for _, dep := range depIdMap {
+		if len(dep.Parents) == 0 {
+			root.AppendChild(dep)
+		}
+	}
+
 	return root
 }
 
