@@ -27,26 +27,14 @@ type ComposerLock struct {
 	Packages []*ComposerPackage `json:"packages"`
 }
 type ComposerPackage struct {
-	Name       string            `json:"name"`
-	Version    string            `json:"version"`
-	License    []string          `json:"license"`
-	Require    map[string]string `json:"require"`
-	RequireDev map[string]string `json:"require-dev"`
+	Name    string            `json:"name"`
+	Version string            `json:"version"`
+	License []string          `json:"license"`
+	Require map[string]string `json:"require"`
 }
 
 type ComposerRepo struct {
-	Packages struct {
-		Versions map[string]*ComposerPackage `json:"versions"`
-	} `json:"packages"`
-}
-
-func readJson[T any](reader io.Reader) *T {
-	var data T
-	err := json.NewDecoder(reader).Decode(&data)
-	if err != nil {
-		return nil
-	}
-	return &data
+	Packages map[string][]*ComposerPackage `json:"packages"`
 }
 
 func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.DepGraph {
@@ -70,13 +58,6 @@ func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.De
 		for name := range pkg.Require {
 			dep.AppendChild(_dep(name))
 		}
-		for name := range pkg.RequireDev {
-			dep := _dep(name)
-			if dep != nil {
-				dep.Develop = true
-				dep.AppendChild(dep)
-			}
-		}
 	}
 
 	// 记录直接依赖
@@ -95,9 +76,8 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
 	root.Expand = &ComposerPackage{
-		Name:       json.License,
-		Require:    json.Require,
-		RequireDev: json.RequireDev,
+		Name:    json.License,
+		Require: json.Require,
 	}
 
 	root.ForEachNode(func(p, n *model.DepGraph) bool {
@@ -113,6 +93,10 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 		for name, version := range pkg.Require {
 
+			if name == "php" {
+				continue
+			}
+
 			subpkg := composerOrigin(name, version)
 
 			if subpkg == nil {
@@ -125,25 +109,24 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 			n.AppendChild(dep)
 		}
 
-		for name, version := range pkg.RequireDev {
-
-			subpkg := composerOrigin(name, version)
-
-			if subpkg == nil {
-				dep := _dep(name, version)
-				dep.Develop = true
-				n.AppendChild(dep)
-				continue
-			}
-
-			dep := _dep(subpkg.Name, subpkg.Version)
-			dep.Expand = subpkg
-			dep.Develop = true
-			n.AppendChild(dep)
-		}
-
 		return true
 	})
+
+	// for name, version := range json.RequireDev {
+	// 	if name == "php" {
+	// 		continue
+	// 	}
+	// 	subpkg := composerOrigin(name, version)
+	// 	if subpkg == nil {
+	// 		dep := _dep(name, version)
+	// 		dep.Develop = true
+	// 		root.AppendChild(dep)
+	// 		continue
+	// 	}
+	// 	dep := _dep(subpkg.Name, subpkg.Version)
+	// 	dep.Develop = true
+	// 	root.AppendChild(dep)
+	// }
 
 	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
 
@@ -154,26 +137,33 @@ var composerOrigin = func(name, version string) *ComposerPackage {
 
 	findComposerJsonFromRepo := func(repo ComposerRepo) *ComposerPackage {
 		vers := []string{}
-		for v := range repo.Packages.Versions {
-			vers = append(vers, v)
+		for _, packages := range repo.Packages {
+			for _, pkg := range packages {
+				vers = append(vers, pkg.Version)
+			}
 		}
 		maxv := findMaxVersion(version, vers)
-		return repo.Packages.Versions[maxv]
+		for _, packages := range repo.Packages {
+			for _, pkg := range packages {
+				if strings.EqualFold(pkg.Version, maxv) {
+					pkg.Name = name
+					return pkg
+				}
+			}
+		}
+		return nil
 	}
 
 	// 读取缓存
 	var origin *ComposerPackage
 	path := cache.Path("", name, version, model.Lan_Php)
-	cache.Load(path, func(reader io.Reader) {
+	if cache.Load(path, func(reader io.Reader) {
 		var repo ComposerRepo
 		if err := json.NewDecoder(reader).Decode(&repo); err != nil {
-			logs.Warn(err)
-		} else {
-			origin = findComposerJsonFromRepo(repo)
+			logs.Warnf("unmarshal %s err: %s", name, err)
 		}
-	})
-
-	if origin != nil {
+		origin = findComposerJsonFromRepo(repo)
+	}) {
 		return origin
 	}
 
@@ -181,21 +171,23 @@ var composerOrigin = func(name, version string) *ComposerPackage {
 	for _, repo := range defaultComposerRepo {
 
 		url := fmt.Sprintf("%s/%s.json", strings.TrimRight(repo.Url, "/"), name)
-		rep, err := common.HttpClient.Get(url)
+		resp, err := common.HttpClient.Get(url)
 		if err != nil {
 			logs.Warnf("download %s err: %s", url, err)
 			continue
 		}
-		defer rep.Body.Close()
 
-		if rep.StatusCode != 200 {
-			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
-			io.Copy(io.Discard, rep.Body)
+		if resp.StatusCode != 200 {
+			logs.Warnf("code:%d url:%s", resp.StatusCode, url)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 			continue
 		}
 
-		logs.Infof("code:%d url:%s", rep.StatusCode, url)
-		data, err := io.ReadAll(rep.Body)
+		logs.Infof("code:%d url:%s", resp.StatusCode, url)
+
+		data, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
 			logs.Warn(err)
 			continue
@@ -205,7 +197,7 @@ var composerOrigin = func(name, version string) *ComposerPackage {
 		var repo ComposerRepo
 		if err := json.NewDecoder(reader).Decode(&repo); err != nil {
 			logs.Warnf("unmarshal json from %s err: %s", url, err)
-			continue
+			// continue
 		}
 
 		reader.Seek(0, io.SeekStart)
@@ -227,25 +219,33 @@ func RegisterComposerOrigin(origin func(name, version string) *ComposerPackage) 
 }
 
 func findMaxVersion(version string, versions []string) string {
-	c, err := semver.NewConstraint(version)
-	if err != nil {
-		return version
+	var cs []*semver.Constraints
+	for _, v := range strings.Split(version, "|") {
+		c, err := semver.NewConstraint(strings.TrimSpace(v))
+		if err == nil {
+			cs = append(cs, c)
+		}
 	}
-	vers := []*semver.Version{}
+	var vers []string
 	for _, v := range versions {
-		ver, err := semver.NewVersion(v)
+		ver, err := semver.NewVersion(strings.TrimLeft(v, "vV"))
 		if err != nil {
 			continue
 		}
-		if c.Check(ver) {
-			vers = append(vers, ver)
+		for _, c := range cs {
+			if c.Check(ver) {
+				vers = append(vers, v)
+				break
+			}
 		}
 	}
 	sort.Slice(vers, func(i, j int) bool {
-		return vers[i].Compare(vers[j]) > 0
+		v1, _ := semver.NewVersion(strings.TrimLeft(vers[i], "vV"))
+		v2, _ := semver.NewVersion(strings.TrimLeft(vers[j], "vV"))
+		return v1.Compare(v2) < 0
 	})
 	if len(vers) > 0 {
-		return vers[0].String()
+		return vers[0]
 	}
 	return version
 }

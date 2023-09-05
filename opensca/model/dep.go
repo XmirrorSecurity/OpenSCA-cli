@@ -26,8 +26,10 @@ type DepGraph struct {
 	Direct bool
 	// 父节点
 	Parents []*DepGraph
+	pset    map[*DepGraph]bool
 	// 子节点
 	Children []*DepGraph
+	cset     map[*DepGraph]bool
 	// 附加信息
 	Expand any
 }
@@ -37,8 +39,20 @@ func (dep *DepGraph) AppendChild(child *DepGraph) {
 	if dep == nil || child == nil {
 		return
 	}
-	dep.Children = append(dep.Children, child)
-	child.Parents = append(child.Parents, dep)
+	if dep.cset == nil {
+		dep.cset = map[*DepGraph]bool{}
+	}
+	if child.pset == nil {
+		child.pset = map[*DepGraph]bool{}
+	}
+	if !dep.cset[child] {
+		dep.Children = append(dep.Children, child)
+		dep.cset[child] = true
+	}
+	if !child.pset[dep] {
+		child.Parents = append(child.Parents, dep)
+		child.pset[dep] = true
+	}
 }
 
 // RemoveChild 移除子依赖
@@ -55,6 +69,8 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 			break
 		}
 	}
+	delete(dep.cset, child)
+	delete(child.pset, dep)
 }
 
 func (dep *DepGraph) AppendLicense(lic string) {

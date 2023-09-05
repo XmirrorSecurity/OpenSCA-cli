@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
 )
@@ -55,7 +56,8 @@ func RunTaskCase(t *testing.T, sca ...sca.Sca) func(cases []TaskCase) {
 				result.AppendChild(dep)
 			}
 			if Diff(result, c.Result) {
-				t.Errorf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false, true), c.Result.Tree(false, true))
+				logs.Debugf("%s\nres:\n%sstd:\n%s", c.Path, result.Tree(false, true), c.Result.Tree(false, true))
+				t.Fail()
 			}
 		}
 	}

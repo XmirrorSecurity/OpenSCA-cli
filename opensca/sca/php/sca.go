@@ -2,6 +2,7 @@ package php
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"path"
 	"strings"
@@ -31,11 +32,16 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	for _, f := range files {
 		if filter.PhpComposer(f.Relpath) {
 			f.OpenReader(func(reader io.Reader) {
-				jsonMap[path2dir(f.Relpath)] = readJson[ComposerJson](reader)
+				var js ComposerJson
+				json.NewDecoder(reader).Decode(&js)
+				js.File = f
+				jsonMap[path2dir(f.Relpath)] = &js
 			})
 		} else if filter.PhpComposerLock(f.Relpath) {
 			f.OpenReader(func(reader io.Reader) {
-				lockMap[path2dir(f.Relpath)] = readJson[ComposerLock](reader)
+				var lock ComposerLock
+				json.NewDecoder(reader).Decode(&lock)
+				lockMap[path2dir(f.Relpath)] = &lock
 			})
 		}
 	}
@@ -56,7 +62,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 }
 
 var defaultComposerRepo = []common.RepoConfig{
-	{Url: "https://repo.packagist.org/p2"},
+	{Url: "http://repo.packagist.org/p2"},
 }
 
 func RegisterComposerRepo(repos ...common.RepoConfig) {

@@ -16,5 +16,5 @@ var HttpClient = http.Client{
 			InsecureSkipVerify: true,
 		},
 	},
-	Timeout: 10 * time.Second,
+	Timeout: 60 * time.Second,
 }

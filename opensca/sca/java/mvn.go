@@ -348,15 +348,16 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 			continue
 		}
 
-		defer resp.Body.Close()
-		defer io.Copy(io.Discard, resp.Body)
-
 		if resp.StatusCode != 200 {
 			logs.Warnf("%d %s", resp.StatusCode, url)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 			continue
 		} else {
 			logs.Debugf("%d %s", resp.StatusCode, url)
 			do(resp.Body)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 			break
 		}
 	}
