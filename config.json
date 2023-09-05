@@ -1,6 +1,6 @@
 {
   "path": "",
-  "out": "output.json",
+  "out": "output.json,output.html",
 
   "vuln": false,
   "dedup": false,
@@ -10,7 +10,7 @@
   "token": "",
 
   "origin": {
-    "": { "dsn": "" }
+    "json": { "dsn": "db-demo.json" }
   },
 
   "maven": [

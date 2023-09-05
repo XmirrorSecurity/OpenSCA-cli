@@ -141,7 +141,7 @@ func ParseArgs() {
 	flag.StringVar(&_config.Url, "url", _config.Url, "(可选,与token需一起使用) 从云漏洞库查询漏洞,指定要连接云服务的地址,例:-url https://opensca.xmirror.cn")
 	flag.StringVar(&_config.Token, "token", _config.Url, "(可选,与url需一起使用) 云服务验证token,需要在云服务平台申请")
 	flag.BoolVar(&_config.VulnOnly, "vuln", _config.VulnOnly, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
-	flag.StringVar(&_config.Output, "out", _config.Output, "(可选) 将检测结果保存到指定文件,根据后缀生成不同格式的文件,支持的后缀有：.html, .json, .spdx.json, .spdx.xml, .csv, .sqlite, 默认为json格式,例: -out output.json")
+	flag.StringVar(&_config.Output, "out", _config.Output, "(可选) 根据后缀保存为不同格式的文件,支持html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx, 生成多个报告用,分割,例: -out out.json,out.html")
 	flag.StringVar(&_config.LocalDB, "db", _config.LocalDB, `(未来将会弃用,可以在配置文件中配置"origin":{"json":{"dsn":"db.json"}}来指定) 指定本地漏洞库文件,例: -db db.json`)
 	flag.BoolVar(&_config.ProgressBar, "progress", _config.ProgressBar, "(可选) 显示进度条")
 	flag.BoolVar(&_config.Dedup, "dedup", _config.Dedup, "(可选) 相同组件去重")

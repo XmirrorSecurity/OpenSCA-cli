@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -70,7 +71,15 @@ func GetOrigin() *BaseOrigin {
 	_once.Do(func() {
 		_origin = NewBaseOrigin()
 		if config.Conf().LocalDB != "" {
-			_origin.LoadJsonOrigin(config.Conf().LocalDB)
+			dbpath := config.Conf().LocalDB
+			switch filepath.Ext(dbpath) {
+			case ".sqlite", ".db":
+				_origin.LoadSqliteOrigin(config.OriginConfig{Dsn: dbpath})
+			case ".json":
+				_origin.LoadJsonOrigin(dbpath)
+			default:
+				_origin.LoadJsonOrigin(dbpath)
+			}
 		}
 		for originType, config := range config.Conf().Origin {
 			switch originType {
