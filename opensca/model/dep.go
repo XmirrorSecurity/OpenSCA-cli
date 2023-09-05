@@ -22,6 +22,8 @@ type DepGraph struct {
 	Licenses []string
 	// 仅用于开发环境
 	Develop bool
+	// 直接依赖
+	Direct bool
 	// 父节点
 	Parents []*DepGraph
 	// 子节点
@@ -110,6 +112,10 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 		// 补全语言
 		if n.Language == Lan_None {
 			n.Language = lan
+		}
+		// 直接依赖
+		if p == nil || len(p.Parents) == 0 {
+			n.Direct = true
 		}
 		return true
 	})

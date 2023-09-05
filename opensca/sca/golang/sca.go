@@ -18,5 +18,14 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	return nil
+	var roots []*model.DepGraph
+	for _, f := range files {
+		if filter.GoMod(f.Relpath) {
+			roots = append(roots, ParseGomod(f))
+		}
+		if filter.GoSum(f.Relpath) {
+			roots = append(roots, ParseGosum(f))
+		}
+	}
+	return roots
 }

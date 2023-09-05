@@ -16,6 +16,7 @@ import (
 type DepDetailGraph struct {
 	Dep
 	ID                      string            `json:"id" xml:"id"`
+	Direct                  bool              `json:"direct" xml:"direct"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
 	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
@@ -70,6 +71,7 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Version = dep.Version
 	d.Language = string(dep.Language)
 	d.Paths = append(d.Paths, dep.Path)
+	d.Direct = dep.Direct
 	for _, lic := range dep.Licenses {
 		d.Licenses = append(d.Licenses, License{ShortName: lic})
 	}
