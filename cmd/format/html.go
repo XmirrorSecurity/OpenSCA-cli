@@ -18,7 +18,7 @@ type htmlDep struct {
 	*detail.DepDetailGraph
 	SecId    int         `json:"security_level_id,omitempty"`
 	Statis   map[int]int `json:"vuln_statis"`
-	Children struct{}    `json:"-"`
+	Children any         `json:"children,omitempty"`
 }
 
 // html统计信息
@@ -55,6 +55,7 @@ func Html(report Report, out string) {
 			statis.Component[secid]++
 			deps = append(deps, htmlDep{
 				DepDetailGraph: n,
+				Children:       nil,
 				SecId:          secid,
 				Statis:         vuln_statis,
 			})
