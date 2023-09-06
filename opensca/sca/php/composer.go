@@ -24,17 +24,23 @@ type ComposerJson struct {
 }
 
 type ComposerLock struct {
-	Packages []*ComposerPackage `json:"packages"`
+	Packages    []*ComposerPackage `json:"packages"`
+	PackagesDev []*ComposerPackage `json:"packages-dev"`
 }
 type ComposerPackage struct {
-	Name    string            `json:"name"`
-	Version string            `json:"version"`
-	License []string          `json:"license"`
-	Require map[string]string `json:"require"`
+	Name       string            `json:"name"`
+	Version    string            `json:"version"`
+	License    []string          `json:"license"`
+	Require    map[string]string `json:"require"`
+	requireDev map[string]string
 }
 
 type ComposerRepo struct {
 	Packages map[string][]*ComposerPackage `json:"packages"`
+}
+
+func skip(s string) bool {
+	return strings.EqualFold(s, "php") || !strings.Contains(s, "/")
 }
 
 func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.DepGraph {
@@ -43,10 +49,20 @@ func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.De
 	root.AppendLicense(json.License)
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} }).LoadOrStore
+	_dep_dev := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} }).LoadOrStore
 
 	// 第一次遍历记录依赖信息
 	for _, pkg := range lock.Packages {
 		dep := _dep(pkg.Name)
+		dep.Version = pkg.Version
+		for _, lic := range pkg.License {
+			dep.AppendLicense(lic)
+		}
+	}
+	for _, pkg := range lock.PackagesDev {
+		dep := _dep_dev(pkg.Name)
+		dep.Version = pkg.Version
+		dep.Develop = true
 		for _, lic := range pkg.License {
 			dep.AppendLicense(lic)
 		}
@@ -56,13 +72,34 @@ func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.De
 	for _, pkg := range lock.Packages {
 		dep := _dep(pkg.Name)
 		for name := range pkg.Require {
+			if skip(name) {
+				continue
+			}
 			dep.AppendChild(_dep(name))
+		}
+	}
+	for _, pkg := range lock.PackagesDev {
+		dep := _dep_dev(pkg.Name)
+		for name := range pkg.Require {
+			if skip(name) {
+				continue
+			}
+			dep.AppendChild(_dep_dev(name))
 		}
 	}
 
 	// 记录直接依赖
 	for name := range json.Require {
+		if skip(name) {
+			continue
+		}
 		root.AppendChild(_dep(name))
+	}
+	for name := range json.RequireDev {
+		if skip(name) {
+			continue
+		}
+		root.AppendChild(_dep_dev(name))
 	}
 
 	return root
@@ -76,8 +113,9 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
 	root.Expand = &ComposerPackage{
-		Name:    json.License,
-		Require: json.Require,
+		Name:       json.Name,
+		Require:    json.Require,
+		requireDev: json.RequireDev,
 	}
 
 	root.ForEachNode(func(p, n *model.DepGraph) bool {
@@ -93,7 +131,7 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 		for name, version := range pkg.Require {
 
-			if name == "php" {
+			if skip(name) {
 				continue
 			}
 
@@ -109,24 +147,27 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 			n.AppendChild(dep)
 		}
 
+		for name, version := range pkg.requireDev {
+
+			if skip(name) {
+				continue
+			}
+
+			subpkg := composerOrigin(name, version)
+
+			var dep *model.DepGraph
+			if subpkg == nil {
+				dep = _dep(name, version)
+			} else {
+				dep = _dep(subpkg.Name, subpkg.Version)
+				dep.Expand = subpkg
+			}
+
+			dep.Develop = true
+			n.AppendChild(dep)
+		}
 		return true
 	})
-
-	// for name, version := range json.RequireDev {
-	// 	if name == "php" {
-	// 		continue
-	// 	}
-	// 	subpkg := composerOrigin(name, version)
-	// 	if subpkg == nil {
-	// 		dep := _dep(name, version)
-	// 		dep.Develop = true
-	// 		root.AppendChild(dep)
-	// 		continue
-	// 	}
-	// 	dep := _dep(subpkg.Name, subpkg.Version)
-	// 	dep.Develop = true
-	// 	root.AppendChild(dep)
-	// }
 
 	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
 

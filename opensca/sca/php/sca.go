@@ -52,6 +52,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		// 通过lock文件补全
 		if lock, ok := lockMap[dir]; ok {
 			root = append(root, ParseComposerJsonWithLock(json, lock))
+			continue
 		}
 
 		// 从数据源下载
