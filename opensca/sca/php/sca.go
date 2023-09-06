@@ -62,6 +62,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 }
 
 var defaultComposerRepo = []common.RepoConfig{
+	{Url: "https://packagist.phpcomposer.com"},
 	{Url: "http://repo.packagist.org/p2"},
 }
 

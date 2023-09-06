@@ -219,16 +219,22 @@ func RegisterComposerOrigin(origin func(name, version string) *ComposerPackage) 
 }
 
 func findMaxVersion(version string, versions []string) string {
+	fix := func(s string) string {
+		if i := strings.Index(s, "@"); i != -1 {
+			s = s[:i]
+		}
+		return strings.TrimLeft(strings.TrimSpace(s), "vV")
+	}
 	var cs []*semver.Constraints
 	for _, v := range strings.Split(version, "|") {
-		c, err := semver.NewConstraint(strings.TrimSpace(v))
+		c, err := semver.NewConstraint(fix(v))
 		if err == nil {
 			cs = append(cs, c)
 		}
 	}
 	var vers []string
 	for _, v := range versions {
-		ver, err := semver.NewVersion(strings.TrimLeft(v, "vV"))
+		ver, err := semver.NewVersion(fix(v))
 		if err != nil {
 			continue
 		}
@@ -240,8 +246,8 @@ func findMaxVersion(version string, versions []string) string {
 		}
 	}
 	sort.Slice(vers, func(i, j int) bool {
-		v1, _ := semver.NewVersion(strings.TrimLeft(vers[i], "vV"))
-		v2, _ := semver.NewVersion(strings.TrimLeft(vers[j], "vV"))
+		v1, _ := semver.NewVersion(fix(vers[i]))
+		v2, _ := semver.NewVersion(fix(vers[j]))
 		return v1.Compare(v2) < 0
 	})
 	if len(vers) > 0 {
