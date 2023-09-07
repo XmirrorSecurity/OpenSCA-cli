@@ -79,7 +79,7 @@ func ParseGosum(file *model.File) *model.DepGraph {
 	return root
 }
 
-func GoModGraph(ctx context.Context, dirpath string) *model.DepGraph {
+func GoModGraph(ctx context.Context, dirpath string) []*model.DepGraph {
 
 	_, err := exec.LookPath("go")
 	if err != nil {
@@ -124,14 +124,13 @@ func GoModGraph(ctx context.Context, dirpath string) *model.DepGraph {
 		}
 	}
 
-	var root *model.DepGraph
+	var roots []*model.DepGraph
 	_dep.Range(func(k string, v *model.DepGraph) bool {
 		if len(v.Parents) == 0 {
-			root = v
-			return false
+			roots = append(roots, v)
 		}
 		return true
 	})
 
-	return root
+	return roots
 }

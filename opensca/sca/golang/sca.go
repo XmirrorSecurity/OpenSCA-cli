@@ -20,6 +20,7 @@ func (sca Sca) Filter(relpath string) bool {
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 
+	// 尝试调用 go mod graph
 	gomod := false
 	for _, file := range files {
 		if filter.GoMod(file.Relpath) {
@@ -28,16 +29,18 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 	if gomod {
-		if root := GoModGraph(ctx, parent.Abspath); root != nil {
-			return []*model.DepGraph{root}
+		roots := GoModGraph(ctx, parent.Abspath)
+		if len(roots) > 0 {
+			return roots
 		}
 	}
 
+	// map[dir]*File
 	gosum := map[string]*model.File{}
 	pkglock := map[string]*model.File{}
-
 	path2dir := func(s string) string { return filepath.Dir(s) }
 
+	// 记录go.sum/Gopkg.lock
 	for _, f := range files {
 		if filter.GoPkgLock(f.Relpath) {
 			pkglock[path2dir(f.Relpath)] = f
@@ -47,6 +50,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 
+	// 解析go.mod/Gopkg.toml
 	var roots []*model.DepGraph
 	for _, f := range files {
 
@@ -59,6 +63,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 				}
 			}
 			roots = append(roots, mod)
+			continue
 		}
 
 		if filter.GoPkgToml(f.Relpath) {
@@ -70,6 +75,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 				}
 			}
 			roots = append(roots, pkg)
+			continue
 		}
 
 	}
