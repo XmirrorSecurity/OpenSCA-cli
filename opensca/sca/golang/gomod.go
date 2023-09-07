@@ -1,6 +1,11 @@
 package golang
 
 import (
+	"bufio"
+	"bytes"
+	"context"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -70,6 +75,63 @@ func ParseGosum(file *model.File) *model.DepGraph {
 			Version: version,
 		})
 	}
+
+	return root
+}
+
+func GoModGraph(ctx context.Context, dirpath string) *model.DepGraph {
+
+	_, err := exec.LookPath("go")
+	if err != nil {
+		return nil
+	}
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+	defer os.Chdir(pwd)
+	os.Chdir(dirpath)
+
+	cmd := exec.CommandContext(ctx, "go", "mod", "graph")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil
+	}
+
+	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+		return &model.DepGraph{
+			Name:    s[0],
+			Version: s[1],
+		}
+	})
+
+	parse := func(s string) *model.DepGraph {
+		words := strings.Split(s, "@")
+		if len(words) == 2 {
+			return _dep.LoadOrStore(words...)
+		}
+		return _dep.LoadOrStore(s, "")
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(output))
+	for scanner.Scan() {
+		words := strings.Fields(strings.TrimSpace(scanner.Text()))
+		if len(words) == 2 {
+			parent := parse(words[0])
+			child := parse(words[1])
+			parent.AppendChild(child)
+		}
+	}
+
+	var root *model.DepGraph
+	_dep.Range(func(k string, v *model.DepGraph) bool {
+		if len(v.Parents) == 0 {
+			root = v
+			return false
+		}
+		return true
+	})
 
 	return root
 }

@@ -20,6 +20,19 @@ func (sca Sca) Filter(relpath string) bool {
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 
+	gomod := false
+	for _, file := range files {
+		if filter.GoMod(file.Relpath) {
+			gomod = true
+			break
+		}
+	}
+	if gomod {
+		if root := GoModGraph(ctx, parent.Abspath); root != nil {
+			return []*model.DepGraph{root}
+		}
+	}
+
 	gosum := map[string]*model.File{}
 	pkglock := map[string]*model.File{}
 

@@ -301,6 +301,14 @@ func NewDepGraphMap(key func(...string) string, store func(...string) *DepGraph)
 	return &DepGraphMap{key: key, store: store, m: map[string]*DepGraph{}}
 }
 
+func (s *DepGraphMap) Range(do func(k string, v *DepGraph) bool) {
+	for k, v := range s.m {
+		if !do(k, v) {
+			break
+		}
+	}
+}
+
 func (s *DepGraphMap) LoadOrStore(words ...string) *DepGraph {
 
 	if s == nil || s.key == nil || s.store == nil {
