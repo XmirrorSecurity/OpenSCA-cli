@@ -1,49 +1,73 @@
 package golang
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
 func ParseGomod(file *model.File) *model.DepGraph {
+
 	root := &model.DepGraph{Path: file.Relpath}
-	reg := regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)[\s\n]`)
+
+	var require bool
+
 	file.ReadLine(func(line string) {
-		if !reg.MatchString(line) {
+
+		if strings.HasPrefix(line, "module") {
+			root.Name = strings.TrimPrefix(line, "module ")
 			return
 		}
-		match := reg.FindStringSubmatch(line)
-		root.AppendChild(&model.DepGraph{
-			Name:    strings.Trim(match[1], `'"`),
-			Version: match[2],
-		})
+
+		if strings.HasPrefix(line, "require") {
+			require = true
+			return
+		}
+
+		if strings.HasPrefix(line, ")") {
+			require = false
+			return
+		}
+
+		// 不处理require之外的模块
+		if !require {
+			return
+		}
+
+		line = strings.TrimSpace(line)
+		words := strings.Fields(line)
+		if len(words) >= 2 {
+			root.AppendChild(&model.DepGraph{
+				Name:    strings.Trim(words[0], `'"`),
+				Version: strings.TrimSuffix(words[1], "+incompatible"),
+			})
+		}
+
 	})
+
 	return root
 }
 
 func ParseGosum(file *model.File) *model.DepGraph {
 
-	root := ParseGomod(file)
-
-	exist := map[string]bool{}
-	for _, dep := range root.Children {
-		exist[dep.Name] = true
-	}
-
-	reg := regexp.MustCompile(`(\S*)\s+v([\d\w\-+.]*)/go.mod[\s\n]`)
+	depMap := map[string]string{}
 	file.ReadLine(func(line string) {
-		match := reg.FindStringSubmatch(line)
-		if len(match) != 3 || exist[match[1]] {
-			return
+		line = strings.TrimSpace(line)
+		words := strings.Fields(line)
+		if len(words) >= 2 {
+			name := strings.Trim(words[0], `'"`)
+			version := strings.TrimSuffix(words[1], "+incompatible")
+			depMap[name] = version
 		}
-		exist[match[1]] = true
-		root.AppendChild(&model.DepGraph{
-			Name:    match[1],
-			Version: match[2],
-		})
 	})
+
+	root := &model.DepGraph{Path: file.Relpath}
+	for name, version := range depMap {
+		root.AppendChild(&model.DepGraph{
+			Name:    name,
+			Version: version,
+		})
+	}
 
 	return root
 }

@@ -2,6 +2,7 @@ package golang
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
@@ -18,14 +19,28 @@ func (sca Sca) Filter(relpath string) bool {
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+
+	gosum := map[string]*model.File{}
+
+	for _, f := range files {
+		if filter.GoSum(f.Relpath) {
+			gosum[filepath.Dir(f.Relpath)] = f
+		}
+	}
+
 	var roots []*model.DepGraph
 	for _, f := range files {
 		if filter.GoMod(f.Relpath) {
-			roots = append(roots, ParseGomod(f))
-		}
-		if filter.GoSum(f.Relpath) {
-			roots = append(roots, ParseGosum(f))
+			mod := ParseGomod(f)
+			if sumf, ok := gosum[filepath.Dir(f.Relpath)]; ok {
+				sum := ParseGosum(sumf)
+				if len(sum.Children) > len(mod.Children) {
+					mod.Children = sum.Children
+				}
+			}
+			roots = append(roots, mod)
 		}
 	}
+
 	return roots
 }
