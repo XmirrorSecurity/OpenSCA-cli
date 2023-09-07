@@ -12,10 +12,12 @@ func ParseGomod(file *model.File) *model.DepGraph {
 
 	var require bool
 
-	file.ReadLine(func(line string) {
+	file.ReadLineNoComment(&model.FileCommentType{
+		Simple: "//",
+	}, func(line string) {
 
 		if strings.HasPrefix(line, "module") {
-			root.Name = strings.TrimPrefix(line, "module ")
+			root.Name = strings.TrimSpace(strings.TrimPrefix(line, "module"))
 			return
 		}
 
