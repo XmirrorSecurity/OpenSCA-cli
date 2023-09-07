@@ -30,7 +30,7 @@
 | `JavaScript` | `Npm`      | `package-lock.json` `package.json` `yarn.lock`                           |
 | `PHP`        | `Composer` | `composer.json` `composer.lock`                                          |
 | `Ruby`       | `gem`      | `gemfile.lock`                                                           |
-| `Golang`     | `gomod`    | `go.mod` `go.sum`                                                        |
+| `Golang`     | `gomod`    | `go.mod` `go.sum` `Gopkg.toml` `Gopkg.lock`                              |
 | `Rust`       | `cargo`    | `Cargo.lock`                                                             |
 | `Erlang`     | `Rebar`    | `rebar.lock`                                                             |
 | `Python`     | `Pip`      | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in` |

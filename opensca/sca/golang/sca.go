@@ -15,24 +15,31 @@ func (sca Sca) Language() model.Language {
 }
 
 func (sca Sca) Filter(relpath string) bool {
-	return filter.GoMod(relpath) || filter.GoSum(relpath)
+	return filter.GoMod(relpath) || filter.GoSum(relpath) || filter.GoPkgToml(relpath) || filter.GoPkgLock(relpath)
 }
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 
 	gosum := map[string]*model.File{}
+	pkglock := map[string]*model.File{}
+
+	path2dir := func(s string) string { return filepath.Dir(s) }
 
 	for _, f := range files {
+		if filter.GoPkgLock(f.Relpath) {
+			pkglock[path2dir(f.Relpath)] = f
+		}
 		if filter.GoSum(f.Relpath) {
-			gosum[filepath.Dir(f.Relpath)] = f
+			gosum[path2dir(f.Relpath)] = f
 		}
 	}
 
 	var roots []*model.DepGraph
 	for _, f := range files {
+
 		if filter.GoMod(f.Relpath) {
 			mod := ParseGomod(f)
-			if sumf, ok := gosum[filepath.Dir(f.Relpath)]; ok {
+			if sumf, ok := gosum[path2dir(f.Relpath)]; ok {
 				sum := ParseGosum(sumf)
 				if len(sum.Children) > len(mod.Children) {
 					mod.Children = sum.Children
@@ -40,6 +47,18 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			}
 			roots = append(roots, mod)
 		}
+
+		if filter.GoPkgToml(f.Relpath) {
+			pkg := ParseGopkgToml(f)
+			if lockf, ok := pkglock[path2dir(f.Relpath)]; ok {
+				lock := ParseGopkgLock(lockf)
+				if len(lock.Children) > len(pkg.Children) {
+					pkg.Children = lock.Children
+				}
+			}
+			roots = append(roots, pkg)
+		}
+
 	}
 
 	return roots

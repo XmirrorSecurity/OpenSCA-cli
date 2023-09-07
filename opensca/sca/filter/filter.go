@@ -38,8 +38,10 @@ var (
 )
 
 var (
-	GoMod = filterFunc(strings.HasSuffix, "go.mod")
-	GoSum = filterFunc(strings.HasSuffix, "go.sum")
+	GoMod     = filterFunc(strings.HasSuffix, "go.mod")
+	GoSum     = filterFunc(strings.HasSuffix, "go.sum")
+	GoPkgToml = filterFunc(strings.HasSuffix, "Gopkg.toml")
+	GoPkgLock = filterFunc(strings.HasSuffix, "Gopkg.lock")
 )
 
 var (
