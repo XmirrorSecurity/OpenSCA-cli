@@ -29,7 +29,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 	if gomod {
-		roots := GoModGraph(ctx, parent.Abspath)
+		roots := GoModGraph(ctx, parent)
 		if len(roots) > 0 {
 			return roots
 		}

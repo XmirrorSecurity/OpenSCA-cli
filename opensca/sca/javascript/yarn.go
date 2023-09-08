@@ -13,6 +13,7 @@ type YarnLock struct {
 	Dependencies map[string]string
 }
 
+// ParseYarnLock 解析yarn.lock文件结构
 func ParseYarnLock(file *model.File) map[string]*YarnLock {
 
 	/*
@@ -76,7 +77,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 	return lock
 }
 
-// parseYarn 解析yarn文件
+// ParsePackageJsonWithYarnLock 借助yarn.lock文件解析pacakge.json
 func ParsePackageJsonWithYarnLock(pkgjson *PackageJson, yarnlock map[string]*YarnLock) *model.DepGraph {
 
 	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}

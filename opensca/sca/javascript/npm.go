@@ -128,12 +128,14 @@ var npmOrigin = func(name, version string) *PackageJson {
 	return origin
 }
 
+// RegisterNpmOrigin 注册npm数据源
 func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 	if origin != nil {
 		npmOrigin = origin
 	}
 }
 
+// ParsePackageJsonWithNode 借助node_modules解析package.json
 func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
 	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
@@ -191,6 +193,7 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 	return root
 }
 
+// ParsePackageJsonWithLock 借助package.lock解析package.json
 func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model.DepGraph {
 
 	if pkglock.LockfileVersion == 3 {
@@ -248,6 +251,7 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	return root
 }
 
+// ParsePackageJsonWithLockV3 借助package.lock(v3)解析package.json
 func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *model.DepGraph {
 
 	if pkglock.LockfileVersion != 3 {
@@ -326,6 +330,10 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 	return root
 }
 
+// findMaxVersion 从一组版本中查找符合版本约束的最大版本
+// version: 范围约束
+// versions: 待查找的版本列表
+// return: 符合要求的最大版本
 func findMaxVersion(version string, versions []string) string {
 	c, err := semver.NewConstraint(version)
 	if err != nil {
@@ -350,6 +358,12 @@ func findMaxVersion(version string, versions []string) string {
 	return version
 }
 
+// findFromNodeModules 从node_modules中查找使用的package.json
+// name: 查找的组件名
+// basedir: 当前package.json所在路径
+// nodePathMap: node_modules中package.json文件的目录映射 例/node_modules/demo
+// jspath: 查找到的package.json所在目录
+// js: 查找到的package.json
 func findFromNodeModules(name, basedir string, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
 	const node_modules = "node_modules"
 	paths := strings.Split(basedir, "/")

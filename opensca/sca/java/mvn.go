@@ -18,6 +18,9 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
 )
 
+// ParsePoms 解析一个项目中的pom文件
+// poms: pom文件列表
+// return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
 func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 	// 记录module信息
@@ -303,6 +306,8 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...common.Repo
 	return p
 }
 
+// RegisterMavenOrigin 注册maven数据源
+// origin: 获取数据源 gav=>pom
 func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) {
 	if origin != nil {
 		mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {
@@ -311,6 +316,10 @@ func RegisterMavenOrigin(origin func(groupId, artifactId, version string) *Pom) 
 	}
 }
 
+// DownloadPomFromRepo 从maven仓库下载pom
+// dep: pom的dependency内容
+// do: 对http.Response.Body的操作
+// repos: 额外使用的maven仓库
 func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...common.RepoConfig) {
 
 	if !dep.Check() {
@@ -363,6 +372,8 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 	}
 }
 
+// MvnTree 调用mvn dependency:tree解析依赖
+// dir: 临时目录路径信息
 func MvnTree(dir *model.File) []*model.DepGraph {
 
 	if dir == nil {
@@ -423,6 +434,7 @@ func MvnTree(dir *model.File) []*model.DepGraph {
 	return roots
 }
 
+// parseMvnTree 解析 mvn dependency:tree 的输出
 func parseMvnTree(lines []string) *model.DepGraph {
 
 	// 记录当前的顶点节点列表

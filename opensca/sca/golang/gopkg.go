@@ -21,6 +21,7 @@ type GopkgLock struct {
 	} `toml:"projects"`
 }
 
+// ParseGopkgToml 解析Gopkg.toml文件
 func ParseGopkgToml(f *model.File) *model.DepGraph {
 	root := &model.DepGraph{Path: f.Path()}
 	gopkg := GopkgToml{}
@@ -33,6 +34,7 @@ func ParseGopkgToml(f *model.File) *model.DepGraph {
 	return root
 }
 
+// ParseGopkgLock 解析Gopkg.lock文件
 func ParseGopkgLock(f *model.File) *model.DepGraph {
 	root := &model.DepGraph{Path: f.Path()}
 	pkglock := GopkgLock{}

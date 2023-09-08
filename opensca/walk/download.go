@@ -30,6 +30,9 @@ func isFile(url string) bool {
 }
 
 // download 下载数据
+// origin: 数据源
+// output: 文件下载路径
+// delete: 是否需要删除文件
 func download(origin string) (delete bool, output string, err error) {
 	if isHttp(origin) {
 		delete = true

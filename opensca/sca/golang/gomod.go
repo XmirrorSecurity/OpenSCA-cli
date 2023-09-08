@@ -11,6 +11,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
+// ParseGomod 解析go.mod文件
 func ParseGomod(file *model.File) *model.DepGraph {
 
 	root := &model.DepGraph{Path: file.Relpath}
@@ -55,6 +56,7 @@ func ParseGomod(file *model.File) *model.DepGraph {
 	return root
 }
 
+// ParseGosum 解析go.sum文件
 func ParseGosum(file *model.File) *model.DepGraph {
 
 	depMap := map[string]string{}
@@ -79,7 +81,8 @@ func ParseGosum(file *model.File) *model.DepGraph {
 	return root
 }
 
-func GoModGraph(ctx context.Context, dirpath string) []*model.DepGraph {
+// GoModGraph 调用 go mod graph 解析依赖
+func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
 
 	_, err := exec.LookPath("go")
 	if err != nil {
@@ -91,7 +94,7 @@ func GoModGraph(ctx context.Context, dirpath string) []*model.DepGraph {
 		return nil
 	}
 	defer os.Chdir(pwd)
-	os.Chdir(dirpath)
+	os.Chdir(dir.Abspath)
 
 	cmd := exec.CommandContext(ctx, "go", "mod", "graph")
 	output, err := cmd.CombinedOutput()
@@ -127,6 +130,7 @@ func GoModGraph(ctx context.Context, dirpath string) []*model.DepGraph {
 	var roots []*model.DepGraph
 	_dep.Range(func(k string, v *model.DepGraph) bool {
 		if len(v.Parents) == 0 {
+			v.Path = dir.Relpath
 			roots = append(roots, v)
 		}
 		return true
