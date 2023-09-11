@@ -9,6 +9,27 @@
 
 中文 | [English](./.github/README.md)
 
+<!-- TOC -->
+  * [项目介绍](#项目介绍)
+  * [检测能力](#检测能力)
+  * [下载安装](#下载安装)
+  * [使用样例](#使用样例)
+    * [检测并输出检测结果到命令行/终端界面（默认）](#检测并输出检测结果到命令行终端界面默认)
+    * [检测并输出检测结果文件（使用`out`参数）](#检测并输出检测结果文件使用out参数)
+      * [样例](#样例)
+    * [使用 Docker 容器进行检测](#使用-docker-容器进行检测)
+  * [参数说明](#参数说明)
+    * [漏洞库文件格式](#漏洞库文件格式)
+      * [漏洞库字段说明](#漏洞库字段说明)
+  * [常见问题](#常见问题)
+    * [使用OpenSCA需要配置环境变量吗？](#使用opensca需要配置环境变量吗)
+    * [OpenSCA目前支持哪些漏洞库呢？](#opensca目前支持哪些漏洞库呢)
+    * [使用OpenSCA检测时，检测速度与哪些因素有关？](#使用opensca检测时检测速度与哪些因素有关)
+  * [问题反馈&联系我们](#问题反馈联系我们)
+  * [贡献者](#贡献者)
+  * [向我们贡献](#向我们贡献)
+<!-- TOC -->
+
 ## 项目介绍
 
 **OpenSCA** 用来扫描项目的第三方组件依赖及漏洞信息。
@@ -80,7 +101,7 @@ opensca-cli -db db.json -path ${project_path}
 
 ### 检测并输出检测结果文件（使用`out`参数）
 
-`out`参数支持范围如下：
+`out` 参数支持范围如下：
 
 | 类型     | 文件格式 | 识别的文件后缀                   | 支持版本        |
 | -------- | -------- | -------------------------------- | --------------- |
@@ -99,6 +120,23 @@ opensca-cli -db db.json -path ${project_path}
 ```shell
 opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
 ```
+
+### 使用 Docker 容器进行检测
+
+```shell
+# 检测当前目录的依赖信息
+docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
+
+# 使用云端漏洞数据库:
+docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
+
+# 使用本地 JSON 漏洞数据源:
+docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /data/db.json
+```
+
+同样的，在 Docker 容器中，也可以使用配置文件进行高级设置。将 `config.json` 保存到项目文件夹中，运行时使用 `-v ${项目路径}:/src` 将项目目录映射至容器 `/src` 目录即可。
+
+更多信息请参考 [Docker Hub 主页](https://hub.docker.com/r/opensca/opensca-cli)
 
 ## 参数说明
 
