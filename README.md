@@ -10,24 +10,24 @@
 中文 | [English](./.github/README.md)
 
 <!-- TOC -->
-  * [项目介绍](#项目介绍)
-  * [检测能力](#检测能力)
-  * [下载安装](#下载安装)
-  * [使用样例](#使用样例)
-    * [检测并输出检测结果到命令行/终端界面（默认）](#检测并输出检测结果到命令行终端界面默认)
-    * [检测并输出检测结果文件（使用`out`参数）](#检测并输出检测结果文件使用out参数)
-      * [样例](#样例)
-    * [使用 Docker 容器进行检测](#使用-docker-容器进行检测)
-  * [参数说明](#参数说明)
-    * [漏洞库文件格式](#漏洞库文件格式)
-      * [漏洞库字段说明](#漏洞库字段说明)
-  * [常见问题](#常见问题)
-    * [使用OpenSCA需要配置环境变量吗？](#使用opensca需要配置环境变量吗)
-    * [OpenSCA目前支持哪些漏洞库呢？](#opensca目前支持哪些漏洞库呢)
-    * [使用OpenSCA检测时，检测速度与哪些因素有关？](#使用opensca检测时检测速度与哪些因素有关)
-  * [问题反馈&联系我们](#问题反馈联系我们)
-  * [贡献者](#贡献者)
-  * [向我们贡献](#向我们贡献)
+- [项目介绍](#项目介绍)
+- [检测能力](#检测能力)
+- [下载安装](#下载安装)
+- [使用样例](#使用样例)
+  - [检测并输出检测结果到命令行/终端界面（默认）](#检测并输出检测结果到命令行终端界面默认)
+  - [检测并输出检测结果文件（使用`out`参数）](#检测并输出检测结果文件使用out参数)
+    - [样例](#样例)
+  - [使用 Docker 容器进行检测](#使用-docker-容器进行检测)
+- [参数说明](#参数说明)
+  - [漏洞库文件格式](#漏洞库文件格式)
+    - [漏洞库字段说明](#漏洞库字段说明)
+- [常见问题](#常见问题)
+  - [使用OpenSCA需要配置环境变量吗？](#使用opensca需要配置环境变量吗)
+  - [OpenSCA目前支持哪些漏洞库呢？](#opensca目前支持哪些漏洞库呢)
+  - [使用OpenSCA检测时，检测速度与哪些因素有关？](#使用opensca检测时检测速度与哪些因素有关)
+- [问题反馈\&联系我们](#问题反馈联系我们)
+- [贡献者](#贡献者)
+- [向我们贡献](#向我们贡献)
 <!-- TOC -->
 
 ## 项目介绍
@@ -58,13 +58,19 @@
 
 ## 下载安装
 
-1. 从 [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
+1. 从 [github](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases)  下载对应系统架构的可执行文件压缩包
 
 2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
 
    ```shell
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
-   cd opensca
+   // github
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
+   go build -o opensca-cli main.go
+   ```
+
+   ```shell
+   // gitee
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
    go build -o opensca-cli main.go
    ```
 
