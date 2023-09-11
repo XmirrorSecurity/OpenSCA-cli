@@ -366,7 +366,7 @@ func findMaxVersion(version string, versions []string) string {
 // js: 查找到的package.json
 func findFromNodeModules(name, basedir string, nodePathMap map[string]*PackageJson) (jspath string, js *PackageJson) {
 	const node_modules = "node_modules"
-	paths := strings.Split(basedir, "/")
+	paths := strings.Split(strings.ReplaceAll(basedir, `\`, `/`), "/")
 	for i := range paths {
 		tail := len(paths) - i
 		dirs := paths[:tail]
