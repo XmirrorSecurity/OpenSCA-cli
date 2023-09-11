@@ -98,8 +98,9 @@ func loadDefaultConfig() bool {
 // LoadConfig 加载配置文件
 func LoadConfig(filepath string) {
 
-	if filepath == "" && !loadDefaultConfig() {
+	if filepath == "" {
 		logs.Warnf("use default config")
+		loadDefaultConfig()
 		return
 	}
 

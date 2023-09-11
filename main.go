@@ -41,9 +41,33 @@ func main() {
 
 	// 检测参数
 	taskArg := &opensca.TaskArg{DataOrigin: path}
+
 	// 是否跳过压缩包检测
 	if config.Conf().DirOnly {
 		taskArg.ExtractFileFilter = func(relpath string) bool { return false }
+	}
+
+	// 进度条
+	if config.Conf().ProgressBar {
+		var find, done, bar int
+		go func() {
+			logos := []string{`-`, `\`, `|`, `/`}
+			for {
+				fmt.Printf("\r%s find:%d done:%d", logos[bar], find, done)
+				bar = (bar + 1) % len(logos)
+				<-time.After(time.Millisecond * 100)
+			}
+		}()
+		taskArg.WalkFileFunc = func(parent *model.File, files []*model.File) {
+			for range files {
+				find++
+			}
+		}
+		taskArg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
+			for range files {
+				done++
+			}
+		}
 	}
 
 	// 运行检测任务

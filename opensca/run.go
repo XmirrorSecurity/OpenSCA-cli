@@ -23,7 +23,8 @@ type TaskArg struct {
 	// 额外的文件过滤函数
 	ExtractFileFilter walk.ExtractFileFilter
 	// 额外的文件处理函数
-	WalkFileFunc walk.WalkFileFunc
+	WalkFileFunc      walk.WalkFileFunc
+	DeferWalkFileFunc walk.WalkFileFunc
 }
 
 // RunTask 运行检测任务
@@ -69,6 +70,12 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 		return false
 
 	}, func(parent *model.File, files []*model.File) {
+
+		defer func() {
+			if arg.DeferWalkFileFunc != nil {
+				arg.DeferWalkFileFunc(parent, files)
+			}
+		}()
 
 		if arg.WalkFileFunc != nil {
 			arg.WalkFileFunc(parent, files)
