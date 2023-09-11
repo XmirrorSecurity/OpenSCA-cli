@@ -9,6 +9,27 @@
 
 English|[中文](../README.md)
 
+<!-- TOC -->
+  * [Introduction](#introduction)
+  * [Detection Ability](#detection-ability)
+  * [Download and Deployment](#download-and-deployment)
+  * [Samples](#samples)
+    * [Scan & Report in CLI/CRT (default)](#scan--report-in-clicrt-default)
+    * [Scan & Report in Files (use the `out` parameter)](#scan--report-in-files-use-the-out-parameter)
+      * [Sample](#sample)
+    * [Scan & Report via docker container](#scan--report-via-docker-container)
+  * [Parameters](#parameters)
+    * [The Format of the Vulnerability Database File](#the-format-of-the-vulnerability-database-file)
+      * [Explanations of Vulnerability Database Fields](#explanations-of-vulnerability-database-fields)
+  * [FAQ](#faq)
+    * [Is the environment variable needed while using OpenSCA?](#is-the-environment-variable-needed-while-using-opensca)
+    * [About the vulnerability database?](#about-the-vulnerability-database)
+    * [About the time cost of OpenSCA scanning?](#about-the-time-cost-of-opensca-scanning)
+  * [Contact Us](#contact-us)
+  * [Authors](#authors)
+  * [Contributing](#contributing)
+<!-- TOC -->
+
 ## Introduction
 
 OpenSCA is intended for scanning third-party dependencies and vulnerabilities.
@@ -75,9 +96,6 @@ Or use the local vulnerability database:
 opensca-cli -db db.json -path ${project_path}
 ```
 
-### 
-
-
 ### Scan & Report in Files (use the `out` parameter)
 
 Files supported by the `out` parameter are listed below：
@@ -98,6 +116,23 @@ Files supported by the `out` parameter are listed below：
 ```shell
 opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
 ```
+
+### Scan & Report via docker container
+
+```shell
+# Detecting dependencies in the current directory:
+docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
+
+# Connect to the cloud vulnerability databases:
+docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
+
+# Use the json local vulnerability data source:
+docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /data/db.json
+```
+
+You can also use configuration files for advanced settings. Save `config.json` to project folder and execute the command.
+
+For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/opensca-cli)
 
 ## Parameters
 
@@ -249,7 +284,7 @@ ISSUEs are warmly welcome.
 
 Add WeChat for further consults is also an option:
 
-![二维码](../wechat.png)
+![QR Code](../wechat.png)
 
 Our QQ Group: 832039395
 
