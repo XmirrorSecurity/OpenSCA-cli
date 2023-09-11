@@ -25,6 +25,7 @@ type TaskArg struct {
 	// 额外的文件处理函数
 	WalkFileFunc      walk.WalkFileFunc
 	DeferWalkFileFunc walk.WalkFileFunc
+	WalkDepFunc       func(dep *model.DepGraph)
 }
 
 // RunTask 运行检测任务
@@ -88,6 +89,9 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 				}
 				dep.Build(false, sca.Language())
 				deps = append(deps, dep)
+				if arg.WalkDepFunc != nil {
+					arg.WalkDepFunc(dep)
+				}
 			}
 		}
 

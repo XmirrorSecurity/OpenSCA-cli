@@ -49,24 +49,33 @@ func main() {
 
 	// 进度条
 	if config.Conf().ProgressBar {
-		var find, done, bar int
+		var find, done, deps, bar int
 		go func() {
 			logos := []string{`-`, `\`, `|`, `/`}
 			for {
-				fmt.Printf("\r%s find:%d done:%d", logos[bar], find, done)
+				fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
 				bar = (bar + 1) % len(logos)
 				<-time.After(time.Millisecond * 100)
 			}
 		}()
+		// 记录需要解析的文件
 		taskArg.WalkFileFunc = func(parent *model.File, files []*model.File) {
 			for range files {
 				find++
 			}
 		}
+		// 记录处理完的文件
 		taskArg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
 			for range files {
 				done++
 			}
+		}
+		// 记录解析到的依赖个数
+		taskArg.WalkDepFunc = func(dep *model.DepGraph) {
+			dep.ForEachNode(func(p, n *model.DepGraph) bool {
+				deps++
+				return true
+			})
 		}
 	}
 
