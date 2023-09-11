@@ -6,14 +6,86 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
 
-func ParseGradle(file []*model.File) []*model.DepGraph {
-	// TODO
-	return nil
+// ParseGradle 解析gradle脚本
+func ParseGradle(files []*model.File) []*model.DepGraph {
+
+	v := Variable{}
+	gradle := []*model.File{}
+	for _, f := range files {
+		if filter.GroovyGradle(f.Relpath()) {
+			v.Scan(f)
+			gradle = append(gradle, f)
+		}
+	}
+
+	var roots []*model.DepGraph
+
+	for _, f := range gradle {
+
+		_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+			return &model.DepGraph{
+				Vendor:  s[0],
+				Name:    s[1],
+				Version: s[2],
+				Develop: s[3] == "dev",
+			}
+		}).LoadOrStore
+
+		root := &model.DepGraph{Path: f.Relpath()}
+
+		f.ReadLineNoComment(model.CTypeComment, func(line string) {
+
+			line = v.Replace(line)
+
+			for _, re := range regexs {
+				match := re.FindStringSubmatch(line)
+				if len(match) < 4 {
+					continue
+				}
+
+				vendor := match[1]
+				name := match[2]
+				version := match[3]
+				index := strings.Index(version, "@")
+				if index != -1 {
+					version = version[:index]
+				}
+
+				if version == "" || strings.Contains(version, "$") {
+					continue
+				}
+
+				dev := ""
+				if strings.Contains(strings.ToLower(line), "testimplementation") {
+					dev = "dev"
+				}
+
+				root.AppendChild(_dep(vendor, name, version, dev))
+			}
+
+		})
+
+		roots = append(roots, root)
+	}
+
+	return roots
+}
+
+// TODO: 优化gradle解析
+// 依赖冲突 https://docs.gradle.org/current/userguide/dependency_management.html
+// 依赖定义 https://docs.gradle.org/current/userguide/dependency_downgrade_and_exclude.html#sec:enforcing_dependency_version
+var regexs = []*regexp.Regexp{
+	regexp.MustCompile(`group: ?['"]([a-zA-Z]+[^\s"']+)['"], ?name: ?['"]([a-zA-Z]+[^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+	regexp.MustCompile(`group: ?['"]([a-zA-Z]+[^\s"']+)['"], ?module: ?['"]([a-zA-Z]+[^\s"']+)['"], ?version: ?['"]([^\s"']+)['"]`),
+	regexp.MustCompile(`['"]([a-zA-Z]+[^\s:'"]+):([a-zA-Z]+[^\s:'"]+):([^\s:'"]+)['"]`),
 }
 
 //go:embed opensca.gradle

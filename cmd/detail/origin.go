@@ -101,11 +101,11 @@ func GetOrigin() *BaseOrigin {
 }
 
 func (o *BaseOrigin) LoadJsonOrigin(filepath string) {
-	if jsonText, err := os.ReadFile(filepath); err != nil {
+	if jsonFile, err := os.Open(filepath); err != nil {
 		logs.Error(err)
 	} else {
 		data := []VulnInfo{}
-		err := json.Unmarshal(jsonText, &data)
+		err = json.NewDecoder(jsonFile).Decode(&data)
 		if err != nil {
 			logs.Error(err)
 		}
