@@ -299,8 +299,8 @@ func inRangeInterval(ver *Version, interval string) bool {
 		}
 		// 判断是否在区间内部
 		// 大于左值并(右值为空或小于右值)
-		// leftValue < version && ( isempty(rightValue) || version < rightValue )
-		if leftValue.Less(ver) && (len(rightValue.Nums) == 0 || ver.Less(rightValue)) {
+		// ( isempty(leftValue) || leftValue < version ) && ( isempty(rightValue) || version < rightValue )
+		if (len(leftValue.Nums) == 0 || leftValue.Less(ver)) && (len(rightValue.Nums) == 0 || ver.Less(rightValue)) {
 			return true
 		}
 	}
