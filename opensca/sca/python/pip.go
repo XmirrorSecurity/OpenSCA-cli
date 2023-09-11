@@ -16,13 +16,13 @@ func ParsePipfile(file *model.File) *model.DepGraph {
 		Packages    map[string]string `toml:"packages"`
 	}{}
 
-	root := &model.DepGraph{Path: file.Path()}
+	root := &model.DepGraph{Path: file.Relpath()}
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
 	file.OpenReader(func(reader io.Reader) {
 		if err := json.NewDecoder(reader).Decode(&pip); err != nil {
-			logs.Warnf("unmarshal file %s err: %s", file.Path(), err)
+			logs.Warnf("unmarshal file %s err: %s", file.Relpath(), err)
 		}
 	})
 
@@ -49,13 +49,13 @@ func ParsePipfileLock(file *model.File) *model.DepGraph {
 		} `json:"default"`
 	}{}
 
-	root := &model.DepGraph{Path: file.Path()}
+	root := &model.DepGraph{Path: file.Relpath()}
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore
 
 	file.OpenReader(func(reader io.Reader) {
 		if err := json.NewDecoder(reader).Decode(&lock); err != nil {
-			logs.Warnf("unmarshal file %s err: %s", file.Path(), err)
+			logs.Warnf("unmarshal file %s err: %s", file.Relpath(), err)
 		}
 	})
 
@@ -69,7 +69,7 @@ func ParsePipfileLock(file *model.File) *model.DepGraph {
 
 func ParseRequirementTxt(file *model.File) *model.DepGraph {
 
-	root := &model.DepGraph{Path: file.Path()}
+	root := &model.DepGraph{Path: file.Relpath()}
 
 	file.ReadLine(func(line string) {
 
@@ -99,7 +99,7 @@ func ParseRequirementTxt(file *model.File) *model.DepGraph {
 
 func ParseRequirementIn(file *model.File) *model.DepGraph {
 
-	root := &model.DepGraph{Path: file.Path()}
+	root := &model.DepGraph{Path: file.Relpath()}
 
 	file.ReadLine(func(line string) {
 

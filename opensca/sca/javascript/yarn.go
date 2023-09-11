@@ -39,7 +39,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			for _, tag := range strings.Split(line, ",") {
 				i := strings.LastIndex(tag, "@")
 				if i == -1 {
-					logs.Warnf("parse file %s line: %s fail", file.Path(), line)
+					logs.Warnf("parse file %s line: %s fail", file.Relpath(), line)
 					continue
 				}
 				name := strings.Trim(tag[:i], ` ":`)
@@ -54,7 +54,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			line = strings.TrimSpace(line)
 			i := strings.Index(line, " ")
 			if i == -1 {
-				logs.Warnf("parse file %s line: %s fail", file.Path(), line)
+				logs.Warnf("parse file %s line: %s fail", file.Relpath(), line)
 				return
 			}
 			name := strings.Trim(line[:i], `"`)
@@ -80,7 +80,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 // ParsePackageJsonWithYarnLock 借助yarn.lock文件解析pacakge.json
 func ParsePackageJsonWithYarnLock(pkgjson *PackageJson, yarnlock map[string]*YarnLock) *model.DepGraph {
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
 
 	_dep := _depSet().LoadOrStore
 

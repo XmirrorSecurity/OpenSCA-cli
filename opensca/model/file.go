@@ -8,22 +8,36 @@ import (
 )
 
 type File struct {
-	Abspath string
-	Relpath string
+	abspath string
+	relpath string
 }
 
-func (file *File) Path() string {
+func NewFile(abs, rel string) *File {
+	return &File{
+		abspath: abs,
+		relpath: rel,
+	}
+}
+
+func (file *File) Abspath() string {
 	if file != nil {
-		return file.Relpath
+		return file.abspath
+	}
+	return ""
+}
+
+func (file *File) Relpath() string {
+	if file != nil {
+		return file.relpath
 	}
 	return ""
 }
 
 func (file *File) OpenReader(do func(reader io.Reader)) error {
-	if file == nil || file.Abspath == "" {
+	if file == nil || file.abspath == "" {
 		return nil
 	}
-	f, err := os.Open(file.Abspath)
+	f, err := os.Open(file.abspath)
 	if err != nil {
 		return err
 	}

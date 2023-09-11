@@ -25,10 +25,10 @@ func (sca Sca) Filter(relpath string) bool {
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 
 	// jar包中的pom仅读取pom自身信息 不获取子依赖
-	if strings.Contains(parent.Relpath, ".jar") {
+	if strings.Contains(parent.Relpath(), ".jar") {
 		var deps []*model.DepGraph
 		for _, file := range files {
-			if !filter.JavaPom(file.Relpath) {
+			if !filter.JavaPom(file.Relpath()) {
 				continue
 			}
 			file.OpenReader(func(reader io.Reader) {
@@ -40,7 +40,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 					Vendor:  p.GroupId,
 					Name:    p.ArtifactId,
 					Version: p.Version,
-					Path:    file.Relpath,
+					Path:    file.Relpath(),
 				})
 			})
 		}
@@ -58,7 +58,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	// 静态解析
 	poms := []*Pom{}
 	for _, file := range files {
-		if filter.JavaPom(file.Relpath) {
+		if filter.JavaPom(file.Relpath()) {
 			file.OpenReader(func(reader io.Reader) {
 				pom := ReadPom(reader)
 				pom.File = file

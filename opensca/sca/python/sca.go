@@ -29,24 +29,24 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 
 	lockSet := map[string]bool{}
 	for _, file := range files {
-		if filter.PythonPipfileLock(file.Relpath) {
-			lockSet[path2dir(file.Relpath)] = true
+		if filter.PythonPipfileLock(file.Relpath()) {
+			lockSet[path2dir(file.Relpath())] = true
 		}
 	}
 
 	var roots []*model.DepGraph
 	for _, file := range files {
-		if filter.PythonPipfile(file.Relpath) {
-			if !lockSet[path2dir(file.Relpath)] {
+		if filter.PythonPipfile(file.Relpath()) {
+			if !lockSet[path2dir(file.Relpath())] {
 				roots = append(roots, ParsePipfile(file))
 			}
-		} else if filter.PythonPipfileLock(file.Relpath) {
+		} else if filter.PythonPipfileLock(file.Relpath()) {
 			roots = append(roots, ParsePipfileLock(file))
-		} else if filter.PythonRequirementsIn(file.Relpath) {
+		} else if filter.PythonRequirementsIn(file.Relpath()) {
 			roots = append(roots, ParseRequirementIn(file))
-		} else if filter.PythonRequirementsTxt(file.Relpath) {
+		} else if filter.PythonRequirementsTxt(file.Relpath()) {
 			roots = append(roots, ParseRequirementTxt(file))
-		} else if filter.PythonSetup(file.Relpath) {
+		} else if filter.PythonSetup(file.Relpath()) {
 			roots = append(roots, ParseSetup(file))
 		}
 	}

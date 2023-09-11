@@ -138,7 +138,7 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 // ParsePackageJsonWithNode 借助node_modules解析package.json
 func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
 	// root.AppendLicense(pkgjson.License)
 
 	_dep := _depSet().LoadOrStore
@@ -172,7 +172,7 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
 
 		njs := n.Expand.(*PackageJson)
-		basedir := njs.File.Path()
+		basedir := njs.File.Relpath()
 
 		for name, version := range njs.Dependencies {
 			n.AppendChild(findDep(name, version, basedir))
@@ -200,7 +200,7 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 		return ParsePackageJsonWithLockV3(pkgjson, pkglock)
 	}
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
 	// root.AppendLicense(pkgjson.License)
 
 	// map[key]
@@ -260,11 +260,11 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 
 	for jspath, js := range pkglock.Packages {
 		if js.File == nil {
-			js.File = &model.File{Relpath: jspath}
+			js.File = model.NewFile("", jspath)
 		}
 	}
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Path()}
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
 	// root.AppendLicense(pkgjson.License)
 
 	type expand struct {
@@ -280,7 +280,7 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 		if subjs == nil {
 			return nil
 		}
-		dep := _dep(name, subjs.Version, subjs.File.Path())
+		dep := _dep(name, subjs.Version, subjs.File.Relpath())
 		// dep.AppendLicense(subjs.License)
 		if dep.Expand == nil {
 			dep.Develop = subjs.Develop

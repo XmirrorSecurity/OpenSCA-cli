@@ -23,7 +23,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	// 尝试调用 go mod graph
 	gomod := false
 	for _, file := range files {
-		if filter.GoMod(file.Relpath) {
+		if filter.GoMod(file.Relpath()) {
 			gomod = true
 			break
 		}
@@ -42,11 +42,11 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 
 	// 记录go.sum/Gopkg.lock
 	for _, f := range files {
-		if filter.GoPkgLock(f.Relpath) {
-			pkglock[path2dir(f.Relpath)] = f
+		if filter.GoPkgLock(f.Relpath()) {
+			pkglock[path2dir(f.Relpath())] = f
 		}
-		if filter.GoSum(f.Relpath) {
-			gosum[path2dir(f.Relpath)] = f
+		if filter.GoSum(f.Relpath()) {
+			gosum[path2dir(f.Relpath())] = f
 		}
 	}
 
@@ -54,9 +54,9 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	var roots []*model.DepGraph
 	for _, f := range files {
 
-		if filter.GoMod(f.Relpath) {
+		if filter.GoMod(f.Relpath()) {
 			mod := ParseGomod(f)
-			if sumf, ok := gosum[path2dir(f.Relpath)]; ok {
+			if sumf, ok := gosum[path2dir(f.Relpath())]; ok {
 				sum := ParseGosum(sumf)
 				if len(sum.Children) > len(mod.Children) {
 					mod.Children = sum.Children
@@ -66,9 +66,9 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			continue
 		}
 
-		if filter.GoPkgToml(f.Relpath) {
+		if filter.GoPkgToml(f.Relpath()) {
 			pkg := ParseGopkgToml(f)
-			if lockf, ok := pkglock[path2dir(f.Relpath)]; ok {
+			if lockf, ok := pkglock[path2dir(f.Relpath())]; ok {
 				lock := ParseGopkgLock(lockf)
 				if len(lock.Children) > len(pkg.Children) {
 					pkg.Children = lock.Children

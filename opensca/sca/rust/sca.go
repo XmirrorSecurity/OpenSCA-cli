@@ -19,8 +19,8 @@ func (sca Sca) Filter(relpath string) bool {
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 	var roots []*model.DepGraph
-	for _, f := range files{
-		if filter.RustCargoLock(f.Relpath){
+	for _, f := range files {
+		if filter.RustCargoLock(f.Relpath()) {
 			roots = append(roots, ParseCargoLock(f))
 		}
 	}

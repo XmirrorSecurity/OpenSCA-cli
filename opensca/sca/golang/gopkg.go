@@ -23,7 +23,7 @@ type GopkgLock struct {
 
 // ParseGopkgToml 解析Gopkg.toml文件
 func ParseGopkgToml(f *model.File) *model.DepGraph {
-	root := &model.DepGraph{Path: f.Path()}
+	root := &model.DepGraph{Path: f.Relpath()}
 	gopkg := GopkgToml{}
 	f.OpenReader(func(reader io.Reader) {
 		toml.NewDecoder(reader).Decode(&gopkg)
@@ -36,7 +36,7 @@ func ParseGopkgToml(f *model.File) *model.DepGraph {
 
 // ParseGopkgLock 解析Gopkg.lock文件
 func ParseGopkgLock(f *model.File) *model.DepGraph {
-	root := &model.DepGraph{Path: f.Path()}
+	root := &model.DepGraph{Path: f.Relpath()}
 	pkglock := GopkgLock{}
 	f.OpenReader(func(reader io.Reader) {
 		toml.NewDecoder(reader).Decode(&pkglock)

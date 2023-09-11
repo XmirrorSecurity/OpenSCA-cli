@@ -78,7 +78,7 @@ func ParseDsdx(f *model.File) *model.DepGraph {
 		return roots[0]
 	}
 
-	root := &model.DepGraph{Path: f.Path()}
+	root := &model.DepGraph{Path: f.Relpath()}
 	for _, r := range roots {
 		root.AppendChild(r)
 	}

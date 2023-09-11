@@ -20,7 +20,7 @@ func (sca Sca) Filter(relpath string) bool {
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 	var root []*model.DepGraph
 	for _, file := range files {
-		if sca.Filter(file.Relpath) {
+		if sca.Filter(file.Relpath()) {
 			root = append(root, ParseGemfileLock(file))
 		}
 	}

@@ -21,7 +21,7 @@ func (sca Sca) Filter(relpath string) bool {
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
 	var deps []*model.DepGraph
 	for _, f := range files {
-		if sca.Filter(f.Relpath) {
+		if sca.Filter(f.Relpath()) {
 			deps = append(deps, ParseRebarLock(f))
 		}
 	}
@@ -30,7 +30,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 
 func ParseRebarLock(file *model.File) *model.DepGraph {
 	reg := regexp.MustCompile(`<<"([\w\d]+)">>\S*?pkg,<<"[\w\d]+">>,<<"([.\d]+)">>`)
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{Path: file.Relpath()}
 	file.ReadLine(func(line string) {
 		match := reg.FindStringSubmatch(line)
 		root.AppendChild(&model.DepGraph{

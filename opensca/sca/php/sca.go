@@ -30,18 +30,18 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	path2dir := func(relpath string) string { return path.Dir(strings.ReplaceAll(relpath, `\`, `/`)) }
 
 	for _, f := range files {
-		if filter.PhpComposer(f.Relpath) {
+		if filter.PhpComposer(f.Relpath()) {
 			f.OpenReader(func(reader io.Reader) {
 				var js ComposerJson
 				json.NewDecoder(reader).Decode(&js)
 				js.File = f
-				jsonMap[path2dir(f.Relpath)] = &js
+				jsonMap[path2dir(f.Relpath())] = &js
 			})
-		} else if filter.PhpComposerLock(f.Relpath) {
+		} else if filter.PhpComposerLock(f.Relpath()) {
 			f.OpenReader(func(reader io.Reader) {
 				var lock ComposerLock
 				json.NewDecoder(reader).Decode(&lock)
-				lockMap[path2dir(f.Relpath)] = &lock
+				lockMap[path2dir(f.Relpath())] = &lock
 			})
 		}
 	}

@@ -46,7 +46,7 @@ func skip(s string) bool {
 
 func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.DepGraph {
 
-	root := &model.DepGraph{Name: json.Name, Path: json.File.Path()}
+	root := &model.DepGraph{Name: json.Name, Path: json.File.Relpath()}
 	root.AppendLicense(json.License)
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} }).LoadOrStore
@@ -100,7 +100,7 @@ func ParseComposerJsonWithLock(json *ComposerJson, lock *ComposerLock) *model.De
 
 func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
-	root := &model.DepGraph{Name: json.Name, Path: json.File.Path()}
+	root := &model.DepGraph{Name: json.Name, Path: json.File.Relpath()}
 	root.AppendLicense(json.License)
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0], Version: s[1]} }).LoadOrStore

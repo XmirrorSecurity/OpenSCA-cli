@@ -46,7 +46,7 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 		defer os.RemoveAll(filepath)
 	}
 
-	parent := &model.File{Relpath: name, Abspath: filepath}
+	parent := model.NewFile(filepath, name)
 	err = walk(ctx, parent, filter, do)
 	return
 }
@@ -55,7 +55,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 
 	var files []*model.File
 
-	err := filepath.Walk(parent.Abspath, func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(parent.Abspath(), func(path string, info fs.FileInfo, err error) error {
 
 		if err != nil {
 			logs.Warn(err)
@@ -68,12 +68,12 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 			return nil
 		}
 
-		rel := filepath.Join(parent.Relpath, strings.TrimPrefix(path, parent.Abspath))
+		rel := filepath.Join(parent.Relpath(), strings.TrimPrefix(path, parent.Abspath()))
 
 		logs.Debugf("find %s", rel)
 
 		if filter == nil || filter(rel) {
-			files = append(files, &model.File{Abspath: path, Relpath: rel})
+			files = append(files, model.NewFile(path, rel))
 		}
 
 		decompress(path, filter, func(dir string) {
@@ -81,7 +81,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 			go func() {
 				defer wg.Done()
 				defer os.RemoveAll(dir)
-				parent := &model.File{Relpath: rel, Abspath: dir}
+				parent := model.NewFile(dir, rel)
 				if err := walk(ctx, parent, filter, do); err != nil {
 					logs.Warn(err)
 				}

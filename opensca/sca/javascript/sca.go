@@ -45,10 +45,10 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 
 	// 将npm相关文件按上述方案分类
 	for _, f := range files {
-		if filter.JavaScriptYarnLock(f.Relpath) {
-			yarnMap[path2dir(f.Relpath)] = ParseYarnLock(f)
+		if filter.JavaScriptYarnLock(f.Relpath()) {
+			yarnMap[path2dir(f.Relpath())] = ParseYarnLock(f)
 		}
-		if filter.JavaScriptPackageJson(f.Relpath) {
+		if filter.JavaScriptPackageJson(f.Relpath()) {
 			var js *PackageJson
 			f.OpenReader(func(reader io.Reader) {
 				js = readJson[PackageJson](reader)
@@ -56,14 +56,14 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 					return
 				}
 				js.File = f
-				if strings.Contains(f.Relpath, "node_modules") {
-					nodeMap[path2dir(f.Relpath)] = js
+				if strings.Contains(f.Relpath(), "node_modules") {
+					nodeMap[path2dir(f.Relpath())] = js
 				} else {
 					jsonMap[js.Name] = js
 				}
 			})
 		}
-		if filter.JavaScriptPackageLock(f.Relpath) {
+		if filter.JavaScriptPackageLock(f.Relpath()) {
 			f.OpenReader(func(reader io.Reader) {
 				lock := readJson[PackageLock](reader)
 				if lock == nil {
@@ -85,7 +85,7 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 
 		// 尝试从yarn.lock获取
 		if js.File != nil {
-			if yarn, ok := yarnMap[path2dir(js.File.Relpath)]; ok {
+			if yarn, ok := yarnMap[path2dir(js.File.Relpath())]; ok {
 				root = append(root, ParsePackageJsonWithYarnLock(js, yarn))
 				continue
 			}

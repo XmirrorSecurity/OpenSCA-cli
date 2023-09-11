@@ -23,7 +23,7 @@ func ParseCargoLock(file *model.File) *model.DepGraph {
 	file.OpenReader(func(reader io.Reader) {
 		_, err := toml.NewDecoder(reader).Decode(&cargo)
 		if err != nil {
-			logs.Warnf("parse %s fail:%s", file.Relpath, err)
+			logs.Warnf("parse %s fail:%s", file.Relpath(), err)
 		}
 	})
 
@@ -48,7 +48,7 @@ func ParseCargoLock(file *model.File) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{Path: file.Relpath()}
 	for _, dep := range depMap {
 		if len(dep.Parents) == 0 {
 			root.AppendChild(dep)

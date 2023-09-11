@@ -14,7 +14,7 @@ import (
 // ParseGomod 解析go.mod文件
 func ParseGomod(file *model.File) *model.DepGraph {
 
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{Path: file.Relpath()}
 
 	var require bool
 
@@ -70,7 +70,7 @@ func ParseGosum(file *model.File) *model.DepGraph {
 		}
 	})
 
-	root := &model.DepGraph{Path: file.Relpath}
+	root := &model.DepGraph{Path: file.Relpath()}
 	for name, version := range depMap {
 		root.AppendChild(&model.DepGraph{
 			Name:    name,
@@ -94,7 +94,7 @@ func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
 		return nil
 	}
 	defer os.Chdir(pwd)
-	os.Chdir(dir.Abspath)
+	os.Chdir(dir.Abspath())
 
 	cmd := exec.CommandContext(ctx, "go", "mod", "graph")
 	output, err := cmd.CombinedOutput()
@@ -130,7 +130,7 @@ func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
 	var roots []*model.DepGraph
 	_dep.Range(func(k string, v *model.DepGraph) bool {
 		if len(v.Parents) == 0 {
-			v.Path = dir.Relpath
+			v.Path = dir.Relpath()
 			roots = append(roots, v)
 		}
 		return true

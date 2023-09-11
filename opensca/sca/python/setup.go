@@ -32,8 +32,8 @@ func ParseSetup(file *model.File) *model.DepGraph {
 		return nil
 	}
 
-	ossfile := path.Join(file.Abspath, "oss.py")
-	setupfile := path.Join(file.Abspath, "setup.py")
+	ossfile := path.Join(file.Abspath(), "oss.py")
+	setupfile := path.Join(file.Abspath(), "setup.py")
 
 	// 创建 oss.py
 	if err := os.WriteFile(ossfile, ossPy, 0444); err != nil {
@@ -70,7 +70,7 @@ func ParseSetup(file *model.File) *model.DepGraph {
 		return nil
 	}
 
-	root := &model.DepGraph{Name: dep.Name, Version: dep.Version, Path: file.Path()}
+	root := &model.DepGraph{Name: dep.Name, Version: dep.Version, Path: file.Relpath()}
 	root.AppendLicense(dep.License)
 
 	for _, pkg := range [][]string{dep.Packages, dep.InstallRequires, dep.Requires} {

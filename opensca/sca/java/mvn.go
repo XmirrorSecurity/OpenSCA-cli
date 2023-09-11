@@ -26,7 +26,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	// 记录module信息
 	modules := map[string]*Pom{}
 	for _, pom := range poms {
-		modules[filepath.Base(filepath.Dir(pom.File.Path()))] = pom
+		modules[filepath.Base(filepath.Dir(pom.File.Relpath()))] = pom
 	}
 
 	// 将revision主动推送到所有modules
@@ -171,7 +171,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			}
 		}).LoadOrStore
 
-		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Path()}
+		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Relpath()}
 		root.Expand = pom
 
 		// 解析子依赖构建依赖关系
@@ -391,7 +391,7 @@ func MvnTree(dir *model.File) []*model.DepGraph {
 	}
 	defer os.Chdir(pwd)
 
-	os.Chdir(dir.Abspath)
+	os.Chdir(dir.Abspath())
 	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -419,7 +419,7 @@ func MvnTree(dir *model.File) []*model.DepGraph {
 			tree = false
 			root := parseMvnTree(lines)
 			if root != nil {
-				root.Path = dir.Relpath
+				root.Path = dir.Relpath()
 				roots = append(roots, root)
 			}
 			lines = nil
