@@ -1,0 +1,10 @@
+{
+	"name": "opensca/test",
+	"license": "MIT",
+	"type": "extension",
+	"require": {
+		"php": ">=7.0",
+		"http-interop/http-factory-guzzle": "^1.2",
+		"psr/http-message": "^2.0"
+	}
+}

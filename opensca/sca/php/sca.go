@@ -47,12 +47,20 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	var root []*model.DepGraph
+loop:
 	for dir, json := range jsonMap {
 
 		// 通过lock文件补全
 		if lock, ok := lockMap[dir]; ok {
 			root = append(root, ParseComposerJsonWithLock(json, lock))
 			continue
+		}
+
+		// vendor中的composer.json没有对应lock则不做处理
+		for _, dir := range strings.Split(dir, "/") {
+			if strings.EqualFold(dir, "vendor") {
+				continue loop
+			}
 		}
 
 		// 从数据源下载
@@ -63,7 +71,6 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 }
 
 var defaultComposerRepo = []common.RepoConfig{
-	{Url: "https://packagist.phpcomposer.com"},
 	{Url: "http://repo.packagist.org/p2"},
 }
 
