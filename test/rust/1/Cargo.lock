@@ -1,0 +1,34 @@
+version = 3
+
+[[package]]
+name = "foo"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+ "windows-targets",
+]
+
+[[package]]
+name = "tokio"
+version = "1.28.0"
+dependencies = [
+ "windows-sys",
+]
+
+[[package]]
+name = "windows-sys"
+version = "0.48.0"
+dependencies = [
+ "windows-targets",
+]
+
+[[package]]
+name = "windows-targets"
+version = "0.48.0"
+dependencies = [
+ "windows_x86_64_gnu",
+]
+
+[[package]]
+name = "windows_x86_64_gnu"
+version = "0.48.0"

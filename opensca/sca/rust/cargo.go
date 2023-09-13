@@ -10,13 +10,14 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// ParseCargoLock 解析Cargo.lock文件
 func ParseCargoLock(file *model.File) *model.DepGraph {
 
 	cargo := struct {
 		Pkgs []struct {
 			Name         string   `toml:"name"`
 			Version      string   `toml:"version"`
-			dependencies []string `toml:"dependencies"`
+			Dependencies []string `toml:"dependencies"`
 		} `toml:"package"`
 	}{}
 
@@ -38,7 +39,7 @@ func ParseCargoLock(file *model.File) *model.DepGraph {
 
 	// 记录依赖关系
 	for _, c := range cargo.Pkgs {
-		for _, dependency := range c.dependencies {
+		for _, dependency := range c.Dependencies {
 			name := dependency
 			i := strings.Index(dependency, " ")
 			if i != -1 {
@@ -48,11 +49,12 @@ func ParseCargoLock(file *model.File) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{Path: file.Relpath()}
 	for _, dep := range depMap {
 		if len(dep.Parents) == 0 {
-			root.AppendChild(dep)
+			dep.Path = file.Relpath()
+			return dep
 		}
 	}
-	return root
+
+	return nil
 }
