@@ -9,15 +9,15 @@ import (
 
 func Test_Php(t *testing.T) {
 
-	std := tool.Dep("", "", "",
-		tool.Dep("", "opensca/test", "",
-			tool.Dep("", "http-interop/http-factory-guzzle", "1.2.0",
-				tool.Dep("", "guzzlehttp/psr7", "2.6.1",
-					tool.Dep("", "ralouphie/getallheaders", "3.0.3"),
+	std := tool.Dep("", "",
+		tool.Dep("opensca/test", "",
+			tool.Dep("http-interop/http-factory-guzzle", "1.2.0",
+				tool.Dep("guzzlehttp/psr7", "2.6.1",
+					tool.Dep("ralouphie/getallheaders", "3.0.3"),
 				),
-				tool.Dep("", "psr/http-factory", "1.0.2"),
+				tool.Dep("psr/http-factory", "1.0.2"),
 			),
-			tool.Dep("", "psr/http-message", "2.0"),
+			tool.Dep("psr/http-message", "2.0"),
 		),
 	)
 

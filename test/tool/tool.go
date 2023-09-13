@@ -21,7 +21,7 @@ func Diff(a, b *model.DepGraph) bool {
 	return a.Tree(false, true) != b.Tree(false, true)
 }
 
-func Dep(vendor, name, version string, children ...*model.DepGraph) *model.DepGraph {
+func Dep3(vendor, name, version string, children ...*model.DepGraph) *model.DepGraph {
 	root := &model.DepGraph{
 		Vendor:  vendor,
 		Name:    name,
@@ -33,10 +33,18 @@ func Dep(vendor, name, version string, children ...*model.DepGraph) *model.DepGr
 	return root
 }
 
-func DevDep(vendor, name, version string, children ...*model.DepGraph) *model.DepGraph {
-	root := Dep(vendor, name, version, children...)
+func DevDep3(vendor, name, version string, children ...*model.DepGraph) *model.DepGraph {
+	root := Dep3(vendor, name, version, children...)
 	root.Develop = true
 	return root
+}
+
+func Dep(name, version string, children ...*model.DepGraph) *model.DepGraph {
+	return Dep3("", name, version, children...)
+}
+
+func DevDep(name, version string, children ...*model.DepGraph) *model.DepGraph {
+	return DevDep3("", name, version, children...)
 }
 
 type TaskCase struct {
