@@ -117,20 +117,20 @@ Files supported by the `out` parameter are listed below：
 opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
 ```
 
-### Scan & Report via docker container
+### Scan & Report via Docker Container
 
 ```shell
-# Detecting dependencies in the current directory:
+# Detect dependencies in the current directory:
 docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
 
-# Connect to the cloud vulnerability databases:
+# Connect to the cloud vulnerability database:
 docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
 
-# Use the json local vulnerability data source:
+# Use the local vulnerability database:
 docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /data/db.json
 ```
 
-You can also use configuration files for advanced settings. Save `config.json` to project folder and execute the command.
+You can also use the configuration file for advanced settings. Save `config.json` to the project folder and execute the command using `-v ${project path}:/src` to map the project directory to `/src` directory of the container.
 
 For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/opensca-cli)
 
