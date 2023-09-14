@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime/debug"
 )
@@ -53,22 +54,53 @@ func DefalutLogConfig() LogConfig {
 
 func CreateLog(logPath string) {
 
-	if logPath != "" {
-		if f, err := os.Create(logPath); err == nil {
-			log.SetOutput(f)
-			return
+	if logPath == "" {
+		Debug("create default log")
+		createDefaultLog()
+		return
+	}
+
+	if f, err := os.Create(logPath); err != nil {
+		Warnf("create log %s err: %s, create default log", logPath, err)
+		createDefaultLog()
+	} else {
+		Debugf("log file: %s", logPath)
+		log.SetOutput(f)
+	}
+
+}
+
+func createDefaultLog() {
+
+	const logname = "opensca.log"
+	defaultLogPaths := []string{}
+
+	// 在工作目录生成日志
+	if p, err := os.Getwd(); err == nil {
+		defaultLogPaths = append(defaultLogPaths, filepath.Join(p, logname))
+	}
+
+	// 在cli目录生成日志
+	if execfile, err := os.Executable(); err == nil {
+		defaultLogPaths = append(defaultLogPaths, filepath.Join(filepath.Dir(execfile), logname))
+	}
+
+	// 在用户目录生成日志
+	if user, err := user.Current(); err == nil {
+		defaultLogPaths = append(defaultLogPaths, filepath.Join(user.HomeDir, logname))
+	}
+
+	for _, p := range defaultLogPaths {
+		f, err := os.Create(p)
+		if err != nil {
+			Warnf("create log %s err: %s", p, err)
 		} else {
-			Warnf("create logfile %s fail %s, use default log\n", logPath, err)
+			Debugf("log file: %s", p)
+			log.SetOutput(f)
+			break
 		}
 	}
 
-	execfile, _ := os.Executable()
-	f, err := os.Create(filepath.Join(filepath.Dir(execfile), "opensca.log"))
-	if err != nil {
-		Warnf("open logfile err: %s", err)
-	} else {
-		log.SetOutput(f)
-	}
 }
 
 // RegisterOut 注册日志输出格式

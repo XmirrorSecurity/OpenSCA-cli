@@ -85,6 +85,11 @@ func main() {
 		report.ErrorString = err.Error()
 	}
 
+	// 日志中记录检测结果
+	for _, dep := range deps {
+		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+	}
+
 	// 合并检测结果
 	root := &model.DepGraph{}
 	if len(deps) > 1 {
@@ -94,8 +99,6 @@ func main() {
 	} else if len(deps) == 1 {
 		root = deps[0]
 	}
-	logs.Debugf("dependencies tree:\n%s", root.Tree(false, false))
-
 	report.DepDetailGraph = detail.NewDepDetailGraph(root)
 
 	// 组件去重

@@ -66,20 +66,17 @@ func loadDefaultConfig() bool {
 	defaultConfigPaths := []string{}
 
 	// 读取工作目录的 config.json
-	p, err := os.Getwd()
-	if err == nil {
+	if p, err := os.Getwd(); err == nil {
 		defaultConfigPaths = append(defaultConfigPaths, filepath.Join(p, "config.json"))
 	}
 
 	// 读取用户目录下的 opensca_config.json
-	user, err := user.Current()
-	if err == nil {
+	if user, err := user.Current(); err == nil {
 		defaultConfigPaths = append(defaultConfigPaths, filepath.Join(user.HomeDir, "opensca_config.json"))
 	}
 
 	// 读取 opensca-cli 所在目录下的 config.json
-	p, err = os.Executable()
-	if err == nil {
+	if p, err := os.Executable(); err == nil {
 		defaultConfigPaths = append(defaultConfigPaths, filepath.Join(filepath.Dir(p), "config.json"))
 	}
 
@@ -87,6 +84,7 @@ func loadDefaultConfig() bool {
 		if data, err := os.ReadFile(config); err == nil {
 			err := json5.Unmarshal(data, &_config)
 			if err == nil {
+				logs.Debugf("load config %s", config)
 				return true
 			}
 		}
@@ -99,7 +97,7 @@ func loadDefaultConfig() bool {
 func LoadConfig(filepath string) {
 
 	if filepath == "" {
-		logs.Warnf("use default config")
+		logs.Debug("use default config")
 		loadDefaultConfig()
 		return
 	}

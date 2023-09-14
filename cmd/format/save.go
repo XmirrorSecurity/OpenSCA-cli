@@ -30,6 +30,7 @@ type Report struct {
 
 func Save(report Report, output string) {
 	for _, out := range strings.Split(output, ",") {
+		logs.Infof("result save to %s", out)
 		switch filepath.Ext(out) {
 		case ".html":
 			Html(report, out)
