@@ -62,7 +62,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 			return nil
 		}
 		if info.IsDir() {
-			if strings.HasSuffix(path, ".git") || strings.HasSuffix(path, ".opensca-cache") {
+			if strings.HasSuffix(path, ".git") || strings.HasSuffix(path, ".opensca-cache") || strings.HasSuffix(path, ".temp") {
 				return filepath.SkipDir
 			}
 			return nil
