@@ -22,7 +22,7 @@ type Sca interface {
 	Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph
 }
 
-var AllSca = []Sca{java.Sca{},
+var AllSca = []Sca{
 	python.Sca{},
 	javascript.Sca{},
 	golang.Sca{},

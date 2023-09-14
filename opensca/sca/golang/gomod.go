@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -89,14 +88,8 @@ func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
 		return nil
 	}
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil
-	}
-	defer os.Chdir(pwd)
-	os.Chdir(dir.Abspath())
-
 	cmd := exec.CommandContext(ctx, "go", "mod", "graph")
+	cmd.Dir = dir.Abspath()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil

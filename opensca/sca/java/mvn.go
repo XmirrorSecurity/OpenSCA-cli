@@ -3,10 +3,10 @@ package java
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -374,7 +374,7 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 
 // MvnTree 调用mvn dependency:tree解析依赖
 // dir: 临时目录路径信息
-func MvnTree(dir *model.File) []*model.DepGraph {
+func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 
 	if dir == nil {
 		return nil
@@ -384,15 +384,8 @@ func MvnTree(dir *model.File) []*model.DepGraph {
 		return nil
 	}
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		logs.Warn(err)
-		return nil
-	}
-	defer os.Chdir(pwd)
-
-	os.Chdir(dir.Abspath())
-	cmd := exec.Command("mvn", "dependency:tree", "--fail-never")
+	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree", "--fail-never")
+	cmd.Dir = dir.Abspath()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logs.Warn(err)

@@ -47,15 +47,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		return deps
 	}
 
-	// 调用mvn
-	if !sca.NotUseMvn {
-		deps := MvnTree(parent)
-		if len(deps) > 0 {
-			return deps
-		}
-	}
-
-	// 静态解析
+	// 记录pom文件
 	poms := []*Pom{}
 	for _, file := range files {
 		if filter.JavaPom(file.Relpath()) {
@@ -66,6 +58,16 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			})
 		}
 	}
+
+	// 优先尝试调用mvn
+	if len(poms) > 0 && !sca.NotUseMvn {
+		deps := MvnTree(ctx, parent)
+		if len(deps) > 0 {
+			return deps
+		}
+	}
+
+	// 静态解析
 	return ParsePoms(poms)
 }
 

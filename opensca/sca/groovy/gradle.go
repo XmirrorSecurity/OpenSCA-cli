@@ -2,6 +2,7 @@ package groovy
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/json"
 	"os"
@@ -99,24 +100,24 @@ type gradleDep struct {
 	Children   []*gradleDep `json:"children"`
 }
 
-func GradleTree(dirpath string) []*model.DepGraph {
+func GradleTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 
-	pwd, err := os.Getwd()
-	if err != nil {
-		logs.Warn(err)
+	if dir == nil {
 		return nil
 	}
-	defer os.Chdir(pwd)
-	os.Chdir(dirpath)
+
+	if _, err := exec.LookPath("gradle"); err != nil {
+		return nil
+	}
 
 	// 复制 opensca.gradle
-	if err := os.WriteFile("opensca.gradle", openscaGradle, 0444); err != nil {
+	if err := os.WriteFile("opensca.gradle", openscaGradle, 0777); err != nil {
 		logs.Warn(err)
-		return nil
 	}
 	defer os.Remove("opensca.gradle")
 
-	cmd := exec.Command("gradle", "--I", "opensca.gradle", "opensca")
+	cmd := exec.CommandContext(ctx, "gradle", "--I", "opensca.gradle", "opensca")
+	cmd.Dir = dir.Abspath()
 	out, _ := cmd.CombinedOutput()
 
 	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
@@ -147,7 +148,7 @@ func GradleTree(dirpath string) []*model.DepGraph {
 			logs.Warn(err)
 		}
 
-		root := &model.DepGraph{Vendor: gdep.GroupId, Name: gdep.ArtifactId, Version: gdep.Version, Expand: gdep}
+		root := &model.DepGraph{Vendor: gdep.GroupId, Name: gdep.ArtifactId, Version: gdep.Version, Expand: gdep, Path: dir.Relpath()}
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 			g := n.Expand.(*gradleDep)
 			for _, c := range g.Children {
