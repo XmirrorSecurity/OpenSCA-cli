@@ -31,8 +31,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Create VERSION file
-        run: echo ${{ github.ref }} > VERSION
+        run: echo ${{ env.RELEASE_VERSION }} > VERSION
       - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
         with:
@@ -42,7 +44,7 @@ jobs:
           project_path: "./"
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json VERSION
-          ldflags: "-s -w -X 'main.version=${{ github.ref }}' "
+          ldflags: "-s -w -X 'main.version=${{ env.RELEASE_VERSION }}' "
 
   push-docker-images:
     name: Push Docker Images
