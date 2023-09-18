@@ -70,10 +70,14 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 
 		rel := filepath.Join(parent.Relpath(), strings.TrimPrefix(path, parent.Abspath()))
 
-		logs.Debugf("find %s", rel)
+		if filter != nil && !filter(rel) {
+			return nil
+		}
 
-		if filter == nil || filter(rel) {
+		if !IsCompressFile(rel) {
+			logs.Debugf("find %s", rel)
 			files = append(files, model.NewFile(path, rel))
+			return nil
 		}
 
 		decompress(path, filter, func(dir string) {
