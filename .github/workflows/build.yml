@@ -6,7 +6,6 @@ on:
       - v*.*.*
 
 jobs:
-
   createRelease:
     name: Create Release
     runs-on: ubuntu-latest
@@ -33,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Create VERSION file
-        run: echo $(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) > VERSION
+        run: echo ${{ github.ref }} > VERSION
       - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
         with:
@@ -43,6 +42,7 @@ jobs:
           project_path: "./"
           binary_name: opensca-cli
           extra_files: README.md config.json db-demo.json VERSION
+          ldflags: "-s -w -X 'main.version=${{ github.ref }}' "
 
   push-docker-images:
     name: Push Docker Images
