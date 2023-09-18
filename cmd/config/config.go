@@ -145,6 +145,9 @@ func ParseArgs() {
 	flag.BoolVar(&_config.DirOnly, "dironly", _config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
 	flag.StringVar(&_config.LogFile, "log", _config.LogFile, "(可选) 指定日志文件路径")
 	flag.Parse()
+	if _config.Version {
+		return
+	}
 	LoadConfig(config)
 	flag.Parse()
 }
