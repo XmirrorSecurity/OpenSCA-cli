@@ -51,7 +51,7 @@ func main() {
 	if config.Conf().ProgressBar {
 		var find, done, deps, bar int
 		go func() {
-			logos := []string{`-`, `\`, `|`, `/`}
+			logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
 			for {
 				fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
 				bar = (bar + 1) % len(logos)
