@@ -25,9 +25,11 @@ type BaseConfig struct {
 }
 
 type OriginConfig struct {
-	Url   string                 `json:"url"`
-	Token string                 `json:"token"`
-	Local map[string]LocalOrigin `json:"local"`
+	Url    string    `json:"url"`
+	Token  string    `json:"token"`
+	Json   string    `json:"json"`
+	Mysql  SqlOrigin `json:"mysql"`
+	Sqlite SqlOrigin `json:"sqlite"`
 }
 
 type OptionalConfig struct {
@@ -43,7 +45,7 @@ type RepoConfig struct {
 	Composer []common.RepoConfig `json:"composer"`
 }
 
-type LocalOrigin struct {
+type SqlOrigin struct {
 	Dsn   string `json:"dsn"`
 	Table string `json:"table"`
 }
@@ -63,12 +65,8 @@ var _config = &Config{
 		},
 	},
 	Origin: OriginConfig{
-		Url: "https://opensca.xmirror.cn",
-		Local: map[string]LocalOrigin{
-			"json": {
-				Dsn: "db-demo.json",
-			},
-		},
+		Url:  "https://opensca.xmirror.cn",
+		Json: "db-demo.json",
 	},
 }
 

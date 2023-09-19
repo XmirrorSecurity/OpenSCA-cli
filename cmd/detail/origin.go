@@ -69,20 +69,10 @@ func (o *BaseOrigin) LoadDataOrigin(data ...VulnInfo) {
 func GetOrigin() *BaseOrigin {
 	_once.Do(func() {
 		_origin = NewBaseOrigin()
-		for originType, config := range config.Conf().Origin.Local {
-			switch originType {
-			case "mysql":
-				_origin.LoadMysqlOrigin(config)
-			case "sqlite", "sqlite3":
-				_origin.LoadSqliteOrigin(config)
-			case "json":
-				_origin.LoadJsonOrigin(config.Dsn)
-			case "":
-				// pass
-			default:
-				logs.Warn(fmt.Sprintf("not support origin type: %s", originType))
-			}
-		}
+		c := config.Conf().Origin
+		_origin.LoadJsonOrigin(c.Json)
+		_origin.LoadMysqlOrigin(c.Mysql)
+		_origin.LoadSqliteOrigin(c.Sqlite)
 		logs.Info(fmt.Sprintf("load %d vulnerability", len(_origin.idSet)))
 	})
 	return _origin
@@ -101,15 +91,15 @@ func (o *BaseOrigin) LoadJsonOrigin(filepath string) {
 	}
 }
 
-func (o *BaseOrigin) LoadMysqlOrigin(cfg config.LocalOrigin) {
+func (o *BaseOrigin) LoadMysqlOrigin(cfg config.SqlOrigin) {
 	o.LoadSqlOrigin(mysql.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqliteOrigin(cfg config.LocalOrigin) {
+func (o *BaseOrigin) LoadSqliteOrigin(cfg config.SqlOrigin) {
 	o.LoadSqlOrigin(sqlite.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.LocalOrigin) {
+func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.SqlOrigin) {
 	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
 		logs.Error(err)

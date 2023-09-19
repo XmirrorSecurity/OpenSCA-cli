@@ -1,24 +1,68 @@
 {
+  // 检测项目路径 project path
+  // support http[s]/ftp/file
   "path": "",
+  // 导出报告路径 report path
+  // suport ext: html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx
   "out": "output.json,output.html",
-
-  "vuln": false,
-  "dedup": false,
-  "progress": true,
-
-  "url": "https://opensca.xmirror.cn",
-  "token": "",
-
-  "origin": {
-    "json": { "dsn": "db-demo.json" }
+  // opensca optional
+  "optional": {
+    // 去重
+    "dedup": false,
+    // 仅检测目录(跳过压缩包)
+    // only detect directory (skip compress file)
+    "dir": false,
+    // 仅保留漏洞组件
+    // only save components with vulnerability
+    "vuln": false,
+    // 开启进度条
+    // open progress bar
+    "progress": true,
+    // 保留开发组件
+    // save components with develop env
+    "dev": true
   },
-
-  "maven": [
-    {
-      "repo": "https://maven.aliyun.com/repository/public"
+  // 组件仓库配置
+  // repo config
+  "repo": {
+    // maven repo
+    "maven": [
+      {
+        "url": "https://repo.maven.apache.org/maven2/",
+        // 认证信息 没有可不填
+        // auth info
+        "username": "",
+        "password": ""
+      },
+      {
+        "url": "https://maven.aliyun.com/repository/public"
+      }
+    ],
+    // composer repo
+    "composer": [
+      {
+        "url": "https://repo.packagist.org/p2"
+      }
+    ]
+  },
+  // 数据库源
+  // database origin
+  "origin": {
+    // opensca web service url
+    "url": "https://opensca.xmirror.cn",
+    // opensca web service token
+    "token": "",
+    // json dbfile
+    "json": "",
+    "mysql": {
+      // user:password@tcp(ip:port)/dbname
+      "dsn": "",
+      "table": ""
     },
-    {
-      "repo": "https://repo.maven.apache.org/maven2/"
+    "sqlite": {
+      // sqlite dbfile
+      "dsn": "",
+      "table": ""
     }
-  ]
+  }
 }

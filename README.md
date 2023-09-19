@@ -13,14 +13,13 @@
 - [项目介绍](#项目介绍)
 - [检测能力](#检测能力)
 - [下载安装](#下载安装)
-- [使用样例](#使用样例)
-  - [检测并输出检测结果到命令行/终端界面（默认）](#检测并输出检测结果到命令行终端界面默认)
-  - [检测并输出检测结果文件（使用`out`参数）](#检测并输出检测结果文件使用out参数)
-    - [样例](#样例)
-  - [使用 Docker 容器进行检测](#使用-docker-容器进行检测)
-- [参数说明](#参数说明)
+- [使用说明](#使用说明)
+  - [参数说明](#参数说明)
+  - [报告格式](#报告格式)
+  - [使用样例](#使用样例)
   - [漏洞库文件格式](#漏洞库文件格式)
-    - [漏洞库字段说明](#漏洞库字段说明)
+  - [漏洞库字段说明](#漏洞库字段说明)
+  - [漏洞库配置示例](#漏洞库配置示例)
 - [常见问题](#常见问题)
   - [使用OpenSCA需要配置环境变量吗？](#使用opensca需要配置环境变量吗)
   - [OpenSCA目前支持哪些漏洞库呢？](#opensca目前支持哪些漏洞库呢)
@@ -83,51 +82,57 @@
    - 指定体系架构
      `GOARCH=${arch} \\ amd64,arm64`
 
-## 使用样例
+## 使用说明
 
-### 检测并输出检测结果到命令行/终端界面（默认）
+### 参数说明
 
-仅检测组件信息
+| 参数     | 类型     | 描述                | 使用样例                 |
+| -------- | -------- | ------------------- | ------------------------ |
+| `config` | `string` | 指定配置文件路径    | `-config config.json`    |
+| `path`   | `string` | 指定检测项目路径    | `-path ./foo`            |
+| `out`    | `string` | 根据后缀生成报告    | `-out out.json,out.html` |
+| `log`    | `string` | 指定日志文件路径    | `-log my_log.txt`        |
+| `token`  | `string` | `opensca web token` | `-token xxx`             |
 
-```shell
-opensca-cli -path ${project_path}
-```
+完整的检测参数需在配置文件中配置
 
-连接云平台
+配置字段及说明详见[`config.json`](./config.json)
 
-```shell
-opensca-cli -url ${url} -token ${token} -path ${project_path}
-```
+配置文件与命令行参数冲突时优先使用命令行输入参数
 
-或使用本地漏洞库
+指定了配置文件路径但目标位置不存在文件时会在目标位置生成默认配置文件
 
-```shell
-opensca-cli -db db.json -path ${project_path}
-```
+未指定配置文件路径会依次尝试访问以下位置:
 
-### 检测并输出检测结果文件（使用`out`参数）
+1. 工作目录下的`config.json`
+2. 用户目录下的`opensca_config.json`
+3. `opensca-cli`目录下的`config.json`
+
+### 报告格式
 
 `out` 参数支持范围如下：
 
-| 类型     | 文件格式 | 识别的文件后缀                   | 支持版本        |
-| -------- | -------- | -------------------------------- | --------------- |
-| 检测报告 | `json`   | `.json`                          | `*`             |
-|          | `xml`    | `.xml`                           | `*`             |
-|          | `html`   | `.html`                          | `v1.0.6`及以上  |
-|          | `sqlite` | `.sqlite`                        | `v1.0.13`及以上 |
-|          | `csv`    | `.csv`                           | `v1.0.13`及以上 |
-| SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8`及以上  |
-|          | `cdx`    | `.cdx.json` `.cdx.xml`           | `v1.0.11`及以上 |
-|          | `swid`   | `.swid.json` `.swid.xml`         | `v1.0.11`及以上 |
-|          | `dsdx`   | `.dsdx.json` `.dsdx.xml`         | `v1.1.0`及以上  |
+| 类型     | 文件格式 | 识别的文件后缀                   |
+| -------- | -------- | -------------------------------- |
+| 检测报告 | `json`   | `.json`                          |
+|          | `xml`    | `.xml`                           |
+|          | `html`   | `.html`                          |
+|          | `sqlite` | `.sqlite`                        |
+|          | `csv`    | `.csv`                           |
+| SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` |
+|          | `cdx`    | `.cdx.json` `.cdx.xml`           |
+|          | `swid`   | `.swid.json` `.swid.xml`         |
+|          | `dsdx`   | `.dsdx` `.dsdx.json` `.dsdx.xml` |
 
-#### 样例
+### 使用样例
 
 ```shell
-opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
-```
+# 使用opensca-cli检测
+opensca-cli -path ${project_path} -config ${config_path} -out ${filename}.${suffix} -token ${token}
 
-### 使用 Docker 容器进行检测
+# 写好配置文件后也可以直接执行opensca-cli
+opensca-cli
+```
 
 ```shell
 # 检测当前目录的依赖信息
@@ -135,39 +140,11 @@ docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
 
 # 使用云端漏洞数据库:
 docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
-
-# 使用本地 JSON 漏洞数据源:
-docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /data/db.json
 ```
 
-同样的，在 Docker 容器中，也可以使用配置文件进行高级设置。将 `config.json` 保存到项目文件夹中，运行时使用 `-v ${项目路径}:/src` 将项目目录映射至容器 `/src` 目录即可。
+如需在`docker`容器中使用配置文件，将`config.json`放到`src`挂载目录即可。也可以使用`-config`指定其他容器内路径。
 
 更多信息请参考 [Docker Hub 主页](https://hub.docker.com/r/opensca/opensca-cli)
-
-## 参数说明
-
-**可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
-
-| 参数     | 类型     | 描述                                                                                                  | 使用样例                 |
-| -------- | -------- | ----------------------------------------------------------------------------------------------------- | ------------------------ |
-| `config` | `string` | 指定配置文件路径，配置参数与命令行输入参数冲突时优先使用输入参数                                      | `-config config.json`    |
-| `path`   | `string` | 指定要检测的文件或目录路径                                                                            | `-path ./foo`            |
-| `out`    | `string` | 根据后缀保存为不同格式的文件,支持`html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx`, 生成多个报告用`,`分割 | `-out out.json,out.html` |
-| `log`    | `string` | 指定日志文件位置                                                                                      | `-log`                   |
-
-**1.0.9及以上版本**支持配置`maven`私服库，需要在配置文件`config.json`里进行配置，格式如下：
-
-```json
-{
-    "maven": [
-        {
-            "repo": "url",
-            "user": "user",
-            "password": "password"
-        }
-    ]
-}
-```
 
 ---
 
@@ -197,7 +174,7 @@ docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /da
 ]
 ```
 
-#### 漏洞库字段说明
+### 漏洞库字段说明
 
 | 字段                | 描述                              | 是否必填 |
 | :------------------ | :-------------------------------- | :------- |
@@ -219,19 +196,21 @@ docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /da
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
 
-*本地漏洞库中`language`字段设定值包含`java、js、golang、rust、php、ruby、python`，其他语言不受设定匹配限制，按实际情况填写即可。
+本地漏洞库中`language`字段设定值包含`java、js、golang、rust、php、ruby、python`
 
-`v1.0.13`开始支持`sql`类的数据源，需要按照上述字段预先创建好数据表并在配置文件中作相应配置：
+### 漏洞库配置示例
 
 ```json
 {
   "origin":{
+    "json":"db.json",
     "mysql":{
       "dsn":"user:password@tcp(ip:port)/dbname",
       "table":"table_name"
     },
-    "json":{
-      "dsn":"db.json"
+    "sqlite":{
+      "dsn":"sqlite.db",
+      "table":"table_name"
     }
   }
 }
