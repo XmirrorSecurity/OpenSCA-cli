@@ -1,58 +1,126 @@
 package python
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
 
-// ParseRequirementWithEnv 使用pipenv解析requirement文件
-func ParseRequirementWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
-	runEnv(ctx, file.Abspath())
-	return nil
-}
-
-// ParseRequirementInWithEnv 使用pipenv解析requirement.in文件
-func ParseRequirementInWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
-	runEnv(ctx, file.Abspath())
-	return nil
-}
-
-// ParseSetupCfgWithEnv 使用pipenv解析setup.cfg文件
-func ParseSetupCfgWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
-	runEnv(ctx, file.Abspath())
-	return nil
-}
-
-// ParseSetupPyWithEnv 使用pipenv解析setup.py文件
-func ParseSetupPyWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
-	runEnv(ctx, file.Abspath())
-	return nil
-}
-
-func runEnv(ctx context.Context, file string) (data []byte, ok bool) {
+// ParsePythonWithEnv 借助pipenv解析python依赖
+func ParsePythonWithEnv(ctx context.Context, file string) *model.DepGraph {
 
 	if _, err := exec.LookPath("python"); err != nil {
-		return
+		return nil
 	}
 	if _, err := exec.LookPath("pipenv"); err != nil {
-		return
+		return nil
 	}
 
-	dir, name := filepath.Split(file)
-	if _, ok = runCmd(ctx, dir, "pipenv", "install", "pip-tools"); !ok {
-		return
+	// 复制到临时目录
+	tempdir := common.MkdirTemp("pipenv")
+	tempfile := filepath.Join(tempdir, filepath.Base(file))
+	src, _ := os.Open(file)
+	dst, _ := os.Create(tempfile)
+	io.Copy(dst, src)
+	src.Close()
+	dst.Close()
+	defer os.RemoveAll(tempdir)
+
+	dir, name := filepath.Split(tempfile)
+
+	if filter.PythonRequirementsTxt(name) {
+		runCmd(ctx, dir, "pipenv", "install", "-r", name, "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")
+	} else if filter.PythonPipfile(name) {
+		runCmd(ctx, dir, "pipenv", "install", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")
+	} else {
+		return nil
 	}
+
 	defer runCmd(ctx, dir, "pipenv", "--rm")
-
-	return runCmd(ctx, dir, "pipenv", "run", "pip-compile", name)
+	return pipenvGraph(ctx, dir)
 }
 
-func runCmd(ctx context.Context, dir string, args ...string) ([]byte, bool) {
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-	cmd.Dir = dir
-	out, err := cmd.CombinedOutput()
-	return out, err != nil
+func pipenvGraph(ctx context.Context, dir string) *model.DepGraph {
+
+	data, ok := runCmd(ctx, dir, "pipenv", "graph")
+	if !ok || len(data) == 0 {
+		return nil
+	}
+
+	root := &model.DepGraph{Path: dir}
+
+	s := bufio.NewScanner(bytes.NewReader(data))
+	tops := []*model.DepGraph{}
+
+	for s.Scan() {
+
+		line := strings.TrimRight(s.Text(), "\r\n")
+
+		// 当前层级
+		level := 0
+		// 空格个数
+		space := 0
+		for i := range line {
+			if ('a' <= line[i] && line[i] <= 'z') || ('A' <= line[i] && line[i] <= 'Z') {
+				level = (space + 3) / 4
+				line = line[i:]
+				break
+			}
+			if line[i] == ' ' {
+				space++
+			}
+		}
+
+		dep := &model.DepGraph{}
+
+		if level == 0 {
+			tags := strings.Split(line, "==")
+			if len(tags) == 2 {
+				dep.Name = tags[0]
+				dep.Version = tags[1]
+			} else {
+				logs.Warnf("parse pipenv graph err in line: %s", line)
+				dep.Name = line
+			}
+			root.AppendChild(dep)
+		} else {
+			i := strings.Index(line, " ")
+			if i == -1 {
+				logs.Warnf("parse pipenv graph err in line: %s", line)
+				dep.Name = line
+			} else {
+				dep.Name = line[:i]
+			}
+			line = strings.Trim(line[i+1:], "[]")
+			i = strings.LastIndex(line, "installed: ")
+			if i != -1 {
+				dep.Version = line[i+len("installed: "):]
+			}
+		}
+
+		tops = append(tops[:level], dep)
+		if level > 0 {
+			tops[level-1].AppendChild(dep)
+		}
+
+	}
+
+	return root
+}
+
+func runCmd(ctx context.Context, dir string, cmd string, args ...string) ([]byte, bool) {
+	c := exec.CommandContext(ctx, cmd, args...)
+	c.Dir = dir
+	out, err := c.CombinedOutput()
+	return out, err == nil
 }

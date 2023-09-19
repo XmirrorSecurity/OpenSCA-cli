@@ -36,11 +36,11 @@ func isFile(url string) bool {
 func download(origin string) (delete bool, output string, err error) {
 	if isHttp(origin) {
 		delete = true
-		output, _ = os.MkdirTemp(tempdir, "download")
+		output = common.MkdirTemp("download")
 		err = downloadFromHttp(origin, output)
 	} else if isFtp(origin) {
 		delete = true
-		output, _ = os.MkdirTemp(tempdir, "download")
+		output = common.MkdirTemp("download")
 		err = downloadFromFtp(origin, output)
 	} else if isFile(origin) {
 		output = strings.TrimPrefix(origin, "file:///")

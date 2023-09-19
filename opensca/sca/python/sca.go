@@ -27,6 +27,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 
 	path2dir := func(relpath string) string { return path.Dir(strings.ReplaceAll(relpath, `\`, `/`)) }
 
+	// 记录存在lock文件的目录
 	lockSet := map[string]bool{}
 	for _, file := range files {
 		if filter.PythonPipfileLock(file.Relpath()) {
@@ -35,7 +36,32 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 	}
 
 	var roots []*model.DepGraph
+
+	// 记录使用pipenv解析过的目录
+	pipSet := map[string]bool{}
+	// 尝试使用pipenv解析
 	for _, file := range files {
+		if pipSet[path2dir(file.Relpath())] {
+			continue
+		}
+		if filter.PythonPipfile(file.Relpath()) ||
+			filter.PythonRequirementsTxt(file.Relpath()) {
+		} else {
+			continue
+		}
+		root := ParsePythonWithEnv(ctx, file.Abspath())
+		if root == nil {
+			continue
+		}
+		roots = append(roots, root)
+		pipSet[path2dir(file.Relpath())] = true
+	}
+
+	// 静态解析
+	for _, file := range files {
+		if pipSet[path2dir(file.Relpath())] {
+			continue
+		}
 		if filter.PythonPipfile(file.Relpath()) {
 			if !lockSet[path2dir(file.Relpath())] {
 				roots = append(roots, ParsePipfile(file))
