@@ -26,10 +26,9 @@ func main() {
 	// 处理参数
 	args()
 
-	path := config.Conf().Path
-
+	// 运行检测任务
 	start := time.Now()
-	deps, err := opensca.RunTask(context.Background(), taskArg(path))
+	deps, err := opensca.RunTask(context.Background(), taskArg())
 	end := time.Now()
 
 	// 日志中记录检测结果
@@ -39,7 +38,6 @@ func main() {
 
 	// 生成报告
 	report := taskReport(start, end, deps)
-
 	if err != nil {
 		report.ErrorString = err.Error()
 	}
@@ -88,10 +86,10 @@ func args() {
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
 
-func taskArg(origin string) *opensca.TaskArg {
+func taskArg() *opensca.TaskArg {
 
 	// 检测参数
-	arg := &opensca.TaskArg{DataOrigin: origin}
+	arg := &opensca.TaskArg{DataOrigin: config.Conf().Path}
 
 	// 是否跳过压缩包检测
 	if config.Conf().Optional.DirOnly {
