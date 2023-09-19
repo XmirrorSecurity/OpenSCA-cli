@@ -79,6 +79,9 @@ func GetOrigin() *BaseOrigin {
 }
 
 func (o *BaseOrigin) LoadJsonOrigin(filepath string) {
+	if filepath == "" {
+		return
+	}
 	if jsonFile, err := os.Open(filepath); err != nil {
 		logs.Error(err)
 	} else {

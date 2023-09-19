@@ -36,7 +36,9 @@ func Statis(report Report) string {
 		for _, v := range n.Vulnerabilities {
 			if !vulSet[v.Id] {
 				vulSet[v.Id] = true
-				vulStatic[v.SecurityLevelId]++
+				if v.SecurityLevelId > 0 {
+					vulStatic[v.SecurityLevelId]++
+				}
 				vulStatic[0]++
 			}
 			if v.SecurityLevelId < risk {
@@ -45,7 +47,9 @@ func Statis(report Report) string {
 			}
 		}
 
-		depStatic[risk]++
+		if risk > 0 {
+			depStatic[risk]++
+		}
 		depStatic[0]++
 
 		return true

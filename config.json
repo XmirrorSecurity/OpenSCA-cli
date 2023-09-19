@@ -27,7 +27,7 @@
     "progress": true,
 
     // 保留开发组件
-    // save components with develop env
+    // save develop components
     "dev": true
   },
 

@@ -44,11 +44,15 @@ func main() {
 		report.ErrorString = err.Error()
 	}
 
-	// 打印概览信息
-	fmt.Println(format.Statis(report))
-
 	// 导出报告
 	format.Save(report, config.Conf().Output)
+
+	// 等待进度条完成
+	if config.Conf().Optional.ProgressBar {
+		<-time.After(time.Millisecond * 200)
+	}
+	// 打印概览信息
+	fmt.Println(format.Statis(report))
 
 }
 
@@ -107,20 +111,18 @@ func taskArg(origin string) *opensca.TaskArg {
 		}()
 		// 记录需要解析的文件
 		arg.WalkFileFunc = func(parent *model.File, files []*model.File) {
-			for range files {
-				find++
-			}
+			find += len(files)
 		}
 		// 记录处理完的文件
 		arg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
-			for range files {
-				done++
-			}
+			done += len(files)
 		}
 		// 记录解析到的依赖个数
 		arg.WalkDepFunc = func(dep *model.DepGraph) {
 			dep.ForEachNode(func(p, n *model.DepGraph) bool {
-				deps++
+				if n.Name != "" {
+					deps++
+				}
 				return true
 			})
 		}

@@ -89,7 +89,7 @@ func ParseRequirementTxt(file *model.File) *model.DepGraph {
 		if i := strings.IndexAny(line, "=!<>~"); i == -1 {
 			root.AppendChild(&model.DepGraph{Name: line})
 		} else {
-			root.AppendChild(&model.DepGraph{Name: line[:i], Version: line[i:]})
+			root.AppendChild(&model.DepGraph{Name: line[:i], Version: strings.TrimPrefix(line[i:], "==")})
 		}
 
 	})
