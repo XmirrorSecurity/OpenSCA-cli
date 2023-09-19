@@ -100,6 +100,9 @@ func (o *BaseOrigin) LoadSqliteOrigin(cfg config.SqlOrigin) {
 }
 
 func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.SqlOrigin) {
+	if cfg.Dsn == "" {
+		return
+	}
 	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
 		logs.Error(err)

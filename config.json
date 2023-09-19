@@ -2,26 +2,35 @@
   // 检测项目路径 project path
   // support http[s]/ftp/file
   "path": "",
+
   // 导出报告路径 report path
   // suport ext: html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx
   "out": "output.json,output.html",
+
+  // opensca 配置项
   // opensca optional
   "optional": {
-    // 去重
+    // 相同组件仅保留一条数据 检出路径合并
+    // delete duplicate components and merge path
     "dedup": false,
+
     // 仅检测目录(跳过压缩包)
     // only detect directory (skip compress file)
     "dir": false,
+
     // 仅保留漏洞组件
     // only save components with vulnerability
     "vuln": false,
+
     // 开启进度条
     // open progress bar
     "progress": true,
+
     // 保留开发组件
     // save components with develop env
     "dev": true
   },
+
   // 组件仓库配置
   // repo config
   "repo": {
@@ -38,6 +47,7 @@
         "url": "https://maven.aliyun.com/repository/public"
       }
     ],
+
     // composer repo
     "composer": [
       {
@@ -45,6 +55,7 @@
       }
     ]
   },
+
   // 数据库源
   // database origin
   "origin": {
@@ -52,13 +63,18 @@
     "url": "https://opensca.xmirror.cn",
     // opensca web service token
     "token": "",
+
     // json dbfile
     "json": "",
+
+    // mysql origin
     "mysql": {
       // user:password@tcp(ip:port)/dbname
       "dsn": "",
       "table": ""
     },
+
+    // sqlite origin
     "sqlite": {
       // sqlite dbfile
       "dsn": "",

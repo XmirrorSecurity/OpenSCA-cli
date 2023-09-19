@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	_ "embed"
+
 	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
@@ -188,4 +190,11 @@ func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
 	}
 
 	return report
+}
+
+//go:embed config.json
+var defaultConfig []byte
+
+func init() {
+	config.RegisterDefaultConfig(defaultConfig)
 }

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -50,25 +49,7 @@ type SqlOrigin struct {
 	Table string `json:"table"`
 }
 
-var _config = &Config{
-	Optional: OptionalConfig{
-		ProgressBar: true,
-		SaveDev:     true,
-	},
-	Repo: RepoConfig{
-		Maven: []common.RepoConfig{
-			{Url: `https://repo.maven.apache.org/maven2/`},
-			{Url: `https://maven.aliyun.com/repository/public`},
-		},
-		Composer: []common.RepoConfig{
-			{Url: `https://repo.packagist.org/p2`},
-		},
-	},
-	Origin: OriginConfig{
-		Url:  "https://opensca.xmirror.cn",
-		Json: "db-demo.json",
-	},
-}
+var _config *Config
 
 func Conf() *Config {
 	return _config
@@ -139,13 +120,19 @@ func LoadConfig(filepath string) {
 	}
 }
 
+var defalutConfigJson []byte
+
+func RegisterDefaultConfig(data []byte) {
+	defalutConfigJson = data
+	if _config == nil {
+		_config = &Config{}
+		json5.Unmarshal(defalutConfigJson, &_config)
+	}
+}
+
 // CreateConfigFile 生成配置文件
 func CreateConfigFile(filepath string) {
-	data, err := json.MarshalIndent(_config, "", "    ")
-	if err != nil {
-		logs.Warnf("marshal config error: %v", err)
-	}
-	err = os.WriteFile(filepath, data, 0666)
+	err := os.WriteFile(filepath, defalutConfigJson, 0666)
 	if err != nil {
 		logs.Warnf("write file %s error: %v", filepath, err)
 	}
