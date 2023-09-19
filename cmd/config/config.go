@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"flag"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -13,39 +12,63 @@ import (
 )
 
 type Config struct {
-	Path        string `json:"path"`
-	Output      string `json:"out"`
-	LogFile     string `json:"log"`
-	Dedup       bool   `json:"dedup"`
-	DirOnly     bool   `json:"dir"`
-	VulnOnly    bool   `json:"vuln"`
-	ProgressBar bool   `json:"progress"`
-	// remote db
-	Url   string `json:"url"`
-	Token string `json:"token"`
-	// local db
-	LocalDB  string              `json:"db"`
-	Maven    []common.RepoConfig `json:"maven"`
-	Composer []common.RepoConfig `json:"composer"`
-	// data origin
-	Origin map[string]OriginConfig `json:"origin"`
+	BaseConfig
+	Optional OptionalConfig `json:"optional"`
+	Repo     RepoConfig     `json:"repo"`
+	Origin   OriginConfig   `json:"origin"`
+}
 
-	Version bool `json:"-"`
+type BaseConfig struct {
+	Path    string `json:"path"`
+	Output  string `json:"out"`
+	LogFile string `json:"log"`
 }
 
 type OriginConfig struct {
+	Url   string                 `json:"url"`
+	Token string                 `json:"token"`
+	Local map[string]LocalOrigin `json:"local"`
+}
+
+type OptionalConfig struct {
+	Dedup       bool `json:"dedup"`
+	DirOnly     bool `json:"dir"`
+	VulnOnly    bool `json:"vuln"`
+	SaveDev     bool `json:"dev"`
+	ProgressBar bool `json:"progress"`
+}
+
+type RepoConfig struct {
+	Maven    []common.RepoConfig `json:"maven"`
+	Composer []common.RepoConfig `json:"composer"`
+}
+
+type LocalOrigin struct {
 	Dsn   string `json:"dsn"`
 	Table string `json:"table"`
 }
 
 var _config = &Config{
-	ProgressBar: true,
-	Maven: []common.RepoConfig{
-		{Url: `https://repo.maven.apache.org/maven2/`},
-		{Url: `https://maven.aliyun.com/repository/public`},
+	Optional: OptionalConfig{
+		ProgressBar: true,
+		SaveDev:     true,
 	},
-	Composer: []common.RepoConfig{
-		{Url: `https://repo.packagist.org/p2`},
+	Repo: RepoConfig{
+		Maven: []common.RepoConfig{
+			{Url: `https://repo.maven.apache.org/maven2/`},
+			{Url: `https://maven.aliyun.com/repository/public`},
+		},
+		Composer: []common.RepoConfig{
+			{Url: `https://repo.packagist.org/p2`},
+		},
+	},
+	Origin: OriginConfig{
+		Url: "https://opensca.xmirror.cn",
+		Local: map[string]LocalOrigin{
+			"json": {
+				Dsn: "db-demo.json",
+			},
+		},
 	},
 }
 
@@ -128,26 +151,4 @@ func CreateConfigFile(filepath string) {
 	if err != nil {
 		logs.Warnf("write file %s error: %v", filepath, err)
 	}
-}
-
-func ParseArgs() {
-	var config string
-	flag.StringVar(&config, "config", "", "(可选) 指定配置文件路径,指定后启动程序时将默认使用配置参数，配置参数与命令行输入参数冲突时优先使用输入参数")
-	flag.BoolVar(&_config.Version, "version", false, "-version 打印版本信息")
-	flag.StringVar(&_config.Path, "path", _config.Path, "(必须) 指定要检测的文件或目录路径,例: -path ./foo 或 -path ./foo.zip")
-	flag.StringVar(&_config.Url, "url", _config.Url, "(可选,与token需一起使用) 从云漏洞库查询漏洞,指定要连接云服务的地址,例:-url https://opensca.xmirror.cn")
-	flag.StringVar(&_config.Token, "token", _config.Url, "(可选,与url需一起使用) 云服务验证token,需要在云服务平台申请")
-	flag.BoolVar(&_config.VulnOnly, "vuln", _config.VulnOnly, "(可选) 结果仅保留有漏洞信息的组件,使用该参数不会保留组件层级结构")
-	flag.StringVar(&_config.Output, "out", _config.Output, "(可选) 根据后缀保存为不同格式的文件,支持html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx, 生成多个报告用,分割,例: -out out.json,out.html")
-	flag.StringVar(&_config.LocalDB, "db", _config.LocalDB, `(未来将会弃用,可以在配置文件中配置"origin":{"json":{"dsn":"db.json"}}来指定) 指定本地漏洞库文件,例: -db db.json`)
-	flag.BoolVar(&_config.ProgressBar, "progress", _config.ProgressBar, "(可选) 显示进度条")
-	flag.BoolVar(&_config.Dedup, "dedup", _config.Dedup, "(可选) 相同组件去重")
-	flag.BoolVar(&_config.DirOnly, "dironly", _config.DirOnly, "(可选) 仅检测目录，忽略压缩包，加速基于源码的检测")
-	flag.StringVar(&_config.LogFile, "log", _config.LogFile, "(可选) 指定日志文件路径")
-	flag.Parse()
-	if _config.Version {
-		return
-	}
-	LoadConfig(config)
-	flag.Parse()
 }

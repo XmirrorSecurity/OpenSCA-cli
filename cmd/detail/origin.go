@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
@@ -70,18 +69,7 @@ func (o *BaseOrigin) LoadDataOrigin(data ...VulnInfo) {
 func GetOrigin() *BaseOrigin {
 	_once.Do(func() {
 		_origin = NewBaseOrigin()
-		if config.Conf().LocalDB != "" {
-			dbpath := config.Conf().LocalDB
-			switch filepath.Ext(dbpath) {
-			case ".sqlite", ".db":
-				_origin.LoadSqliteOrigin(config.OriginConfig{Dsn: dbpath})
-			case ".json":
-				_origin.LoadJsonOrigin(dbpath)
-			default:
-				_origin.LoadJsonOrigin(dbpath)
-			}
-		}
-		for originType, config := range config.Conf().Origin {
+		for originType, config := range config.Conf().Origin.Local {
 			switch originType {
 			case "mysql":
 				_origin.LoadMysqlOrigin(config)
@@ -113,15 +101,15 @@ func (o *BaseOrigin) LoadJsonOrigin(filepath string) {
 	}
 }
 
-func (o *BaseOrigin) LoadMysqlOrigin(cfg config.OriginConfig) {
+func (o *BaseOrigin) LoadMysqlOrigin(cfg config.LocalOrigin) {
 	o.LoadSqlOrigin(mysql.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqliteOrigin(cfg config.OriginConfig) {
+func (o *BaseOrigin) LoadSqliteOrigin(cfg config.LocalOrigin) {
 	o.LoadSqlOrigin(sqlite.Open(cfg.Dsn), cfg)
 }
 
-func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.OriginConfig) {
+func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.LocalOrigin) {
 	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
 		logs.Error(err)

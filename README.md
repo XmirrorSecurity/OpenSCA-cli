@@ -148,19 +148,12 @@ docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /da
 
 **可在配置文件中配置参数，也可在命令行输入参数，两者冲突时优先使用输入参数**
 
-| 参数       | 类型     | 描述                                                                                                  | 使用样例                          |
-| ---------- | -------- | ----------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `config`   | `string` | 指定配置文件路径，配置参数与命令行输入参数冲突时优先使用输入参数                                      | `-config config.json`             |
-| `path`     | `string` | 指定要检测的文件或目录路径                                                                            | `-path ./foo`                     |
-| `url`      | `string` | 从云漏洞库查询漏洞，指定要连接云服务的地址，与 `token` 参数一起使用                                   | `-url https://opensca.xmirror.cn` |
-| `token`    | `string` | 云服务验证 `token`，需要在云服务平台申请，与 `url` 参数一起使用                                       | `-token xxxxxxx`                  |
-| `vuln`     | `bool`   | 结果仅保留有漏洞信息的组件，使用该参数将不会保留组件层级结构                                          | `-vuln`                           |
-| `out`      | `string` | 根据后缀保存为不同格式的文件,支持`html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx`, 生成多个报告用`,`分割 | `-out out.json,out.html`          |
-| `db`       | `string` | 指定本地漏洞库文件`json/sqlite`，若同时使用云端漏洞库与本地漏洞库，漏洞查询结果取并集                 | `-db db.json`                     |
-| `progress` | `bool`   | 显示进度条                                                                                            | `-progress`                       |
-| `dedup`    | `bool`   | 相同组件去重并合并路径                                                                                | `-dedup`                          |
-| `dironly`  | `bool`   | 跳过解压步骤直接分析目录                                                                              | `-dironly`                        |
-| `log`      | `string` | 指定日志文件位置                                                                                      | `-log`                            |
+| 参数     | 类型     | 描述                                                                                                  | 使用样例                 |
+| -------- | -------- | ----------------------------------------------------------------------------------------------------- | ------------------------ |
+| `config` | `string` | 指定配置文件路径，配置参数与命令行输入参数冲突时优先使用输入参数                                      | `-config config.json`    |
+| `path`   | `string` | 指定要检测的文件或目录路径                                                                            | `-path ./foo`            |
+| `out`    | `string` | 根据后缀保存为不同格式的文件,支持`html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx`, 生成多个报告用`,`分割 | `-out out.json,out.html` |
+| `log`    | `string` | 指定日志文件位置                                                                                      | `-log`                   |
 
 **1.0.9及以上版本**支持配置`maven`私服库，需要在配置文件`config.json`里进行配置，格式如下：
 

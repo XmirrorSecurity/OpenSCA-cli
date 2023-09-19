@@ -26,29 +26,73 @@ func main() {
 
 	path := config.Conf().Path
 
-	// 记录开始时间
 	start := time.Now()
-	report := format.Report{
-		ToolVersion: version,
-		AppName:     path,
-		StartTime:   start.Format("2006-01-02 15:04:05"),
+	deps, err := opensca.RunTask(context.Background(), taskArg(path))
+	end := time.Now()
+
+	// 日志中记录检测结果
+	for _, dep := range deps {
+		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
 	}
 
-	// 记录检测目标文件大小
-	if f, err := os.Stat(path); err == nil {
-		report.Size = f.Size()
+	// 生成报告
+	report := taskReport(start, end, deps)
+
+	if err != nil {
+		report.ErrorString = err.Error()
 	}
+
+	// 打印概览信息
+	fmt.Println(format.Statis(report))
+
+	// 导出报告
+	format.Save(report, config.Conf().Output)
+
+}
+
+func args() {
+
+	v := false
+	var cfgf string
+	cfg := config.Conf()
+	flag.BoolVar(&v, "version", false, "-version")
+	flag.StringVar(&cfgf, "config", "", "config path. example: -config config.json")
+	flag.StringVar(&cfg.Path, "path", cfg.Path, "project path. example: -path project_path")
+	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
+	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
+	flag.Parse()
+
+	if v {
+		fmt.Println(version)
+		os.Exit(0)
+	}
+
+	config.LoadConfig(cfgf)
+	flag.Parse()
+
+	logs.CreateLog(config.Conf().LogFile)
+
+	if len(config.Conf().Path) == 0 {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
+
+	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
+	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
+}
+
+func taskArg(origin string) *opensca.TaskArg {
 
 	// 检测参数
-	taskArg := &opensca.TaskArg{DataOrigin: path}
+	arg := &opensca.TaskArg{DataOrigin: origin}
 
 	// 是否跳过压缩包检测
-	if config.Conf().DirOnly {
-		taskArg.ExtractFileFilter = func(relpath string) bool { return false }
+	if config.Conf().Optional.DirOnly {
+		arg.ExtractFileFilter = func(relpath string) bool { return false }
 	}
 
 	// 进度条
-	if config.Conf().ProgressBar {
+	if config.Conf().Optional.ProgressBar {
 		var find, done, deps, bar int
 		go func() {
 			logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
@@ -59,19 +103,19 @@ func main() {
 			}
 		}()
 		// 记录需要解析的文件
-		taskArg.WalkFileFunc = func(parent *model.File, files []*model.File) {
+		arg.WalkFileFunc = func(parent *model.File, files []*model.File) {
 			for range files {
 				find++
 			}
 		}
 		// 记录处理完的文件
-		taskArg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
+		arg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
 			for range files {
 				done++
 			}
 		}
 		// 记录解析到的依赖个数
-		taskArg.WalkDepFunc = func(dep *model.DepGraph) {
+		arg.WalkDepFunc = func(dep *model.DepGraph) {
 			dep.ForEachNode(func(p, n *model.DepGraph) bool {
 				deps++
 				return true
@@ -79,15 +123,25 @@ func main() {
 		}
 	}
 
-	// 运行检测任务
-	deps, err := opensca.RunTask(context.Background(), taskArg)
-	if err != nil {
-		report.ErrorString = err.Error()
+	return arg
+}
+
+func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
+
+	path := config.Conf().Path
+	optional := config.Conf().Optional
+
+	report := format.Report{
+		ToolVersion: version,
+		AppName:     path,
+		StartTime:   start.Format("2006-01-02 15:04:05"),
+		EndTime:     end.Format("2006-01-02 15:04:05"),
+		CostTime:    end.Sub(start).Seconds(),
 	}
 
-	// 日志中记录检测结果
-	for _, dep := range deps {
-		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+	// 记录检测目标文件大小
+	if f, err := os.Stat(path); err == nil {
+		report.Size = f.Size()
 	}
 
 	// 合并检测结果
@@ -102,12 +156,17 @@ func main() {
 	report.DepDetailGraph = detail.NewDepDetailGraph(root)
 
 	// 组件去重
-	if config.Conf().Dedup {
+	if optional.Dedup {
 		report.Dedup()
 	}
 
+	// 去掉dev组件
+	if !optional.SaveDev {
+		report.RemoveDev()
+	}
+
 	// 查询组件详情(漏洞/许可证)
-	err = detail.SearchDetail(report.DepDetailGraph)
+	err := detail.SearchDetail(report.DepDetailGraph)
 	if err != nil {
 		if report.ErrorString != "" {
 			report.ErrorString += "\n"
@@ -116,7 +175,7 @@ func main() {
 	}
 
 	// 仅保留漏洞组件
-	if config.Conf().VulnOnly {
+	if optional.VulnOnly {
 		var deps []*detail.DepDetailGraph
 		report.ForEach(func(n *detail.DepDetailGraph) bool {
 			if len(n.Vulnerabilities) > 0 {
@@ -127,36 +186,5 @@ func main() {
 		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
 	}
 
-	// 记录检测时长
-	report.CostTime = time.Since(start).Seconds()
-	report.EndTime = time.Now().Format("2006-01-02 15:04:05")
-
-	// 打印概览信息
-	fmt.Println(format.Statis(report))
-
-	// 导出报告
-	format.Save(report, config.Conf().Output)
-
-}
-
-func args() {
-
-	config.ParseArgs()
-
-	if config.Conf().Version {
-		fmt.Println(version)
-		os.Exit(0)
-	}
-
-	logs.CreateLog(config.Conf().LogFile)
-
-	path := config.Conf().Path
-	if len(path) == 0 {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
-
-	java.RegisterMavenRepo(config.Conf().Maven...)
-	php.RegisterComposerRepo(config.Conf().Composer...)
-
+	return report
 }
