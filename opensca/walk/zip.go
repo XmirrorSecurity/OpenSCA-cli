@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 
 	"github.com/axgle/mahonia"
@@ -75,11 +76,7 @@ func xjar(filter ExtractFileFilter, input, output string) bool {
 	}
 
 	// 生成临时文件
-	tempf, err := os.CreateTemp(tempdir, "jar")
-	if err != nil {
-		logs.Warn(err)
-		return false
-	}
+	tempf := common.CreateTemp("jar")
 	defer os.Remove(tempf.Name())
 
 	data, err := io.ReadAll(tempf)

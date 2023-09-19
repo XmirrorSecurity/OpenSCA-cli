@@ -8,21 +8,14 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
 
 var (
-	tempdir = ".temp"
-	wg      = sync.WaitGroup{}
+	wg = sync.WaitGroup{}
 )
-
-func init() {
-	excpath, _ := os.Executable()
-	tempdir = filepath.Join(filepath.Dir(excpath), tempdir)
-	os.RemoveAll(tempdir)
-	os.MkdirAll(tempdir, 0755)
-}
 
 type ExtractFileFilter func(relpath string) bool
 type WalkFileFunc func(parent *model.File, files []*model.File)
@@ -104,7 +97,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 // do: 对解压后目录的操作
 // do.tmpdir: 临时解压目录绝对路径 需要手动删除目录
 func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) {
-	tmp, _ := os.MkdirTemp(tempdir, "decompress")
+	tmp := common.MkdirTemp("decompress")
 	ok := false ||
 		xzip(filter, input, tmp) ||
 		xjar(filter, input, tmp) ||
