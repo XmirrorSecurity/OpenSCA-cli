@@ -13,8 +13,6 @@ func Statis(report Report) string {
 	depStatic := map[int]int{
 		0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0,
 	}
-	// 记录统计过的组件
-	depSet := map[string]bool{}
 
 	// 漏洞风险统计
 	vulStatic := map[int]int{
@@ -25,11 +23,9 @@ func Statis(report Report) string {
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 
-		_, ok := depSet[n.Dep.Key()]
-		if ok || n.Name == "" {
+		if n.Name == "" {
 			return true
 		}
-		depSet[n.Dep.Key()] = true
 
 		// 当前组件风险
 		risk := 5
