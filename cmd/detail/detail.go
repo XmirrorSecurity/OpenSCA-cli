@@ -16,6 +16,7 @@ import (
 type DepDetailGraph struct {
 	Dep
 	ID                      string            `json:"id" xml:"id"`
+	Develop                 bool              `json:"dev" xml:"dev"`
 	Direct                  bool              `json:"direct" xml:"direct"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
 	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
@@ -72,6 +73,7 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Language = string(dep.Language)
 	d.Paths = append(d.Paths, dep.Path)
 	d.Direct = dep.Direct
+	d.Develop = dep.Develop
 	for _, lic := range dep.Licenses {
 		d.Licenses = append(d.Licenses, License{ShortName: lic})
 	}
@@ -104,9 +106,28 @@ func (d *DepDetailGraph) Dedup() {
 		for i, c := range dep.Parent.Children {
 			if c.ID == n.ID {
 				dep.Parent.Children = append(dep.Parent.Children[:i], dep.Parent.Children[i+1:]...)
+				break
 			}
 		}
 		return true
+	})
+}
+
+func (d *DepDetailGraph) RemoveDev() {
+	d.ForEach(func(n *DepDetailGraph) bool {
+		if !n.Develop {
+			return true
+		}
+		if n.Parent == nil {
+			return false
+		}
+		for i, c := range n.Parent.Children {
+			if c.ID == n.ID {
+				n.Parent.Children = append(n.Parent.Children[:i], n.Parent.Children[i+1:]...)
+				break
+			}
+		}
+		return false
 	})
 }
 
@@ -202,7 +223,7 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 	serverVulns := [][]*Vuln{}
 	localVulns := GetOrigin().SearchVuln(ds)
 
-	c := config.Conf()
+	c := config.Conf().Origin
 	if c.Url != "" && c.Token != "" {
 		// vulnerability
 		serverVulns, err = GetServerVuln(ds)

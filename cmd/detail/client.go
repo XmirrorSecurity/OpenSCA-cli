@@ -107,11 +107,11 @@ func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 	// aes加密
 	ciphertext, tag := encrypt(reqbody, key, nonce)
 	// 构建请求
-	url := config.Conf().Url + "/oss-saas/api-v1/open-sca-client/detect"
+	url := config.Conf().Origin.Url + "/oss-saas/api-v1/open-sca-client/detect"
 	// 添加参数
 	param := DetectRequst{}
 	param.ClientId = GetClientId()
-	param.Token = config.Conf().Token
+	param.Token = config.Conf().Origin.Token
 	param.Tag = base64.StdEncoding.EncodeToString(tag)
 	param.Nonce = base64.StdEncoding.EncodeToString(nonce)
 	// base64编码
@@ -169,14 +169,14 @@ func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 
 // getAesKey 获取aes-key
 func getAesKey() (key []byte, err error) {
-	u, err := url.Parse(config.Conf().Url + "/oss-saas/api-v1/open-sca-client/aes-key")
+	u, err := url.Parse(config.Conf().Origin.Url + "/oss-saas/api-v1/open-sca-client/aes-key")
 	if err != nil {
 		return key, err
 	}
 	// 设置参数
 	param := url.Values{}
 	param.Set("clientId", GetClientId())
-	param.Set("ossToken", config.Conf().Token)
+	param.Set("ossToken", config.Conf().Origin.Token)
 	u.RawQuery = param.Encode()
 	// 发送请求
 	rep, err := http.Get(u.String())

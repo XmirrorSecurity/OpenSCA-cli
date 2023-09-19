@@ -1,8 +1,8 @@
 package common
 
 type RepoConfig struct {
-	Url      string `json:"repo"`
-	Username string `json:"user"`
+	Url      string `json:"url"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
