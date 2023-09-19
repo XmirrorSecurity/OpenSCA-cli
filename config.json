@@ -1,9 +1,10 @@
 {
-  // 检测项目路径 project path
-  // support http[s]/ftp/file
+  // 检测项目路径
+  // project path
   "path": "",
 
-  // 导出报告路径 report path
+  // 导出报告路径
+  // report path
   // suport ext: html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx
   "out": "output.json,output.html",
 
