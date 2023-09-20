@@ -62,7 +62,6 @@ func args() {
 	var cfgf string
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
-	flag.BoolVar(&cfg.Optional.UI, "ui", false, "-ui")
 	flag.StringVar(&cfgf, "config", "", "config path. example: -config config.json")
 	flag.StringVar(&cfg.Path, "path", cfg.Path, "project path. example: -path project_path")
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")

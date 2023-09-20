@@ -9,6 +9,14 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
 )
 
+var (
+	colorVul    = tcell.ColorPink
+	colorPath   = tcell.ColorBlue
+	colorDep    = tcell.ColorGreen
+	colorDevDep = tcell.ColorGrey
+	colorVulDep = tcell.ColorRed
+)
+
 func OpenUI(report format.Report) {
 
 	root := tview.NewTreeNode(report.AppName).SetColor(tcell.ColorBlue)
@@ -39,49 +47,60 @@ func OpenUI(report format.Report) {
 
 func newTreeNode(d *detail.DepDetailGraph) *tview.TreeNode {
 
+	// 组件信息文本
 	dev := ""
 	if d.Develop {
 		dev = "<dev>"
 	}
-
 	dep := fmt.Sprintf("%s:%s", d.Name, d.Version)
 	if d.Vendor != "" {
 		dep = fmt.Sprintf("%s:%s", d.Vendor, dep)
 	}
+	info := fmt.Sprintf("%s%s<%s>", dev, dep, d.Language)
 
-	info := fmt.Sprintf("%s%s", dev, dep)
+	// 当前节点
+	n := tview.NewTreeNode(info)
 
-	n := tview.NewTreeNode(info).SetColor(tcell.ColorGreen)
-
-	if len(d.Vulnerabilities) > 0 {
-		n.SetColor(tcell.ColorRed)
+	// 没有子依赖则不展开
+	if len(d.Children) == 0 {
+		n.SetExpanded(false)
 	}
 
-	detail := tview.NewTreeNode("detail")
-	detail.SetExpanded(false)
+	n.SetColor(colorDep)
+	if len(d.Vulnerabilities) > 0 {
+		n.SetColor(colorVulDep)
+	}
+	if d.Develop {
+		n.SetColor(colorDevDep)
+	}
 
-	detail.AddChild(tview.NewTreeNode(fmt.Sprintf("language:%s", d.Language)))
+	// 路径
 	if len(d.Paths) > 0 {
 		paths := tview.NewTreeNode("paths")
+		paths.SetColor(colorPath)
+		paths.SetExpanded(!n.IsExpanded())
 		for _, p := range d.Paths {
-			paths.AddChild(tview.NewTreeNode(p))
+			paths.AddChild(tview.NewTreeNode(p).SetColor(colorPath))
 		}
-		detail.AddChild(paths)
+		n.AddChild(paths)
 	}
 
+	// 漏洞
 	if len(d.Vulnerabilities) > 0 {
 		vulns := tview.NewTreeNode("vulns")
+		vulns.SetColor(colorVul)
+		vulns.SetExpanded(!n.IsExpanded())
 		for _, v := range d.Vulnerabilities {
-			vuln := tview.NewTreeNode(v.Id)
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("name:%s", v.Name)))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("cve:%s", v.Cve)))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("description:%s", v.Description)))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("suggestion:%s", v.Suggestion)))
+			// 漏洞=>详细字段
+			vuln := tview.NewTreeNode(v.Id).SetColor(colorVul)
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("name:%s", v.Name)).SetColor(colorVul))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("cve:%s", v.Cve)).SetColor(colorVul))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("description:%s", v.Description)).SetColor(colorVul))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("suggestion:%s", v.Suggestion)).SetColor(colorVul))
 			vulns.AddChild(vuln)
 		}
-		detail.AddChild(vulns)
+		n.AddChild(vulns)
 	}
-	n.AddChild(detail)
 
 	return n
 }
