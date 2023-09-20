@@ -10,17 +10,23 @@ import (
 )
 
 var (
-	colorVul     = tcell.ColorPink
-	colorPath    = tcell.ColorViolet
+	colorVul     = tcell.ColorPurple
+	colorPath    = tcell.ColorBlue
 	colorDep     = tcell.ColorGreen
 	colorDevDep  = tcell.ColorGrey
 	colorVulDep  = tcell.ColorRed
-	colorLicense = tcell.ColorWheat
+	colorLicense = tcell.ColorYellow
 )
 
 func OpenUI(report format.Report) {
 
-	root := tview.NewTreeNode(report.AppName).SetColor(colorPath)
+	var root *tview.TreeNode
+	if report.DepDetailGraph != nil && report.DepDetailGraph.Name != "" {
+		root = newTreeNode(report.DepDetailGraph)
+	} else {
+		root = tview.NewTreeNode(report.AppName).SetColor(colorPath)
+	}
+
 	depTreeRoot := report.DepDetailGraph
 	depTreeRoot.Expand = root
 

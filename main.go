@@ -27,9 +27,23 @@ func main() {
 	// 处理参数
 	args()
 
+	// 检测参数
+	arg := &opensca.TaskArg{DataOrigin: config.Conf().Path}
+
+	// 是否跳过压缩包检测
+	if config.Conf().Optional.DirOnly {
+		arg.ExtractFileFilter = func(relpath string) bool { return false }
+	}
+
+	// 开启进度条
+	var stopProgress func()
+	if config.Conf().Optional.ProgressBar {
+		stopProgress = startProgressBar(arg)
+	}
+
 	// 运行检测任务
 	start := time.Now()
-	deps, err := runTask()
+	deps, err := opensca.RunTask(context.Background(), arg)
 	end := time.Now()
 
 	// 日志中记录检测结果
@@ -45,6 +59,14 @@ func main() {
 
 	// 导出报告
 	format.Save(report, config.Conf().Output)
+
+	// 等待进度条完成
+	if config.Conf().Optional.ProgressBar {
+		<-time.After(time.Millisecond * 200)
+		if stopProgress != nil {
+			stopProgress()
+		}
+	}
 
 	// 打印概览信息
 	fmt.Println(format.Statis(report))
@@ -88,56 +110,44 @@ func args() {
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
 
-func runTask() ([]*model.DepGraph, error) {
+func startProgressBar(arg *opensca.TaskArg) (stop func()) {
 
-	// 检测参数
-	arg := &opensca.TaskArg{DataOrigin: config.Conf().Path}
-
-	// 是否跳过压缩包检测
-	if config.Conf().Optional.DirOnly {
-		arg.ExtractFileFilter = func(relpath string) bool { return false }
-	}
-
-	// 进度条
 	progress := true
-	if config.Conf().Optional.ProgressBar {
-		var find, done, deps, bar int
-		go func() {
-			logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
-			for progress {
-				fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
-				bar = (bar + 1) % len(logos)
-				<-time.After(time.Millisecond * 100)
-			}
-		}()
-		// 记录需要解析的文件
-		arg.WalkFileFunc = func(parent *model.File, files []*model.File) {
-			find += len(files)
+
+	var find, done, deps, bar int
+
+	go func() {
+		logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
+		for progress {
+			fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
+			bar = (bar + 1) % len(logos)
+			<-time.After(time.Millisecond * 100)
 		}
-		// 记录处理完的文件
-		arg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
-			done += len(files)
-		}
-		// 记录解析到的依赖个数
-		arg.WalkDepFunc = func(dep *model.DepGraph) {
-			dep.ForEachNode(func(p, n *model.DepGraph) bool {
-				if n.Name != "" {
-					deps++
-				}
-				return true
-			})
-		}
+	}()
+
+	// 记录需要解析的文件
+	arg.WalkFileFunc = func(parent *model.File, files []*model.File) {
+		find += len(files)
 	}
 
-	deps, err := opensca.RunTask(context.Background(), arg)
+	// 记录处理完的文件
+	arg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
+		done += len(files)
+	}
 
-	// 等待进度条完成
-	if config.Conf().Optional.ProgressBar {
-		<-time.After(time.Millisecond * 200)
+	// 记录解析到的依赖个数
+	arg.WalkDepFunc = func(dep *model.DepGraph) {
+		dep.ForEachNode(func(p, n *model.DepGraph) bool {
+			if n.Name != "" {
+				deps++
+			}
+			return true
+		})
+	}
+
+	return func() {
 		progress = false
 	}
-
-	return deps, err
 }
 
 func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
