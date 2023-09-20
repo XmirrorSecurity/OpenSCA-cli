@@ -11,6 +11,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
 
 var (
@@ -44,7 +45,7 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 	return
 }
 
-func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do WalkFileFunc) error {
+func walk(ctx context.Context, parent *model.File, filterFunc ExtractFileFilter, walkFunc WalkFileFunc) error {
 
 	var files []*model.File
 
@@ -63,23 +64,23 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 
 		rel := filepath.Join(parent.Relpath(), strings.TrimPrefix(path, parent.Abspath()))
 
-		if filter != nil && !filter(rel) {
+		if filterFunc != nil && !filterFunc(rel) {
 			return nil
 		}
 
-		if !IsCompressFile(rel) {
+		if !filter.CompressFile(rel) {
 			logs.Debugf("find %s", rel)
 			files = append(files, model.NewFile(path, rel))
 			return nil
 		}
 
-		decompress(path, filter, func(dir string) {
+		decompress(path, filterFunc, func(dir string) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
 				defer os.RemoveAll(dir)
 				parent := model.NewFile(dir, rel)
-				if err := walk(ctx, parent, filter, do); err != nil {
+				if err := walk(ctx, parent, filterFunc, walkFunc); err != nil {
 					logs.Warn(err)
 				}
 			}()
@@ -88,7 +89,7 @@ func walk(ctx context.Context, parent *model.File, filter ExtractFileFilter, do 
 		return nil
 	})
 
-	do(parent, files)
+	walkFunc(parent, files)
 	return err
 }
 
@@ -111,14 +112,4 @@ func decompress(input string, filter ExtractFileFilter, do func(tmpdir string)) 
 	} else {
 		os.RemoveAll(tmp)
 	}
-}
-
-func IsCompressFile(relpath string) bool {
-	return checkFileExt(relpath, ".zip",
-		".jar",
-		".rar",
-		".tar",
-		".gz",
-		".bz2",
-	)
 }

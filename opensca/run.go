@@ -7,6 +7,7 @@ import (
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/walk"
 )
 
@@ -37,7 +38,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 	}
 
 	if arg.ExtractFileFilter == nil {
-		arg.ExtractFileFilter = walk.IsCompressFile
+		arg.ExtractFileFilter = filter.CompressFile
 	}
 
 	if arg.Name == "" {
