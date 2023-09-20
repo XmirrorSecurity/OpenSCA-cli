@@ -24,6 +24,7 @@ type DepDetailGraph struct {
 	Children                []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
 	Parent                  *DepDetailGraph   `json:"-" xml:"-"`
 	IndirectVulnerabilities int               `json:"indirect_vulnerabilities,omitempty" xml:"indirect_vulnerabilities,omitempty" `
+	Expand                  any               `json:"-" xml:"-"`
 }
 
 var (

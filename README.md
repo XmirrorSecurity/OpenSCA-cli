@@ -86,13 +86,14 @@
 
 ### 参数说明
 
-| 参数     | 类型     | 描述                | 使用样例                 |
-| -------- | -------- | ------------------- | ------------------------ |
-| `config` | `string` | 指定配置文件路径    | `-config config.json`    |
-| `path`   | `string` | 指定检测项目路径    | `-path ./foo`            |
-| `out`    | `string` | 根据后缀生成报告    | `-out out.json,out.html` |
-| `log`    | `string` | 指定日志文件路径    | `-log my_log.txt`        |
-| `token`  | `string` | `opensca web token` | `-token xxx`             |
+| 参数     | 类型     | 描述             | 使用样例                 |
+| -------- | -------- | ---------------- | ------------------------ |
+| `config` | `string` | 指定配置文件路径 | `-config config.json`    |
+| `path`   | `string` | 指定检测项目路径 | `-path ./foo`            |
+| `out`    | `string` | 根据后缀生成报告 | `-out out.json,out.html` |
+| `log`    | `string` | 指定日志文件路径 | `-log my_log.txt`        |
+| `token`  | `string` | 云端服务`token`  | `-token xxx`             |
+| `ui`     | `bool`   | 检测结果UI界面   | `-ui`                    |
 
 完整的检测参数需在配置文件中配置
 

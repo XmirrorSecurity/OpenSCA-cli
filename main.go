@@ -12,6 +12,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
+	"github.com/xmirrorsecurity/opensca-cli/cmd/ui"
 	"github.com/xmirrorsecurity/opensca-cli/opensca"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -28,7 +29,7 @@ func main() {
 
 	// 运行检测任务
 	start := time.Now()
-	deps, err := opensca.RunTask(context.Background(), taskArg())
+	deps, err := runTask()
 	end := time.Now()
 
 	// 日志中记录检测结果
@@ -45,12 +46,13 @@ func main() {
 	// 导出报告
 	format.Save(report, config.Conf().Output)
 
-	// 等待进度条完成
-	if config.Conf().Optional.ProgressBar {
-		<-time.After(time.Millisecond * 200)
-	}
 	// 打印概览信息
 	fmt.Println(format.Statis(report))
+
+	// 开启ui
+	if config.Conf().Optional.UI {
+		ui.OpenUI(report)
+	}
 
 }
 
@@ -60,6 +62,7 @@ func args() {
 	var cfgf string
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
+	flag.BoolVar(&cfg.Optional.UI, "ui", false, "-ui")
 	flag.StringVar(&cfgf, "config", "", "config path. example: -config config.json")
 	flag.StringVar(&cfg.Path, "path", cfg.Path, "project path. example: -path project_path")
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
@@ -86,7 +89,7 @@ func args() {
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
 
-func taskArg() *opensca.TaskArg {
+func runTask() ([]*model.DepGraph, error) {
 
 	// 检测参数
 	arg := &opensca.TaskArg{DataOrigin: config.Conf().Path}
@@ -97,11 +100,12 @@ func taskArg() *opensca.TaskArg {
 	}
 
 	// 进度条
+	progress := true
 	if config.Conf().Optional.ProgressBar {
 		var find, done, deps, bar int
 		go func() {
 			logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
-			for {
+			for progress {
 				fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
 				bar = (bar + 1) % len(logos)
 				<-time.After(time.Millisecond * 100)
@@ -126,7 +130,15 @@ func taskArg() *opensca.TaskArg {
 		}
 	}
 
-	return arg
+	deps, err := opensca.RunTask(context.Background(), arg)
+
+	// 等待进度条完成
+	if config.Conf().Optional.ProgressBar {
+		<-time.After(time.Millisecond * 200)
+		progress = false
+	}
+
+	return deps, err
 }
 
 func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {

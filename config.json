@@ -11,6 +11,10 @@
   // opensca 配置项
   // opensca optional
   "optional": {
+    // 开启ui
+    // open ui
+    "ui": false,
+
     // 相同组件仅保留一条数据 检出路径合并
     // delete duplicate components and merge path
     "dedup": false,
