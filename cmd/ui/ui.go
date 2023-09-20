@@ -10,16 +10,17 @@ import (
 )
 
 var (
-	colorVul    = tcell.ColorPink
-	colorPath   = tcell.ColorBlue
-	colorDep    = tcell.ColorGreen
-	colorDevDep = tcell.ColorGrey
-	colorVulDep = tcell.ColorRed
+	colorVul     = tcell.ColorPink
+	colorPath    = tcell.ColorViolet
+	colorDep     = tcell.ColorGreen
+	colorDevDep  = tcell.ColorGrey
+	colorVulDep  = tcell.ColorRed
+	colorLicense = tcell.ColorWheat
 )
 
 func OpenUI(report format.Report) {
 
-	root := tview.NewTreeNode(report.AppName).SetColor(tcell.ColorBlue)
+	root := tview.NewTreeNode(report.AppName).SetColor(colorPath)
 	depTreeRoot := report.DepDetailGraph
 	depTreeRoot.Expand = root
 
@@ -76,20 +77,25 @@ func newTreeNode(d *detail.DepDetailGraph) *tview.TreeNode {
 
 	// 路径
 	if len(d.Paths) > 0 {
-		paths := tview.NewTreeNode("paths")
-		paths.SetColor(colorPath)
-		paths.SetExpanded(!n.IsExpanded())
+		paths := tview.NewTreeNode("paths").SetColor(colorPath).SetExpanded(!n.IsExpanded())
 		for _, p := range d.Paths {
 			paths.AddChild(tview.NewTreeNode(p).SetColor(colorPath))
 		}
 		n.AddChild(paths)
 	}
 
+	// 许可证
+	if len(d.Licenses) > 0 {
+		license := tview.NewTreeNode("license").SetColor(colorLicense).SetExpanded(!n.IsExpanded())
+		for _, lic := range d.Licenses {
+			license.AddChild(tview.NewTreeNode(lic.ShortName).SetColor(colorLicense))
+		}
+		n.AddChild(license)
+	}
+
 	// 漏洞
 	if len(d.Vulnerabilities) > 0 {
-		vulns := tview.NewTreeNode("vulns")
-		vulns.SetColor(colorVul)
-		vulns.SetExpanded(!n.IsExpanded())
+		vulns := tview.NewTreeNode("vulns").SetColor(colorVul).SetExpanded(!n.IsExpanded())
 		for _, v := range d.Vulnerabilities {
 			// 漏洞=>详细字段
 			vuln := tview.NewTreeNode(v.Id).SetColor(colorVul)
