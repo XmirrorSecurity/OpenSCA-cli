@@ -93,7 +93,6 @@
 | `out`    | `string` | 根据后缀生成报告 | `-out out.json,out.html` |
 | `log`    | `string` | 指定日志文件路径 | `-log my_log.txt`        |
 | `token`  | `string` | 云端服务`token`  | `-token xxx`             |
-| `ui`     | `bool`   | 检测结果UI界面   | `-ui`                    |
 
 完整的检测参数需在配置文件中配置
 
