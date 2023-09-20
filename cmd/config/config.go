@@ -32,6 +32,7 @@ type OriginConfig struct {
 }
 
 type OptionalConfig struct {
+	UI          bool `json:"ui"`
 	Dedup       bool `json:"dedup"`
 	DirOnly     bool `json:"dir"`
 	VulnOnly    bool `json:"vuln"`
