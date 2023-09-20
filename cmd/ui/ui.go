@@ -11,7 +11,7 @@ import (
 
 func OpenUI(report format.Report) {
 
-	root := tview.NewTreeNode(report.AppName).SetColor(tcell.ColorGreen)
+	root := tview.NewTreeNode(report.AppName).SetColor(tcell.ColorBlue)
 	depTreeRoot := report.DepDetailGraph
 	depTreeRoot.Expand = root
 
@@ -51,10 +51,14 @@ func newTreeNode(d *detail.DepDetailGraph) *tview.TreeNode {
 
 	info := fmt.Sprintf("%s%s", dev, dep)
 
-	n := tview.NewTreeNode(info).SetColor(tcell.ColorBlue)
+	n := tview.NewTreeNode(info).SetColor(tcell.ColorGreen)
+
+	if len(d.Vulnerabilities) > 0 {
+		n.SetColor(tcell.ColorRed)
+	}
 
 	detail := tview.NewTreeNode("detail")
-	// detail.SetExpanded(false)
+	detail.SetExpanded(false)
 
 	detail.AddChild(tview.NewTreeNode(fmt.Sprintf("language:%s", d.Language)))
 	if len(d.Paths) > 0 {
