@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -36,11 +37,11 @@ func isFile(url string) bool {
 func download(origin string) (delete bool, output string, err error) {
 	if isHttp(origin) {
 		delete = true
-		output = common.MkdirTemp("download")
+		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
 		err = downloadFromHttp(origin, output)
 	} else if isFtp(origin) {
 		delete = true
-		output = common.MkdirTemp("download")
+		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
 		err = downloadFromFtp(origin, output)
 	} else if isFile(origin) {
 		output = strings.TrimPrefix(origin, "file:///")
