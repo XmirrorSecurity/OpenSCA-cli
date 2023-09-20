@@ -266,7 +266,9 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 			return true
 		})
 
-		roots = append(roots, root)
+		if root.Name != "" {
+			roots = append(roots, root)
+		}
 	}
 
 	return roots

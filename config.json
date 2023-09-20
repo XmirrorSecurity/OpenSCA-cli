@@ -1,6 +1,7 @@
 {
   // 检测项目路径
   // project path
+  // support http(s)/ftp/file protocol
   "path": "",
 
   // 导出报告路径

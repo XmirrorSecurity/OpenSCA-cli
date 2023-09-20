@@ -75,3 +75,14 @@ var (
 	SbomXml  = filterFunc(strings.HasSuffix, ".xml")
 	// SbomRdf  = filterFunc(strings.HasSuffix, ".rdf")
 )
+
+var (
+	CompressFile = filterFunc(strings.HasSuffix,
+		".zip",
+		".jar",
+		".rar",
+		".tar",
+		".gz",
+		".bz2",
+	)
+)
