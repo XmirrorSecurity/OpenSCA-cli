@@ -181,7 +181,7 @@ func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
 
 	// 组件去重
 	if optional.Dedup {
-		report.Dedup()
+		report.RemoveDedup()
 	}
 
 	// 去掉dev组件

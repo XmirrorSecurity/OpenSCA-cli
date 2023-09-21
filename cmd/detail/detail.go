@@ -52,16 +52,17 @@ func ID() string {
 
 func NewDepDetailGraph(dep *model.DepGraph) *DepDetailGraph {
 	detail := &DepDetailGraph{ID: ID()}
+	detail.Update(dep)
 	dep.Expand = detail
 	dep.ForEachNode(func(p, n *model.DepGraph) bool {
-		detail := n.Expand.(*DepDetailGraph)
-		detail.Update(n)
-		for _, c := range n.Children {
-			cd := &DepDetailGraph{ID: ID(), Parent: detail}
-			c.Expand = cd
-			detail.Children = append(detail.Children, cd)
+		if p == nil || p.Expand == nil {
+			return true
 		}
-		n.Expand = nil
+		parent := p.Expand.(*DepDetailGraph)
+		child := &DepDetailGraph{ID: ID(), Parent: parent}
+		child.Update(n)
+		n.Expand = child
+		parent.Children = append(parent.Children, child)
 		return true
 	})
 	return detail
@@ -94,7 +95,7 @@ func (d *DepDetailGraph) ForEach(do func(n *DepDetailGraph) bool) {
 	}
 }
 
-func (d *DepDetailGraph) Dedup() {
+func (d *DepDetailGraph) RemoveDedup() {
 	// map[key]
 	depSet := map[string]*DepDetailGraph{}
 	d.ForEach(func(n *DepDetailGraph) bool {
