@@ -99,11 +99,6 @@ func args() {
 
 	logs.CreateLog(config.Conf().LogFile)
 
-	if len(config.Conf().Path) == 0 {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
-
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
