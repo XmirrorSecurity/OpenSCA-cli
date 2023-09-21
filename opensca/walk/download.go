@@ -124,13 +124,17 @@ func downloadFromFtp(url, output string) error {
 	host = strings.TrimPrefix(url, "ftp://")
 	i := strings.Index(host, "/")
 	host, path = host[:i], host[i+1:]
-	i = strings.Index(host, "@")
-	if i != -1 {
+	if i := strings.Index(host, "@"); i != -1 {
 		up := strings.Split(host[:i], ":")
 		if len(up) == 2 {
 			username, password = up[0], up[1]
+		} else {
+			username = host[:i]
 		}
 		host = host[i+1:]
+	}
+	if username == "" {
+		username = "anonymous"
 	}
 	// 连接ftp
 	c, err := ftp.Dial(host, ftp.DialWithTimeout(5*time.Second))
@@ -143,11 +147,9 @@ func downloadFromFtp(url, output string) error {
 		}
 	}()
 	// 登录
-	if username != "" {
-		err = c.Login(username, password)
-		if err != nil {
-			return err
-		}
+	err = c.Login(username, password)
+	if err != nil {
+		return err
 	}
 	// 获取数据
 	r, err := c.Retr(path)
