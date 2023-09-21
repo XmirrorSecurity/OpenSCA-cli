@@ -2,11 +2,13 @@ package ui
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
 var (
@@ -19,6 +21,33 @@ var (
 )
 
 func OpenUI(report format.Report) {
+
+	flex := tview.NewFlex()
+
+	flex.AddItem(DepTree(report), 0, 1, true)
+	flex.AddItem(TaskLog(), 0, 1, false)
+
+	if err := tview.NewApplication().SetRoot(flex, true).Run(); err != nil {
+		logs.Error(err)
+	}
+}
+
+func TaskLog() *tview.TextArea {
+	log := tview.NewTextArea()
+	if logs.LogFilePath == "" {
+		log.SetText("log file not found", false)
+		return log
+	}
+	data, err := os.ReadFile(logs.LogFilePath)
+	if err != nil {
+		log.SetText(fmt.Sprintf("read log file err:\n%s", err), false)
+		return log
+	}
+	log.SetText(string(data), true)
+	return log
+}
+
+func DepTree(report format.Report) *tview.TreeView {
 
 	var root *tview.TreeNode
 	if report.DepDetailGraph != nil && report.DepDetailGraph.Name != "" {
@@ -47,9 +76,7 @@ func OpenUI(report format.Report) {
 		return true
 	})
 
-	if err := tview.NewApplication().SetRoot(tree, true).Run(); err != nil {
-		panic(err)
-	}
+	return tree
 }
 
 func newTreeNode(d *detail.DepDetailGraph) *tview.TreeNode {
@@ -83,32 +110,44 @@ func newTreeNode(d *detail.DepDetailGraph) *tview.TreeNode {
 
 	// 路径
 	if len(d.Paths) > 0 {
-		paths := tview.NewTreeNode("paths").SetColor(colorPath).SetExpanded(!n.IsExpanded())
+		color := colorPath
+		if d.Develop {
+			color = colorDevDep
+		}
+		paths := tview.NewTreeNode("paths").SetColor(color).SetExpanded(!n.IsExpanded())
 		for _, p := range d.Paths {
-			paths.AddChild(tview.NewTreeNode(p).SetColor(colorPath))
+			paths.AddChild(tview.NewTreeNode(p).SetColor(color))
 		}
 		n.AddChild(paths)
 	}
 
 	// 许可证
 	if len(d.Licenses) > 0 {
-		license := tview.NewTreeNode("license").SetColor(colorLicense).SetExpanded(!n.IsExpanded())
+		color := colorLicense
+		if d.Develop {
+			color = colorDevDep
+		}
+		license := tview.NewTreeNode("license").SetColor(color).SetExpanded(!n.IsExpanded())
 		for _, lic := range d.Licenses {
-			license.AddChild(tview.NewTreeNode(lic.ShortName).SetColor(colorLicense))
+			license.AddChild(tview.NewTreeNode(lic.ShortName).SetColor(color))
 		}
 		n.AddChild(license)
 	}
 
 	// 漏洞
 	if len(d.Vulnerabilities) > 0 {
-		vulns := tview.NewTreeNode("vulns").SetColor(colorVul).SetExpanded(!n.IsExpanded())
+		color := colorVul
+		if d.Develop {
+			color = colorDevDep
+		}
+		vulns := tview.NewTreeNode("vulns").SetColor(color).SetExpanded(!n.IsExpanded())
 		for _, v := range d.Vulnerabilities {
 			// 漏洞=>详细字段
-			vuln := tview.NewTreeNode(v.Id).SetColor(colorVul)
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("name:%s", v.Name)).SetColor(colorVul))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("cve:%s", v.Cve)).SetColor(colorVul))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("description:%s", v.Description)).SetColor(colorVul))
-			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("suggestion:%s", v.Suggestion)).SetColor(colorVul))
+			vuln := tview.NewTreeNode(v.Id).SetColor(color)
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("name:%s", v.Name)).SetColor(color))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("cve:%s", v.Cve)).SetColor(color))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("description:%s", v.Description)).SetColor(color))
+			vuln.AddChild(tview.NewTreeNode(fmt.Sprintf("suggestion:%s", v.Suggestion)).SetColor(color))
 			vulns.AddChild(vuln)
 		}
 		n.AddChild(vulns)
