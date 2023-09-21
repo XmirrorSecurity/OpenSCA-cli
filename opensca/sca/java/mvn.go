@@ -386,7 +386,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		return nil
 	}
 
-	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree", "--fail-never")
+	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree")
 	cmd.Dir = dir.Abspath()
 	output, err := cmd.CombinedOutput()
 	if err != nil {

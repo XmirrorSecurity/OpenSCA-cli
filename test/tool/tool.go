@@ -55,12 +55,12 @@ type TaskCase struct {
 func RunTaskCase(t *testing.T, sca ...sca.Sca) func(cases []TaskCase) {
 	return func(cases []TaskCase) {
 		for _, c := range cases {
-			deps, _ := opensca.RunTask(context.Background(), &opensca.TaskArg{
+			r := opensca.RunTask(context.Background(), &opensca.TaskArg{
 				DataOrigin: c.Path,
 				Sca:        sca,
 			})
 			result := &model.DepGraph{}
-			for _, dep := range deps {
+			for _, dep := range r.Deps {
 				result.AppendChild(dep)
 			}
 			if Diff(result, c.Result) {
