@@ -143,7 +143,7 @@ func downloadFromFtp(url, output string) error {
 		}
 	}()
 	// 登录
-	if username != "" && password != "" {
+	if username != "" {
 		err = c.Login(username, password)
 		if err != nil {
 			return err

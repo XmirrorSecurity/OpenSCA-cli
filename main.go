@@ -54,6 +54,7 @@ func main() {
 	// 生成报告
 	report := taskReport(start, end, deps)
 	if err != nil {
+		logs.Error(err)
 		report.ErrorString = err.Error()
 	}
 
