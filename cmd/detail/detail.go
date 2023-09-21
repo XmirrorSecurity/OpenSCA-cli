@@ -111,6 +111,7 @@ func (d *DepDetailGraph) RemoveDedup() {
 				break
 			}
 		}
+		dep.Children = append(dep.Children, n.Children...)
 		return true
 	})
 }
