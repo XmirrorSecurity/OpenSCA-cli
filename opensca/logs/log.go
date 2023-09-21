@@ -52,6 +52,8 @@ func DefalutLogConfig() LogConfig {
 	}
 }
 
+var LogFilePath string
+
 func CreateLog(logPath string) {
 
 	if logPath == "" {
@@ -65,6 +67,7 @@ func CreateLog(logPath string) {
 		createDefaultLog()
 	} else {
 		Debugf("log file: %s", logPath)
+		LogFilePath = logPath
 		log.SetOutput(f)
 	}
 
@@ -97,6 +100,7 @@ func createDefaultLog() {
 		} else {
 			Debugf("log file: %s", p)
 			log.SetOutput(f)
+			LogFilePath = p
 			break
 		}
 	}
