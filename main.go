@@ -42,21 +42,18 @@ func main() {
 	}
 
 	// 运行检测任务
-	start := time.Now()
-	deps, err := opensca.RunTask(context.Background(), arg)
-	end := time.Now()
+	result := opensca.RunTask(context.Background(), arg)
 
 	// 日志中记录检测结果
-	for _, dep := range deps {
+	if result.Error != nil {
+		logs.Error(result.Error)
+	}
+	for _, dep := range result.Deps {
 		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
 	}
 
 	// 生成报告
-	report := taskReport(start, end, deps)
-	if err != nil {
-		logs.Error(err)
-		report.ErrorString = err.Error()
-	}
+	report := taskReport(result)
 
 	// 导出报告
 	format.Save(report, config.Conf().Output)
@@ -151,7 +148,7 @@ func startProgressBar(arg *opensca.TaskArg) (stop func()) {
 	}
 }
 
-func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
+func taskReport(r opensca.TaskResult) format.Report {
 
 	path := config.Conf().Path
 	optional := config.Conf().Optional
@@ -159,24 +156,24 @@ func taskReport(start, end time.Time, deps []*model.DepGraph) format.Report {
 	report := format.Report{
 		ToolVersion: version,
 		AppName:     path,
-		StartTime:   start.Format("2006-01-02 15:04:05"),
-		EndTime:     end.Format("2006-01-02 15:04:05"),
-		CostTime:    end.Sub(start).Seconds(),
+		StartTime:   r.Start.Format("2006-01-02 15:04:05"),
+		EndTime:     r.End.Format("2006-01-02 15:04:05"),
+		CostTime:    r.End.Sub(r.Start).Seconds(),
+		Size:        r.Size,
 	}
 
-	// 记录检测目标文件大小
-	if f, err := os.Stat(path); err == nil {
-		report.Size = f.Size()
+	if r.Error != nil {
+		report.ErrorString = r.Error.Error()
 	}
 
 	// 合并检测结果
 	root := &model.DepGraph{}
-	if len(deps) > 1 {
-		for _, dep := range deps {
+	if len(r.Deps) > 1 {
+		for _, dep := range r.Deps {
 			root.AppendChild(dep)
 		}
-	} else if len(deps) == 1 {
-		root = deps[0]
+	} else if len(r.Deps) == 1 {
+		root = r.Deps[0]
 	}
 	report.DepDetailGraph = detail.NewDepDetailGraph(root)
 

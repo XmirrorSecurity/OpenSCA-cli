@@ -29,9 +29,30 @@ type TaskArg struct {
 	WalkDepFunc       func(dep *model.DepGraph)
 }
 
+type TaskResult struct {
+	// 任务参数
+	Arg *TaskArg
+	// 检出组件
+	Deps []*model.DepGraph
+	// 错误信息
+	Error error
+	// 任务开始时间
+	Start time.Time
+	// 任务结束时间
+	End time.Time
+	// 检测文件大小
+	Size int64
+}
+
 // RunTask 运行检测任务
 // arg: 任务参数
-func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err error) {
+func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
+
+	result.Start = time.Now()
+	defer func() {
+		result.End = time.Now()
+		result.Arg = arg
+	}()
 
 	if arg == nil {
 		arg = &TaskArg{DataOrigin: "./"}
@@ -57,7 +78,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 		arg.Sca = sca.AllSca
 	}
 
-	err = walk.Walk(ctx, arg.Name, arg.DataOrigin, func(relpath string) bool {
+	result.Size, result.Error = walk.Walk(ctx, arg.Name, arg.DataOrigin, func(relpath string) bool {
 
 		if arg.ExtractFileFilter != nil && arg.ExtractFileFilter(relpath) {
 			return true
@@ -89,7 +110,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 					continue
 				}
 				dep.Build(false, sca.Language())
-				deps = append(deps, dep)
+				result.Deps = append(result.Deps, dep)
 				if arg.WalkDepFunc != nil {
 					arg.WalkDepFunc(dep)
 				}
@@ -97,5 +118,6 @@ func RunTask(ctx context.Context, arg *TaskArg) (deps []*model.DepGraph, err err
 		}
 
 	})
-	return
+
+	return result
 }

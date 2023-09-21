@@ -27,7 +27,7 @@ type WalkFileFunc func(parent *model.File, files []*model.File)
 // filter: 过滤需要提取的文件
 // do: 对文件的操作
 // size: 检测文件大小
-func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (err error) {
+func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
 
 	defer wg.Wait()
 
@@ -38,6 +38,16 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 
 	if delete {
 		defer os.RemoveAll(filepath)
+	}
+
+	if f, xerr := os.Stat(filepath); xerr == nil {
+		if !f.IsDir() {
+			size = f.Size()
+		}
+	} else {
+		logs.Error(xerr)
+		err = xerr
+		return
 	}
 
 	parent := model.NewFile(filepath, name)
