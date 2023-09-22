@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -12,24 +13,45 @@ import (
 )
 
 var (
-	colorVul     = tcell.ColorPurple
-	colorPath    = tcell.ColorBlue
-	colorDep     = tcell.ColorGreen
-	colorDevDep  = tcell.ColorGrey
-	colorVulDep  = tcell.ColorRed
-	colorLicense = tcell.ColorYellow
+	colorVul              = tcell.ColorPurple
+	colorPath             = tcell.ColorBlue
+	colorDep              = tcell.ColorGreen
+	colorDevDep           = tcell.ColorGrey
+	colorVulDep           = tcell.ColorRed
+	colorLicense          = tcell.ColorYellow
+	colorBottomBackgradle = tcell.ColorGrey
 )
 
 func OpenUI(report format.Report) {
 
 	flex := tview.NewFlex()
 
-	flex.AddItem(DepTree(report), 0, 1, true)
-	flex.AddItem(TaskLog(), 0, 1, false)
+	flex.
+		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+			AddItem(DepTree(report), 0, 1, true).
+			AddItem(TaskInfo(report), 2, 1, false),
+			0, 1, true).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+			AddItem(TaskLog(), 0, 1, false).
+			AddItem(TaskLogFilePath(), 1, 1, false),
+			0, 1, false)
 
 	if err := tview.NewApplication().SetRoot(flex, true).Run(); err != nil {
 		logs.Error(err)
 	}
+}
+
+func TaskInfo(report format.Report) *tview.TextView {
+	info := tview.NewTextView().
+		SetText(format.Statis(report))
+	info.SetBackgroundColor(colorBottomBackgradle)
+	return info
+}
+
+func TaskLogFilePath() *tview.TextView {
+	text := tview.NewTextView().SetText(logs.LogFilePath)
+	text.SetBackgroundColor(colorBottomBackgradle)
+	return text
 }
 
 func TaskLog() *tview.TextArea {
@@ -43,7 +65,8 @@ func TaskLog() *tview.TextArea {
 		log.SetText(fmt.Sprintf("read log file err:\n%s", err), false)
 		return log
 	}
-	log.SetText(string(data), true)
+	log.SetText(string(bytes.TrimRight(data, "\n\r")), true)
+	log.SetDisabled(true)
 	return log
 }
 
