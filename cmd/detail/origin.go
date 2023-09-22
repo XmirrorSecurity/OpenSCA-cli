@@ -3,15 +3,18 @@ package detail
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -106,7 +109,12 @@ func (o *BaseOrigin) LoadSqlOrigin(dialector gorm.Dialector, cfg config.SqlOrigi
 	if cfg.Dsn == "" {
 		return
 	}
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.New(log.Default(), logger.Config{
+			SlowThreshold: 1 * time.Second,
+			LogLevel:      logger.Info,
+		}),
+	})
 	if err != nil {
 		logs.Error(err)
 		return
