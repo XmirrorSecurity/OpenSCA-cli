@@ -1,9 +1,10 @@
 package ui
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -19,6 +20,14 @@ var (
 	colorDevDep  = tcell.ColorGrey
 	colorVulDep  = tcell.ColorRed
 	colorLicense = tcell.ColorYellow
+
+	colorLogMap = map[string]string{
+		"[TRACE]": "[grey]",
+		"[DEBUG]": "[green]",
+		"[INFO]":  "[blue]",
+		"[WARN]":  "[yellow]",
+		"[ERROR]": "[red]",
+	}
 )
 
 func OpenUI(report format.Report) {
@@ -82,17 +91,33 @@ crtl+c:exit`
 }
 
 func TaskLog() *tview.TextView {
-	log := tview.NewTextView()
+	log := tview.NewTextView().SetDynamicColors(true)
 	if logs.LogFilePath == "" {
 		log.SetText("log file not found")
 		return log
 	}
-	data, err := os.ReadFile(logs.LogFilePath)
+	f, err := os.Open(logs.LogFilePath)
 	if err != nil {
 		log.SetText(fmt.Sprintf("read log file err:\n%s", err))
 		return log
 	}
-	log.SetText(string(bytes.TrimRight(data, "\n\r")))
+	lines := []string{}
+	lineNum := 0
+	scanner := bufio.NewScanner(f)
+	color := "white"
+	for scanner.Scan() {
+		lineNum++
+		line := scanner.Text()
+		if i := strings.Index(line, " "); i != -1 {
+			if c, ok := colorLogMap[line[:i]]; ok {
+				color = c
+				line = fmt.Sprintf("%s[%s%s[white]", color, color, line[1:])
+			}
+		}
+		line = fmt.Sprintf("%s%s[white]", color, line)
+		lines = append(lines, fmt.Sprintf("[grey]%d:[white]%s", lineNum, line))
+	}
+	log.SetText(strings.Join(lines, "\r\n"))
 	return log
 }
 
