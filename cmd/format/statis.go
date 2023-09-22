@@ -51,9 +51,8 @@ func Statis(report Report) string {
 		return true
 	})
 
-	return fmt.Sprintf("\n\nComplete!"+
-		"\nComponents:%d C:%d H:%d M:%d L:%d"+
-		"\nVulnerabilities:%d C:%d H:%d M:%d L:%d",
+	return fmt.Sprintf("Components:%d C:%d H:%d M:%d L:%d\n"+
+		"Vulnerabilities:%d C:%d H:%d M:%d L:%d",
 		depStatic[0], depStatic[1], depStatic[2], depStatic[3], depStatic[4],
 		vulStatic[0], vulStatic[1], vulStatic[2], vulStatic[3], vulStatic[4],
 	)

@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// 打印概览信息
-	fmt.Println(format.Statis(report))
+	fmt.Println("\n\nComplete!\n" + format.Statis(report))
 
 	// 开启ui
 	if config.Conf().Optional.UI {
@@ -151,9 +151,6 @@ func taskReport(r opensca.TaskResult) format.Report {
 	report := format.Report{
 		ToolVersion: version,
 		AppName:     path,
-		StartTime:   r.Start.Format("2006-01-02 15:04:05"),
-		EndTime:     r.End.Format("2006-01-02 15:04:05"),
-		CostTime:    r.End.Sub(r.Start).Seconds(),
 		Size:        r.Size,
 	}
 
@@ -202,6 +199,11 @@ func taskReport(r opensca.TaskResult) format.Report {
 		})
 		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
 	}
+
+	end := time.Now()
+	report.StartTime = r.Start.Format("2006-01-02 15:04:05")
+	report.EndTime = end.Format("2006-01-02 15:04:05")
+	report.CostTime = end.Sub(r.Start).Seconds()
 
 	return report
 }
