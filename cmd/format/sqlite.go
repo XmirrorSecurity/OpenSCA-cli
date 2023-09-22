@@ -39,7 +39,7 @@ func Sqlite(report Report, out string) {
 		moduleName = report.DepDetailGraph.Name
 	}
 
-	logs.Debugf("---- sql report of %s", moduleName)
+	logs.Debugf("sql report of %s", moduleName)
 	insertFmt := "insert or ignore into component (name, version, vendor, language, purl) values ('%s','%s','%s','%s','%s');\n"
 	insertRef := "insert or ignore into reference (module_name, purl) values ('%s','%s');\n"
 
@@ -47,9 +47,9 @@ func Sqlite(report Report, out string) {
 		if n.Name == "" {
 			return true
 		}
-		logs.Debugf(insertFmt, quoteEscape(n.Name), quoteEscape(n.Version), quoteEscape(n.Vendor), quoteEscape(n.Language), quoteEscape(n.Purl()))
 		_, err := db.Exec("insert or ignore into component (name, version, vendor, language, purl) values (?,?,?,?,?)", n.Name, n.Version, n.Vendor, n.Language, n.Purl())
 		if err != nil {
+			logs.Debugf(insertFmt, quoteEscape(n.Name), quoteEscape(n.Version), quoteEscape(n.Vendor), quoteEscape(n.Language), quoteEscape(n.Purl()))
 			logs.Warn(err)
 		}
 		return true
@@ -59,9 +59,9 @@ func Sqlite(report Report, out string) {
 		if n.Name == "" {
 			return true
 		}
-		logs.Debugf(insertRef, moduleName, quoteEscape(n.Purl()))
 		_, err := db.Exec("insert or ignore into reference (module_name, purl) values (?, ?)", moduleName, n.Purl())
 		if err != nil {
+			logs.Debugf(insertRef, moduleName, quoteEscape(n.Purl()))
 			logs.Warn(err)
 		}
 		return true

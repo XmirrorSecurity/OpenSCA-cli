@@ -20,35 +20,37 @@ type LogConfig struct {
 type Level int8
 
 const (
-	_TRACE Level = iota
-	_DEBUG
-	_INFO
-	_WARN
-	_ERROR
+	TRACE Level = iota
+	DEBUG
+	INFO
+	WARN
+	ERROR
 )
 
 var (
 	prefix = map[Level]string{
-		_TRACE: "[TRACE] ",
-		_DEBUG: "[DEBUG] ",
-		_INFO:  "[INFO] ",
-		_WARN:  "[WARN] ",
-		_ERROR: "[ERROR] ",
+		TRACE: "[TRACE] ",
+		DEBUG: "[DEBUG] ",
+		INFO:  "[INFO] ",
+		WARN:  "[WARN] ",
+		ERROR: "[ERROR] ",
 	}
-	config = DefalutLogConfig()
+	config = LogConfig{
+		Trace: false,
+		Debug: true,
+		Info:  true,
+		Warn:  true,
+		Error: true,
+	}
 )
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
-func DefalutLogConfig() LogConfig {
-	return LogConfig{
-		Trace: false,
-		Debug: true,
-		Info:  true,
-		Warn:  true,
-		Error: true,
+func SetLogConfig(fn func(n *LogConfig)) {
+	if fn != nil {
+		fn(&config)
 	}
 }
 
@@ -115,11 +117,11 @@ func RegisterOut(outFunc func(level Level, format string, v ...any)) {
 }
 
 var out = func(level Level, format string, v ...any) {
-	if (level == _TRACE && !config.Trace) ||
-		(level == _DEBUG && !config.Debug) ||
-		(level == _INFO && !config.Info) ||
-		(level == _WARN && !config.Warn) ||
-		(level == _ERROR && !config.Error) {
+	if (level == TRACE && !config.Trace) ||
+		(level == DEBUG && !config.Debug) ||
+		(level == INFO && !config.Info) ||
+		(level == WARN && !config.Warn) ||
+		(level == ERROR && !config.Error) {
 		return
 	}
 	log.SetPrefix(prefix[level])
@@ -131,50 +133,50 @@ var out = func(level Level, format string, v ...any) {
 }
 
 func Trace(v ...any) {
-	out(_TRACE, "", v...)
+	out(TRACE, "", v...)
 }
 
 func Tracef(format string, v ...any) {
-	out(_TRACE, format, v...)
+	out(TRACE, format, v...)
 }
 
 func Debug(v ...any) {
-	out(_DEBUG, "", v...)
+	out(DEBUG, "", v...)
 }
 
 func Debugf(format string, v ...any) {
-	out(_DEBUG, format, v...)
+	out(DEBUG, format, v...)
 }
 
 func Info(v ...any) {
-	out(_INFO, "", v...)
+	out(INFO, "", v...)
 }
 
 func Infof(format string, v ...any) {
-	out(_INFO, format, v...)
+	out(INFO, format, v...)
 }
 
 func Warn(v ...any) {
-	out(_WARN, "", v...)
+	out(WARN, "", v...)
 }
 
 func Warnf(format string, v ...any) {
-	out(_WARN, format, v...)
+	out(WARN, format, v...)
 }
 
 func Error(v ...any) {
-	out(_ERROR, "", v...)
-	out(_ERROR, "", string(debug.Stack()))
+	out(ERROR, "", v...)
+	out(ERROR, "", string(debug.Stack()))
 }
 
 func Errorf(format string, v ...any) {
-	out(_ERROR, format, v...)
-	out(_ERROR, "", string(debug.Stack()))
+	out(ERROR, format, v...)
+	out(ERROR, "", string(debug.Stack()))
 }
 
 func Recover() {
 	if err := recover(); err != nil {
-		log.SetPrefix(prefix[_ERROR])
+		log.SetPrefix(prefix[ERROR])
 		log.Output(5, fmt.Sprint(err))
 		log.Output(5, string(debug.Stack()))
 	}
