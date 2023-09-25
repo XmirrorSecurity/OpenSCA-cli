@@ -37,6 +37,8 @@ jobs:
         run: echo ${{ env.RELEASE_VERSION }} > VERSION
       - name: Build And Release
         uses: wangyoucao577/go-release-action@v1.39
+        env:
+          CGO_ENABLED: 0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
