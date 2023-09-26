@@ -37,13 +37,15 @@ func OpenUI(report format.Report) {
 	tree := DepTree(report)
 	log := TaskLog()
 
-	flex.
-		AddItem(tree, 0, 1, true).
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(TaskInfo(report), 2, 1, false).
-			AddItem(log, 0, 1, false),
-			0, 1, false).
-		AddItem(UIHelp(), 12, 1, false)
+	flex.SetDirection(tview.FlexRow).
+		AddItem(tview.NewFlex().
+			AddItem(tree, 0, 1, true).
+			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+				AddItem(TaskInfo(report), 2, 1, false).
+				AddItem(log, 0, 1, false),
+				0, 1, false),
+			0, 1, true).
+		AddItem(UIHelp(), 1, 1, false)
 
 	app := tview.NewApplication()
 	switchView := func() {
@@ -78,15 +80,10 @@ func TaskInfo(report format.Report) *tview.TextView {
 }
 
 func UIHelp() *tview.TextView {
-	help := `j:down
-k:up
-h/l:switch
-space:expand
-g:top
-G:bottom
-crtl+c:exit`
-	text := tview.NewTextView().SetText(help)
-	text.SetTextColor(tcell.ColorYellow)
+	tips := []string{"j:down", "k:up", "space:expand", "h/l:switch", "g:top", "G:bottom", "crtl+c:exit"}
+	text := tview.NewTextView().SetText(strings.Join(tips, " | "))
+	text.SetTextStyle(tcell.StyleDefault.Reverse(true))
+	text.SetTextColor(tcell.ColorGrey)
 	return text
 }
 
