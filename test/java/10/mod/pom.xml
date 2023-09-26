@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
 
 	<artifactId>mod</artifactId>
-    <version>${revision}</version>
+    <version>${pppp}</version>
 
     <modules>
         <module>mod2</module>

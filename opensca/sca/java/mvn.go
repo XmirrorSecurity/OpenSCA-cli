@@ -23,33 +23,8 @@ import (
 // return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
 func ParsePoms(poms []*Pom) []*model.DepGraph {
 
-	// 记录module信息
-	modules := map[string]*Pom{}
-	for _, pom := range poms {
-		modules[filepath.Base(filepath.Dir(pom.File.Relpath()))] = pom
-	}
-
-	// 将revision主动推送到所有modules
-	var revisionPom []*Pom
-	for _, pom := range poms {
-		if _, ok := pom.Properties["revision"]; ok {
-			revisionPom = append(revisionPom, pom)
-		}
-	}
-	for len(revisionPom) > 0 {
-		pom := revisionPom[0]
-		revision := pom.Properties["revision"]
-		revision.Value = pom.update(revision.Value)
-		revisionPom = revisionPom[1:]
-		for _, name := range pom.Modules {
-			if p, ok := modules[name]; ok {
-				if _, ok := p.Properties["revision"]; !ok {
-					p.Properties["revision"] = revision
-					revisionPom = append(revisionPom, p)
-				}
-			}
-		}
-	}
+	// modules继承属性
+	inheritModules(poms)
 
 	// 记录当前项目的pom文件信息
 	gavMap := map[string]*model.File{}
@@ -281,6 +256,83 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	}
 
 	return roots
+}
+
+// inheritModules modules继承属性
+func inheritModules(poms []*Pom) {
+
+	// 记录module信息
+	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
+	for _, pom := range poms {
+		name := filepath.Base(filepath.Dir(pom.File.Relpath()))
+		n := _mod.LoadOrStore(name)
+		n.Expand = pom
+		for _, subMod := range pom.Modules {
+			n.AppendChild(_mod.LoadOrStore(subMod))
+		}
+	}
+
+	// 将属性传递到子mod
+	_mod.Range(func(k string, v *model.DepGraph) bool {
+
+		if len(v.Parents) > 0 {
+			return true
+		}
+
+		// 从每个根pom开始遍历
+		v.ForEachNode(func(p, n *model.DepGraph) bool {
+
+			// 判断parent是否有expand来判断是否已经继承过属性
+			expand := false
+			for _, p := range n.Parents {
+				if p.Expand != nil {
+					expand = true
+					return true
+				}
+			}
+
+			// 至少一个parent尚未继承属性则暂不处理当前节点
+			if expand {
+				return true
+			}
+
+			if n.Expand == nil {
+				return true
+			}
+			// 获取当前pom
+			pom, ok := n.Expand.(*Pom)
+			if !ok {
+				return true
+			}
+
+			// 将属性传递给module
+			for _, name := range pom.Modules {
+				mod := _mod.LoadOrStore(name)
+				if mod.Expand == nil {
+					continue
+				}
+				modpom, ok := mod.Expand.(*Pom)
+				if !ok {
+					continue
+				}
+				if modpom.Properties == nil {
+					modpom.Properties = PomProperties{}
+				}
+				for k, v := range pom.Properties {
+					if _, ok := modpom.Properties[k]; !ok {
+						modpom.Properties[k] = v
+					}
+				}
+			}
+
+			// 属性继承完后删除expand用作标识
+			v.Expand = nil
+
+			return true
+		})
+
+		return true
+	})
 }
 
 var mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {

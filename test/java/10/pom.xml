@@ -10,7 +10,7 @@
 
     <properties>
     	<modVersion>2.0</modVersion>
-        <revision>${modVersion}</revision>
+        <pppp>${modVersion}</pppp>
     </properties>
 
     <modules>

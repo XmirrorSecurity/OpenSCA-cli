@@ -5,9 +5,9 @@
 	<parent>
 		<groupId>com.foo</groupId>
 		<artifactId>mod</artifactId>
-		<version>${revision}</version>
+		<version>${pppp}</version>
 	</parent>
 	<artifactId>mod2</artifactId>
-    <version>${revision}</version>
+    <version>${pppp}</version>
 
 </project>
