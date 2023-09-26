@@ -30,13 +30,21 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	}
 
 	// 将revision主动推送到所有modules
+	var revisionPom []*Pom
 	for _, pom := range poms {
-		if revision, ok := pom.Properties["revision"]; ok {
-			for _, name := range pom.Modules {
-				if p, ok := modules[name]; ok {
-					if _, ok := p.Properties["revision"]; !ok {
-						p.Properties["revision"] = revision
-					}
+		if _, ok := pom.Properties["revision"]; ok {
+			revisionPom = append(revisionPom, pom)
+		}
+	}
+	for len(revisionPom) > 0 {
+		pom := revisionPom[0]
+		revision := pom.Properties["revision"]
+		revisionPom = revisionPom[1:]
+		for _, name := range pom.Modules {
+			if p, ok := modules[name]; ok {
+				if _, ok := p.Properties["revision"]; !ok {
+					p.Properties["revision"] = revision
+					revisionPom = append(revisionPom, p)
 				}
 			}
 		}
