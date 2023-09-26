@@ -123,7 +123,7 @@ func Test_Java(t *testing.T) {
 			),
 		)},
 
-		// revision多层传递
+		// 项目中pom属性多层传递
 		{Path: "10", Result: tool.Dep("", "",
 			tool.Dep3("com.foo", "demo", "1.0"),
 			tool.Dep3("com.foo", "mod", "2.0"),
