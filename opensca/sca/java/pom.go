@@ -191,34 +191,35 @@ func ReadPom(reader io.Reader) *Pom {
 	return p
 }
 
+func (p *Pom) Update(dep *PomDependency) {
+	dep.Version = p.update(dep.Version)
+	dep.GroupId = p.update(dep.GroupId)
+}
+
 var propertyReg = regexp.MustCompile(`\$\{[^{}]*\}`)
 
-func (p *Pom) Update(dep *PomDependency) {
-	rep := func(value string) string {
-		return propertyReg.ReplaceAllStringFunc(value,
-			func(s string) string {
-				exist := map[string]struct{}{}
-				for strings.HasPrefix(s, "$") {
-					if _, ok := exist[s]; ok {
-						break
-					} else {
-						exist[s] = struct{}{}
-					}
-					k := s[2 : len(s)-1]
-					if v, ok := p.Properties[k]; ok {
-						if len(v.Value) > 0 {
-							s = v.Value
-							p.RefProperty = v
-							continue
-						}
-					}
+func (p *Pom) update(value string) string {
+	return propertyReg.ReplaceAllStringFunc(value,
+		func(s string) string {
+			exist := map[string]struct{}{}
+			for strings.HasPrefix(s, "$") {
+				if _, ok := exist[s]; ok {
 					break
+				} else {
+					exist[s] = struct{}{}
 				}
-				return s
-			})
-	}
-	dep.Version = rep(dep.Version)
-	dep.GroupId = rep(dep.GroupId)
+				k := s[2 : len(s)-1]
+				if v, ok := p.Properties[k]; ok {
+					if len(v.Value) > 0 {
+						s = v.Value
+						p.RefProperty = v
+						continue
+					}
+				}
+				break
+			}
+			return s
+		})
 }
 
 var reg = regexp.MustCompile(`\s`)

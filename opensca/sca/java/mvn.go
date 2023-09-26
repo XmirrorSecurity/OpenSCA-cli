@@ -39,6 +39,7 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 	for len(revisionPom) > 0 {
 		pom := revisionPom[0]
 		revision := pom.Properties["revision"]
+		revision.Value = pom.update(revision.Value)
 		revisionPom = revisionPom[1:]
 		for _, name := range pom.Modules {
 			if p, ok := modules[name]; ok {

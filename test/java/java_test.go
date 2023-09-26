@@ -122,5 +122,12 @@ func Test_Java(t *testing.T) {
 				),
 			),
 		)},
+
+		// revision多层传递
+		{Path: "10", Result: tool.Dep("", "",
+			tool.Dep3("com.foo", "demo", "1.0"),
+			tool.Dep3("com.foo", "mod", "2.0"),
+			tool.Dep3("com.foo", "mod2", "2.0"),
+		)},
 	})
 }
