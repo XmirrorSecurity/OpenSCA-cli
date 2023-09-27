@@ -102,12 +102,9 @@ func Test_Java(t *testing.T) {
 
 		// 子依赖使用本身的pom而非根pom
 		{Path: "8", Result: tool.Dep("", "",
-			tool.Dep3("com.foo", "mod", "1.0",
-				tool.Dep3("com.alibaba.nacos", "nacos-all", "2.0.3"),
-			),
-			tool.Dep3("com.foo", "demo", "1.0",
-				tool.Dep3("com.foo", "mod", "1.0",
-					tool.Dep3("com.alibaba.nacos", "nacos-all", "2.0.3"),
+			tool.Dep3("my.foo", "demo", "1.0",
+				tool.Dep3("org.redisson", "redisson-spring-boot-starter", "3.18.0",
+					tool.Dep3("org.redisson", "redisson", "3.18.0"),
 				),
 			),
 		)},
