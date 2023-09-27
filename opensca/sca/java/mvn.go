@@ -267,8 +267,16 @@ func inheritModules(poms []*Pom) {
 		name := filepath.Base(filepath.Dir(pom.File.Relpath()))
 		n := _mod.LoadOrStore(name)
 		n.Expand = pom
+		// 通过module记录继承关系
 		for _, subMod := range pom.Modules {
 			n.AppendChild(_mod.LoadOrStore(subMod))
+		}
+		// 通过relative记录继承关系
+		if pom.Parent.RelativePath != "" {
+			parent := filepath.Base(filepath.Dir(filepath.Join(filepath.Dir(pom.File.Relpath()), pom.Parent.RelativePath)))
+			if parent != name {
+				_mod.LoadOrStore(parent).AppendChild(n)
+			}
 		}
 	}
 
