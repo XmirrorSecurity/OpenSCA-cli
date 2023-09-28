@@ -15,9 +15,9 @@ import (
 
 type DepDetailGraph struct {
 	Dep
-	ID                      string            `json:"id" xml:"id"`
-	Develop                 bool              `json:"dev" xml:"dev"`
-	Direct                  bool              `json:"direct" xml:"direct"`
+	ID                      string            `json:"id,omitempty" xml:"id,omitempty"`
+	Develop                 bool              `json:"dev,omitempty" xml:"dev,omitempty"`
+	Direct                  bool              `json:"direct,omitempty" xml:"direct,omitempty"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
 	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
@@ -194,13 +194,13 @@ func vulnLanguageKey(language model.Language) string {
 
 type Dep struct {
 	// 厂商
-	Vendor string `json:"vendor"`
+	Vendor string `json:"vendor,omitempty" xml:"vendor,omitempty"`
 	// 名称
-	Name string `json:"name"`
+	Name string `json:"name,omitempty" xml:"name,omitempty"`
 	// 版本号
-	Version string `json:"version"`
+	Version string `json:"version,omitempty" xml:"version,omitempty"`
 	// 语言
-	Language string `json:"language"`
+	Language string `json:"language,omitempty" xml:"language,omitempty"`
 }
 
 func (d Dep) Key() string {
