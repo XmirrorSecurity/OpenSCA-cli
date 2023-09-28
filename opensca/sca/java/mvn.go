@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -18,9 +19,10 @@ import (
 )
 
 // ParsePoms 解析一个项目中的pom文件
-// poms: pom文件列表
+// poms: 项目中全部的pom文件列表
+// exclusion: 不需要解析的pom文件
 // return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
-func ParsePoms(poms []*Pom) []*model.DepGraph {
+func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
 
 	// modules继承属性
 	inheritModules(poms)
@@ -54,7 +56,17 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 	var roots []*model.DepGraph
 
+	exclusionMap := map[*Pom]bool{}
+	for _, pom := range exclusion {
+		exclusionMap[pom] = true
+	}
+
 	for _, pom := range poms {
+
+		// 提过不需要解析的pom
+		if exclusionMap[pom] {
+			continue
+		}
 
 		// 补全nil值
 		if pom.Properties == nil {
@@ -440,10 +452,10 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 }
 
 // MvnTree 调用mvn dependency:tree解析依赖
-// dir: 临时目录路径信息
-func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
+// pom: pom文件信息
+func MvnTree(ctx context.Context, pom *Pom) *model.DepGraph {
 
-	if dir == nil {
+	if pom == nil {
 		return nil
 	}
 
@@ -452,7 +464,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	}
 
 	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree")
-	cmd.Dir = dir.Abspath()
+	cmd.Dir = filepath.Dir(pom.File.Abspath())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logs.Warn(err)
@@ -466,8 +478,6 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	// 捕获依赖树起始位置
 	title := regexp.MustCompile(`--- [^\n]+ ---`)
 
-	var roots []*model.DepGraph
-
 	scan := bufio.NewScanner(bytes.NewBuffer(output))
 	for scan.Scan() {
 		line := strings.TrimPrefix(scan.Text(), "[INFO] ")
@@ -478,9 +488,9 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		if tree && strings.Trim(line, "-") == "" {
 			tree = false
 			root := parseMvnTree(lines)
-			if root != nil {
-				root.Path = dir.Relpath()
-				roots = append(roots, root)
+			if root != nil && root.Name == pom.ArtifactId {
+				root.Path = pom.File.Relpath()
+				return root
 			}
 			lines = nil
 			continue
@@ -491,7 +501,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		}
 	}
 
-	return roots
+	return nil
 }
 
 // parseMvnTree 解析 mvn dependency:tree 的输出
