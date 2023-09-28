@@ -11,7 +11,8 @@ import (
 )
 
 type Sca struct {
-	NotUseMvn bool
+	NotUseMvn    bool
+	NotUseStatic bool
 }
 
 func (sca Sca) Language() model.Language {
@@ -59,16 +60,28 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 
+	var roots []*model.DepGraph
+
+	// 记录不需要静态解析的pom
+	var exclusionPom []*Pom
+
 	// 优先尝试调用mvn
-	if len(poms) > 0 && !sca.NotUseMvn {
-		deps := MvnTree(ctx, parent)
-		if len(deps) > 0 {
-			return deps
+	if !sca.NotUseMvn {
+		for _, pom := range poms {
+			dep := MvnTree(ctx, pom)
+			if dep != nil {
+				roots = append(roots, dep)
+				exclusionPom = append(exclusionPom, pom)
+			}
 		}
 	}
 
 	// 静态解析
-	return ParsePoms(poms)
+	if !sca.NotUseStatic {
+		roots = append(roots, ParsePoms(poms, exclusionPom...)...)
+	}
+
+	return roots
 }
 
 var defaultMavenRepo = []common.RepoConfig{

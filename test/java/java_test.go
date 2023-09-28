@@ -9,8 +9,8 @@ import (
 )
 
 func Test_Java(t *testing.T) {
-	java.RegisterMavenRepo(common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"})
-	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})([]tool.TaskCase{
+
+	cases := []tool.TaskCase{
 
 		// 使用parent属性
 		{Path: "1", Result: tool.Dep("", "",
@@ -132,5 +132,17 @@ func Test_Java(t *testing.T) {
 			tool.Dep3("com.foo", "mod", "2.0"),
 			tool.Dep3("com.foo", "mod2", "2.0"),
 		)},
-	})
+
+		// 支持relativePath
+		{Path: "11", Result: tool.Dep("", "",
+			tool.Dep3("com", "a", "2.0"),
+			tool.Dep3("com", "b", "2.0"),
+			tool.Dep3("com", "c", "2.0"),
+			tool.Dep3("com", "d", "2.0"),
+		)},
+	}
+
+	java.RegisterMavenRepo(common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"})
+	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})(cases)
+	tool.RunTaskCase(t, java.Sca{NotUseStatic: true})(cases)
 }

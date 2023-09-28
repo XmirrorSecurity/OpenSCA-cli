@@ -19,9 +19,10 @@ import (
 )
 
 // ParsePoms 解析一个项目中的pom文件
-// poms: pom文件列表
+// poms: 项目中全部的pom文件列表
+// exclusion: 不需要解析的pom文件
 // return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
-func ParsePoms(poms []*Pom) []*model.DepGraph {
+func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
 
 	// modules继承属性
 	inheritModules(poms)
@@ -55,7 +56,17 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 	var roots []*model.DepGraph
 
+	exclusionMap := map[*Pom]bool{}
+	for _, pom := range exclusion {
+		exclusionMap[pom] = true
+	}
+
 	for _, pom := range poms {
+
+		// 提过不需要解析的pom
+		if exclusionMap[pom] {
+			continue
+		}
 
 		// 补全nil值
 		if pom.Properties == nil {
@@ -264,19 +275,15 @@ func inheritModules(poms []*Pom) {
 	// 记录module信息
 	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
 	for _, pom := range poms {
-		name := filepath.Base(filepath.Dir(pom.File.Relpath()))
-		n := _mod.LoadOrStore(name)
+		n := _mod.LoadOrStore(pom.ArtifactId)
 		n.Expand = pom
 		// 通过module记录继承关系
 		for _, subMod := range pom.Modules {
 			n.AppendChild(_mod.LoadOrStore(subMod))
 		}
-		// 通过relative记录继承关系
+		// 存在relativePath时记录继承关系
 		if pom.Parent.RelativePath != "" {
-			parent := filepath.Base(filepath.Dir(filepath.Join(filepath.Dir(pom.File.Relpath()), pom.Parent.RelativePath)))
-			if parent != name {
-				_mod.LoadOrStore(parent).AppendChild(n)
-			}
+			_mod.LoadOrStore(pom.Parent.ArtifactId).AppendChild(n)
 		}
 	}
 
@@ -288,7 +295,7 @@ func inheritModules(poms []*Pom) {
 		}
 
 		// 从每个根pom开始遍历
-		v.ForEachNode(func(p, n *model.DepGraph) bool {
+		v.ForEachPath(func(p, n *model.DepGraph) bool {
 
 			// 判断parent是否有expand来判断是否已经继承过属性
 			expand := false
@@ -307,15 +314,19 @@ func inheritModules(poms []*Pom) {
 			if n.Expand == nil {
 				return true
 			}
+
 			// 获取当前pom
 			pom, ok := n.Expand.(*Pom)
 			if !ok {
 				return true
 			}
 
-			// 将属性传递给module
-			for _, name := range pom.Modules {
-				mod := _mod.LoadOrStore(name)
+			// 删除expand标识已继承属性
+			n.Expand = nil
+
+			// 将属性传递给需要继承的pom
+			for _, c := range n.Children {
+				mod := _mod.LoadOrStore(c.Name)
 				if mod.Expand == nil {
 					continue
 				}
@@ -332,9 +343,6 @@ func inheritModules(poms []*Pom) {
 					}
 				}
 			}
-
-			// 属性继承完后删除expand用作标识
-			v.Expand = nil
 
 			return true
 		})
@@ -444,10 +452,10 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 }
 
 // MvnTree 调用mvn dependency:tree解析依赖
-// dir: 临时目录路径信息
-func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
+// pom: pom文件信息
+func MvnTree(ctx context.Context, pom *Pom) *model.DepGraph {
 
-	if dir == nil {
+	if pom == nil {
 		return nil
 	}
 
@@ -456,7 +464,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	}
 
 	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree")
-	cmd.Dir = dir.Abspath()
+	cmd.Dir = filepath.Dir(pom.File.Abspath())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logs.Warn(err)
@@ -470,8 +478,6 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	// 捕获依赖树起始位置
 	title := regexp.MustCompile(`--- [^\n]+ ---`)
 
-	var roots []*model.DepGraph
-
 	scan := bufio.NewScanner(bytes.NewBuffer(output))
 	for scan.Scan() {
 		line := strings.TrimPrefix(scan.Text(), "[INFO] ")
@@ -482,9 +488,9 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		if tree && strings.Trim(line, "-") == "" {
 			tree = false
 			root := parseMvnTree(lines)
-			if root != nil {
-				root.Path = dir.Relpath()
-				roots = append(roots, root)
+			if root != nil && root.Name == pom.ArtifactId {
+				root.Path = pom.File.Relpath()
+				return root
 			}
 			lines = nil
 			continue
@@ -495,7 +501,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		}
 	}
 
-	return roots
+	return nil
 }
 
 // parseMvnTree 解析 mvn dependency:tree 的输出
