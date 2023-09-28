@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -264,19 +263,15 @@ func inheritModules(poms []*Pom) {
 	// 记录module信息
 	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
 	for _, pom := range poms {
-		name := filepath.Base(filepath.Dir(pom.File.Relpath()))
-		n := _mod.LoadOrStore(name)
+		n := _mod.LoadOrStore(pom.ArtifactId)
 		n.Expand = pom
 		// 通过module记录继承关系
 		for _, subMod := range pom.Modules {
 			n.AppendChild(_mod.LoadOrStore(subMod))
 		}
-		// 通过relative记录继承关系
+		// 存在relativePath时记录继承关系
 		if pom.Parent.RelativePath != "" {
-			parent := filepath.Base(filepath.Dir(filepath.Join(filepath.Dir(pom.File.Relpath()), pom.Parent.RelativePath)))
-			if parent != name {
-				_mod.LoadOrStore(parent).AppendChild(n)
-			}
+			_mod.LoadOrStore(pom.Parent.ArtifactId).AppendChild(n)
 		}
 	}
 
@@ -288,7 +283,7 @@ func inheritModules(poms []*Pom) {
 		}
 
 		// 从每个根pom开始遍历
-		v.ForEachNode(func(p, n *model.DepGraph) bool {
+		v.ForEachPath(func(p, n *model.DepGraph) bool {
 
 			// 判断parent是否有expand来判断是否已经继承过属性
 			expand := false
@@ -307,15 +302,19 @@ func inheritModules(poms []*Pom) {
 			if n.Expand == nil {
 				return true
 			}
+
 			// 获取当前pom
 			pom, ok := n.Expand.(*Pom)
 			if !ok {
 				return true
 			}
 
-			// 将属性传递给module
-			for _, name := range pom.Modules {
-				mod := _mod.LoadOrStore(name)
+			// 删除expand标识已继承属性
+			n.Expand = nil
+
+			// 将属性传递给需要继承的pom
+			for _, c := range n.Children {
+				mod := _mod.LoadOrStore(c.Name)
 				if mod.Expand == nil {
 					continue
 				}
@@ -332,9 +331,6 @@ func inheritModules(poms []*Pom) {
 					}
 				}
 			}
-
-			// 属性继承完后删除expand用作标识
-			v.Expand = nil
 
 			return true
 		})
