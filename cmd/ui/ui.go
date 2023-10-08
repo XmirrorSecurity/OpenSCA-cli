@@ -35,17 +35,23 @@ func OpenUI(report format.Report) {
 	flex := tview.NewFlex()
 
 	tree := DepTree(report)
+	tree.SetBorder(true).SetTitle(" dependency tree ")
 	log := TaskLog()
+	log.SetBorder(true).SetTitle(" log ")
+	info := TaskInfo(report)
+	info.SetBorder(true).SetTitle(" info ")
+	help := UIHelp()
+	help.SetBorder(true).SetTitle(" help ")
 
 	flex.SetDirection(tview.FlexRow).
 		AddItem(tview.NewFlex().
 			AddItem(tree, 0, 1, true).
 			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-				AddItem(TaskInfo(report), 2, 1, false).
+				AddItem(info, 4, 1, false).
 				AddItem(log, 0, 1, false),
 				0, 1, false),
 			0, 1, true).
-		AddItem(UIHelp(), 1, 1, false)
+		AddItem(help, 3, 1, false)
 
 	app := tview.NewApplication()
 	switchView := func() {
@@ -59,6 +65,8 @@ func OpenUI(report format.Report) {
 		switch event.Rune() {
 		case 'h', 'l':
 			switchView()
+		case 'q':
+			app.Stop()
 		}
 		switch event.Key() {
 		case tcell.KeyLeft, tcell.KeyRight:
@@ -80,10 +88,8 @@ func TaskInfo(report format.Report) *tview.TextView {
 }
 
 func UIHelp() *tview.TextView {
-	tips := []string{"j:down", "k:up", "space:expand", "h/l:switch", "g:top", "G:bottom", "crtl+c:exit"}
+	tips := []string{"j:down", "k:up", "space:expand", "h/l:switch", "g:top", "G:bottom", "crtl+c/q:quit"}
 	text := tview.NewTextView().SetText(strings.Join(tips, " | "))
-	text.SetTextStyle(tcell.StyleDefault.Reverse(true))
-	text.SetTextColor(tcell.ColorGrey)
 	return text
 }
 
