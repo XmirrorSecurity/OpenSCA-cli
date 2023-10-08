@@ -23,7 +23,7 @@ func (sca Sca) Filter(relpath string) bool {
 		filter.PythonSetup(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
 	path2dir := func(relpath string) string { return path.Dir(strings.ReplaceAll(relpath, `\`, `/`)) }
 
@@ -34,8 +34,6 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 			lockSet[path2dir(file.Relpath())] = true
 		}
 	}
-
-	var roots []*model.DepGraph
 
 	// 记录使用pipenv解析过的目录
 	pipSet := map[string]bool{}
@@ -53,7 +51,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		if root == nil {
 			continue
 		}
-		roots = append(roots, root)
+		call(file, root)
 		pipSet[path2dir(file.Relpath())] = true
 	}
 
@@ -64,17 +62,16 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 		if filter.PythonPipfile(file.Relpath()) {
 			if !lockSet[path2dir(file.Relpath())] {
-				roots = append(roots, ParsePipfile(file))
+				call(file, ParsePipfile(file))
 			}
 		} else if filter.PythonPipfileLock(file.Relpath()) {
-			roots = append(roots, ParsePipfileLock(file))
+			call(file, ParsePipfileLock(file))
 		} else if filter.PythonRequirementsIn(file.Relpath()) {
-			roots = append(roots, ParseRequirementIn(file))
+			call(file, ParseRequirementIn(file))
 		} else if filter.PythonRequirementsTxt(file.Relpath()) {
-			roots = append(roots, ParseRequirementTxt(file))
+			call(file, ParseRequirementTxt(file))
 		} else if filter.PythonSetup(file.Relpath()) {
-			roots = append(roots, ParseSetup(file))
+			call(file, ParseSetup(file))
 		}
 	}
-	return roots
 }

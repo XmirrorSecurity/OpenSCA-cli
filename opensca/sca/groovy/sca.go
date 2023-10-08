@@ -17,21 +17,19 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.GroovyGradle(relpath) || filter.GroovyFile(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
 	roots := GradleTree(ctx, parent)
 	if len(roots) == 0 {
 		roots = ParseGradle(files)
 	}
+	if len(roots) > 0 {
+		call(parent, roots...)
+	}
 
 	for _, f := range files {
 		if filter.GroovyFile(f.Relpath()) {
-			root := ParseGroovy(f)
-			if root != nil {
-				roots = append(roots, root)
-			}
+			call(f, ParseGroovy(f))
 		}
 	}
-
-	return roots
 }

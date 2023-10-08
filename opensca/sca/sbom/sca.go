@@ -17,25 +17,23 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.SbomJson(relpath) || filter.SbomXml(relpath) || filter.SbomSpdx(relpath) || filter.SbomDsdx(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	var root []*model.DepGraph
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 	for _, file := range files {
 		if filter.SbomSpdx(file.Relpath()) {
-			root = append(root, ParseSpdx(file))
+			call(file, ParseSpdx(file))
 		}
 		if filter.SbomDsdx(file.Relpath()) {
-			root = append(root, ParseDsdx(file))
+			call(file, ParseDsdx(file))
 		}
 		if filter.SbomJson(file.Relpath()) {
-			root = append(root, ParseSpdxJson(file))
-			root = append(root, ParseCdxJson(file))
-			root = append(root, ParseDsdxJson(file))
+			call(file, ParseSpdxJson(file))
+			call(file, ParseCdxJson(file))
+			call(file, ParseDsdxJson(file))
 		}
 		if filter.SbomXml(file.Relpath()) {
-			root = append(root, ParseSpdxXml(file))
-			root = append(root, ParseCdxXml(file))
-			root = append(root, ParseDsdxXml(file))
+			call(file, ParseSpdxXml(file))
+			call(file, ParseCdxXml(file))
+			call(file, ParseDsdxXml(file))
 		}
 	}
-	return root
 }

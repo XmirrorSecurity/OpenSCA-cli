@@ -13,6 +13,7 @@ import (
 
 // 任务检测参数
 type TaskArg struct {
+
 	// 检测数据源 文件路径或url 兼容http(s)|ftp|file
 	DataOrigin string
 	// 检测对象名称 用于结果展示 缺省时取DataOrigin尾单词
@@ -21,12 +22,11 @@ type TaskArg struct {
 	Timeout int
 	// 使用的sca(为空时使用默认配置)
 	Sca []sca.Sca
-	// 额外的文件过滤函数
+
+	// 额外的文件过滤函数 默认为压缩文件名过滤函数
 	ExtractFileFilter walk.ExtractFileFilter
-	// 额外的文件处理函数
-	WalkFileFunc      walk.WalkFileFunc
-	DeferWalkFileFunc walk.WalkFileFunc
-	WalkDepFunc       func(dep *model.DepGraph)
+	// 额外的结果回调函数
+	ResCallFunc model.ResCallback
 }
 
 type TaskResult struct {
@@ -94,27 +94,19 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 
 	}, func(parent *model.File, files []*model.File) {
 
-		defer func() {
-			if arg.DeferWalkFileFunc != nil {
-				arg.DeferWalkFileFunc(parent, files)
-			}
-		}()
-
-		if arg.WalkFileFunc != nil {
-			arg.WalkFileFunc(parent, files)
-		}
-
 		for _, sca := range arg.Sca {
-			for _, dep := range sca.Sca(ctx, parent, files) {
-				if dep == nil {
-					continue
+			sca.Sca(ctx, parent, files, func(file *model.File, root ...*model.DepGraph) {
+				for _, dep := range root {
+					if dep == nil {
+						continue
+					}
+					dep.Build(false, sca.Language())
+					result.Deps = append(result.Deps, dep)
+					if arg.ResCallFunc != nil {
+						arg.ResCallFunc(file, dep)
+					}
 				}
-				dep.Build(false, sca.Language())
-				result.Deps = append(result.Deps, dep)
-				if arg.WalkDepFunc != nil {
-					arg.WalkDepFunc(dep)
-				}
-			}
+			})
 		}
 
 	})

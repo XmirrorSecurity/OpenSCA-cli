@@ -19,7 +19,7 @@ import (
 type Sca interface {
 	Language() model.Language
 	Filter(relpath string) bool
-	Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph
+	Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback)
 }
 
 var AllSca = []Sca{

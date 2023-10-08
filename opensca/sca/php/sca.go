@@ -22,7 +22,7 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.PhpComposer(relpath) || filter.PhpComposerLock(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
 	jsonMap := map[string]*ComposerJson{}
 	lockMap := map[string]*ComposerLock{}
@@ -46,13 +46,12 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 
-	var root []*model.DepGraph
 loop:
 	for dir, json := range jsonMap {
 
 		// 通过lock文件补全
 		if lock, ok := lockMap[dir]; ok {
-			root = append(root, ParseComposerJsonWithLock(json, lock))
+			call(json.File, ParseComposerJsonWithLock(json, lock))
 			continue
 		}
 
@@ -64,10 +63,8 @@ loop:
 		}
 
 		// 从数据源下载
-		root = append(root, ParseComposerJsonWithOrigin(json))
+		call(json.File, ParseComposerJsonWithOrigin(json))
 	}
-
-	return root
 }
 
 var defaultComposerRepo = []common.RepoConfig{
