@@ -73,7 +73,9 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Vendor = dep.Vendor
 	d.Version = dep.Version
 	d.Language = string(dep.Language)
-	d.Paths = append(d.Paths, dep.Path)
+	if dep.Path != "" {
+		d.Paths = append(d.Paths, dep.Path)
+	}
 	d.Direct = dep.Direct
 	d.Develop = dep.Develop
 	for _, lic := range dep.Licenses {
