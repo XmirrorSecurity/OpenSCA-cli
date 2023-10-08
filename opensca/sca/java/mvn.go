@@ -218,7 +218,11 @@ func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
 				}
 				depIndex2Set[dep.Index2()] = true
 
-				logs.Debugf("find %s", dep.ImportPathStack())
+				if dep.Check() {
+					logs.Debugf("find %s", dep.ImportPathStack())
+				} else {
+					logs.Warnf("find invalid %s", dep.ImportPathStack())
+				}
 
 				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
 
