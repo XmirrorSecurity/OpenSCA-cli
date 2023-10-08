@@ -22,15 +22,7 @@ func (sca Sca) Filter(relpath string) bool {
 		filter.JavaScriptYarnLock(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	deps := ParsePackageJson(files)
-	return deps
-}
-
-// files: package.json package-lock.json yarn.lock
-func ParsePackageJson(files []*model.File) []*model.DepGraph {
-
-	var root []*model.DepGraph
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
 	// map[name]
 	jsonMap := map[string]*PackageJson{}
@@ -79,21 +71,19 @@ func ParsePackageJson(files []*model.File) []*model.DepGraph {
 
 		// 尝试从package-lock.json获取
 		if lock, ok := lockMap[name]; ok {
-			root = append(root, ParsePackageJsonWithLock(js, lock))
+			call(js.File, ParsePackageJsonWithLock(js, lock))
 			continue
 		}
 
 		// 尝试从yarn.lock获取
 		if js.File != nil {
 			if yarn, ok := yarnMap[path2dir(js.File.Relpath())]; ok {
-				root = append(root, ParsePackageJsonWithYarnLock(js, yarn))
+				call(js.File, ParsePackageJsonWithYarnLock(js, yarn))
 				continue
 			}
 		}
 
 		// 尝试从node_modules及外部源获取
-		root = append(root, ParsePackageJsonWithNode(js, nodeMap))
+		call(js.File, ParsePackageJsonWithNode(js, nodeMap))
 	}
-
-	return root
 }

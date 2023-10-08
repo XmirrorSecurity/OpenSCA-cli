@@ -21,8 +21,8 @@ import (
 // ParsePoms 解析一个项目中的pom文件
 // poms: 项目中全部的pom文件列表
 // exclusion: 不需要解析的pom文件
-// return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
-func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
+// call: 每个pom文件会解析成一个依赖图 返回对应的依赖图
+func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.DepGraph)) {
 
 	// modules继承属性
 	inheritModules(poms)
@@ -53,8 +53,6 @@ func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
 		}
 		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
 	}
-
-	var roots []*model.DepGraph
 
 	exclusionMap := map[*Pom]bool{}
 	for _, pom := range exclusion {
@@ -266,11 +264,10 @@ func ParsePoms(poms []*Pom, exclusion ...*Pom) []*model.DepGraph {
 		})
 
 		if root.Name != "" {
-			roots = append(roots, root)
+			call(pom, root)
 		}
 	}
 
-	return roots
 }
 
 // inheritModules modules继承属性

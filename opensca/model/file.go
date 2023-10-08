@@ -109,3 +109,5 @@ func (file File) ReadLineNoComment(t *FileCommentType, do func(line string)) {
 		do(line)
 	})
 }
+
+type ResCallback func(file *File, root ...*DepGraph)
