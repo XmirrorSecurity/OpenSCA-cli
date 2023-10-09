@@ -74,7 +74,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 
 	// 静态解析
 	if !sca.NotUseStatic {
-		ParsePoms(poms, exclusionPom, func(pom *Pom, root *model.DepGraph) {
+		ParsePoms(ctx, poms, exclusionPom, func(pom *Pom, root *model.DepGraph) {
 			call(pom.File, root)
 		})
 	}

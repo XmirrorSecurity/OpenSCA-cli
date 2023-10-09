@@ -22,7 +22,7 @@ import (
 // poms: 项目中全部的pom文件列表
 // exclusion: 不需要解析的pom文件
 // call: 每个pom文件会解析成一个依赖图 返回对应的依赖图
-func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.DepGraph)) {
+func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.DepGraph)) {
 
 	// modules继承属性
 	inheritModules(poms)
@@ -60,6 +60,12 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 	}
 
 	for _, pom := range poms {
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 
 		// 提过不需要解析的pom
 		if exclusionMap[pom] {
