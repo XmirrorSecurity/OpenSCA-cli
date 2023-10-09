@@ -137,23 +137,7 @@ func (d *DepDetailGraph) RemoveDev() {
 }
 
 func (dep *DepDetailGraph) Purl() string {
-	var purlMap = map[model.Language]string{
-		model.Lan_Rust:       "cargo",
-		model.Lan_Php:        "composer",
-		model.Lan_Ruby:       "gem",
-		model.Lan_Golang:     "golang",
-		model.Lan_Java:       "maven",
-		model.Lan_JavaScript: "npm",
-		model.Lan_Python:     "pypi",
-	}
-	group := ""
-	if g, ok := purlMap[model.Language(dep.Language)]; ok {
-		group = g
-	}
-	if dep.Vendor == "" {
-		return fmt.Sprintf("pkg:%s/%s@%s", group, dep.Name, dep.Version)
-	}
-	return fmt.Sprintf("pkg:%s/%s/%s@%s", group, dep.Vendor, dep.Name, dep.Version)
+	return model.Purl(dep.Vendor, dep.Name, dep.Version, dep.Language)
 }
 
 // Vuln 组件漏洞
