@@ -83,6 +83,12 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 			}
 		}
 
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		// 尝试从node_modules及外部源获取
 		call(js.File, ParsePackageJsonWithNode(js, nodeMap))
 	}
