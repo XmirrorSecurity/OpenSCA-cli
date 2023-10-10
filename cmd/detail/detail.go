@@ -137,7 +137,7 @@ func (d *DepDetailGraph) RemoveDev() {
 }
 
 func (dep *DepDetailGraph) Purl() string {
-	return model.Purl(dep.Vendor, dep.Name, dep.Version, dep.Language)
+	return model.Purl(dep.Vendor, dep.Name, dep.Version, model.Language(dep.Language))
 }
 
 // Vuln 组件漏洞

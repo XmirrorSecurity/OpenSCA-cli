@@ -39,9 +39,9 @@ var purlRmap = map[string]Language{
 	"pypi":     Lan_Python,
 }
 
-func Purl(vendor, name, version, language string) string {
+func Purl(vendor, name, version string, language Language) string {
 	pkg := ""
-	if g, ok := purlMap[Language(language)]; ok {
+	if g, ok := purlMap[language]; ok {
 		pkg = g
 	}
 	if vendor == "" {
