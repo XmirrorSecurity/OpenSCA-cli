@@ -73,102 +73,22 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 
 		pom.Update(&pom.PomDependency)
 
-		// 继承parent
-		parent := pom.Parent
-		for parent.ArtifactId != "" {
+		// 继承pom
+		inheritPom(pom, getpom)
 
-			pom.Update(&parent)
-
-			parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
-			if parentPom == nil {
-				break
-			}
-			parentPom.PomDependency = parent
-			parent = parentPom.Parent
-
-			// 继承properties
-			for k, v := range parentPom.Properties {
-				if _, ok := pom.Properties[k]; !ok {
-					pom.Properties[k] = v
-				}
-			}
-
-			// 继承dependencyManagement
-			pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
-
-			// 继承dependencies
-			pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
-
-			// 继承repo&mirror
-			pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
-			pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
-		}
-
-		// 删除重复依赖项
-		depIndex2Set := map[string]bool{}
-		for i := len(pom.Dependencies) - 1; i >= 0; i-- {
-			dep := pom.Dependencies[i]
-			if depIndex2Set[dep.Index2()] {
-				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
-			} else {
-				depIndex2Set[dep.Index2()] = true
-			}
-		}
-
-		// 处理dependencyManagement
-		depIndex2Set = map[string]bool{}
-		depManagement := map[string]*PomDependency{}
-		for i := 0; i < len(pom.DependencyManagement); {
-
-			dep := pom.DependencyManagement[i]
-
-			pom.Update(dep)
-
-			// 去重 保留第一个声明
-			if depIndex2Set[dep.Index2()] {
-				pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
-				continue
-			} else {
-				i++
-				depIndex2Set[dep.Index2()] = true
-			}
-
+		// 记录在根pom的dependencyManagement中非import组件信息
+		rootPomManagement := map[string]*PomDependency{}
+		for _, dep := range pom.DependencyManagement {
 			if dep.Scope != "import" {
-				depManagement[dep.Index2()] = dep
-				continue
-			}
-
-			// 引入scope为import的pom
-			ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
-			if ipom == nil {
-				continue
-			}
-			ipom.PomDependency = *dep
-
-			// 复制dependencyManagement内容
-			for _, idep := range ipom.DependencyManagement {
-				if depIndex2Set[idep.Index2()] {
-					continue
-				}
-				// import的dependencyManagement使用自身pom属性而非根pom属性
-				ipom.Update(idep)
-				pom.DependencyManagement = append(pom.DependencyManagement, idep)
+				rootPomManagement[dep.Index2()] = dep
 			}
 		}
-
-		_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
-			return &model.DepGraph{
-				Vendor:  s[0],
-				Name:    s[1],
-				Version: s[2],
-			}
-		}).LoadOrStore
 
 		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Relpath()}
 		root.Expand = pom
 
 		// 解析子依赖构建依赖关系
-		depIndex2Set = map[string]bool{}
+		depIndex2Set := map[string]bool{}
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 
 			if n.Expand == nil {
@@ -179,6 +99,14 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 
 			for _, lic := range np.Licenses {
 				n.AppendLicense(lic)
+			}
+
+			// 记录在当前pom的dependencyManagement中非import组件信息
+			depManament := map[string]*PomDependency{}
+			for _, dep := range np.DependencyManagement {
+				if dep.Scope != "import" {
+					depManament[dep.Index2()] = dep
+				}
 			}
 
 			for _, dep := range np.Dependencies {
@@ -194,7 +122,11 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 
 				// 间接依赖优先通过dependencyManagement补全
 				if np != pom || dep.Version == "" {
-					if d, ok := depManagement[dep.Index2()]; ok {
+					d, ok := rootPomManagement[dep.Index2()]
+					if !ok {
+						d, ok = depManament[dep.Index2()]
+					}
+					if ok {
 						// exclusion 需要保留
 						exclusion := append(dep.Exclusions, d.Exclusions...)
 						dep = d
@@ -222,15 +154,6 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 					logs.Warnf("find invalid %s", dep.ImportPathStack())
 				}
 
-				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
-
-				if sub.Expand != nil {
-					if dep.Scope != "test" {
-						sub.Develop = false
-					}
-					continue
-				}
-
 				subpom := getpom(*dep, np.Repositories, np.Mirrors)
 				if subpom == nil {
 					continue
@@ -240,21 +163,10 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 				// 继承根pom的exclusion
 				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
 
-				// 子依赖继承自身parent属性
-				subParent := subpom.Parent
-				for subParent.ArtifactId != "" {
-					subParentPom := getpom(subParent, np.Repositories, np.Mirrors)
-					if subParentPom == nil {
-						break
-					}
-					for k, v := range subParentPom.Properties {
-						if _, ok := subpom.Properties[k]; !ok {
-							subpom.Properties[k] = v
-						}
-					}
-					subParent = subParentPom.Parent
-				}
+				// 子依赖继承自身pom
+				inheritPom(subpom, getpom)
 
+				sub := &model.DepGraph{Vendor: dep.GroupId, Name: dep.ArtifactId, Version: dep.Version}
 				sub.Expand = subpom
 				sub.Develop = dep.Scope == "test"
 				n.AppendChild(sub)
@@ -267,7 +179,6 @@ func ParsePoms(poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.De
 			call(pom, root)
 		}
 	}
-
 }
 
 // inheritModules modules继承属性
@@ -350,6 +261,94 @@ func inheritModules(poms []*Pom) {
 
 		return true
 	})
+}
+
+type getPomFunc func(dep PomDependency, repos ...[]string) *Pom
+
+// inheritPom 继承pom所需内容
+func inheritPom(pom *Pom, getpom getPomFunc) {
+
+	// 继承parent
+	parent := pom.Parent
+	for parent.ArtifactId != "" {
+
+		pom.Update(&parent)
+
+		parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
+		if parentPom == nil {
+			break
+		}
+		parentPom.PomDependency = parent
+		parent = parentPom.Parent
+
+		// 继承properties
+		for k, v := range parentPom.Properties {
+			if _, ok := pom.Properties[k]; !ok {
+				pom.Properties[k] = v
+			}
+		}
+
+		// 继承dependencyManagement
+		pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
+
+		// 继承dependencies
+		pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
+
+		// 继承repo&mirror
+		pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
+		pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
+
+	}
+
+	// 删除重复依赖项
+	depIndex2Set := map[string]bool{}
+	for i := len(pom.Dependencies) - 1; i >= 0; i-- {
+		dep := pom.Dependencies[i]
+		if depIndex2Set[dep.Index2()] {
+			pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
+		} else {
+			depIndex2Set[dep.Index2()] = true
+		}
+	}
+
+	// 处理dependencyManagement
+	depIndex2Set = map[string]bool{}
+	for i := 0; i < len(pom.DependencyManagement); {
+
+		dep := pom.DependencyManagement[i]
+
+		pom.Update(dep)
+
+		// 去重 保留第一个声明
+		if depIndex2Set[dep.Index2()] {
+			pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
+			continue
+		} else {
+			i++
+			depIndex2Set[dep.Index2()] = true
+		}
+
+		if dep.Scope != "import" {
+			continue
+		}
+
+		// 引入scope为import的pom
+		ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
+		if ipom == nil {
+			continue
+		}
+		ipom.PomDependency = *dep
+
+		// 复制dependencyManagement内容
+		for _, idep := range ipom.DependencyManagement {
+			if depIndex2Set[idep.Index2()] {
+				continue
+			}
+			// import的dependencyManagement使用自身pom属性而非根pom属性
+			ipom.Update(idep)
+			pom.DependencyManagement = append(pom.DependencyManagement, idep)
+		}
+	}
 }
 
 var mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {

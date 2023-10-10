@@ -138,6 +138,15 @@ var cases = []tool.TaskCase{
 		tool.Dep3("com", "c", "2.0"),
 		tool.Dep3("com", "d", "2.0"),
 	)},
+
+	// 间接依赖继承自身pom
+	{Path: "12", Result: tool.Dep("", "",
+		tool.Dep3("my.foo", "demo", "1.0",
+			tool.Dep3("com.google.guava", "guava", "22.0",
+				tool.Dep3("com.google.errorprone", "error_prone_annotations", "2.0.18"),
+			),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
