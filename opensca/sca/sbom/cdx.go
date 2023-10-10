@@ -45,10 +45,20 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 	}).LoadOrStore
 
 	for _, d := range *bom.Components {
-		if d.Name == "" {
-			continue
+
+		if d.PackageURL != "" {
+			vendor, name, version, language := model.ParsePurl(d.PackageURL)
+			if name != "" {
+				dep := _dep(vendor, name, version)
+				dep.Language = language
+				depRefMap[d.BOMRef] = dep
+				continue
+			}
 		}
-		depRefMap[d.BOMRef] = _dep(d.Author, d.Name, d.Version)
+
+		if d.Name != "" {
+			depRefMap[d.BOMRef] = _dep(d.Author, d.Name, d.Version)
+		}
 	}
 
 	for _, d := range *bom.Dependencies {

@@ -43,6 +43,8 @@ func ParseDsdx(f *model.File) *model.DepGraph {
 		k := strings.TrimSpace(line[:i])
 		v := strings.TrimSpace(line[i+1:])
 		switch k {
+		case "ComponentID":
+			checkAndSet("id", v)
 		case "ComponentName":
 			checkAndSet("name", v)
 		case "ComponentGroup":
