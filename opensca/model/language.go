@@ -19,16 +19,6 @@ const (
 	Lan_Python     Language = "Python"
 )
 
-var purlMap = map[Language]string{
-	Lan_Rust:       "cargo",
-	Lan_Php:        "composer",
-	Lan_Ruby:       "gem",
-	Lan_Golang:     "golang",
-	Lan_Java:       "maven",
-	Lan_JavaScript: "npm",
-	Lan_Python:     "pypi",
-}
-
 var purlRmap = map[string]Language{
 	"cargo":    Lan_Rust,
 	"composer": Lan_Php,
@@ -37,6 +27,14 @@ var purlRmap = map[string]Language{
 	"maven":    Lan_Java,
 	"npm":      Lan_JavaScript,
 	"pypi":     Lan_Python,
+}
+
+var purlMap = map[Language]string{}
+
+func init() {
+	for k, v := range purlRmap {
+		purlMap[v] = k
+	}
 }
 
 func Purl(vendor, name, version string, language Language) string {
