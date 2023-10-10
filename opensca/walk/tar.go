@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/bzip2"
 	"compress/gzip"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 )
 
-func xtar(filter ExtractFileFilter, input, output string) bool {
+func xtar(ctx context.Context, filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileExt(input, ".tar") {
 		return false
@@ -27,6 +28,12 @@ func xtar(filter ExtractFileFilter, input, output string) bool {
 
 	fr := tar.NewReader(f)
 	for {
+
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+		}
 
 		fh, err := fr.Next()
 		if err == io.EOF {

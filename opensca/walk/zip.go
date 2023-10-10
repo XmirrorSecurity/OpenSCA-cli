@@ -3,6 +3,7 @@ package walk
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -13,7 +14,7 @@ import (
 	"github.com/axgle/mahonia"
 )
 
-func xzip(filter ExtractFileFilter, input, output string) bool {
+func xzip(ctx context.Context, filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileHead(input, M_ZIP) {
 		return false
@@ -27,6 +28,12 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 	defer rf.Close()
 
 	for _, f := range rf.File {
+
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+		}
 
 		if f.FileInfo().IsDir() {
 			continue
@@ -69,7 +76,7 @@ func xzip(filter ExtractFileFilter, input, output string) bool {
 	return true
 }
 
-func xjar(filter ExtractFileFilter, input, output string) bool {
+func xjar(ctx context.Context, filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileExt(input, ".jar") {
 		return false
@@ -96,5 +103,5 @@ func xjar(filter ExtractFileFilter, input, output string) bool {
 	tempf.Write(data[i:])
 	tempf.Close()
 
-	return xzip(filter, tempf.Name(), output)
+	return xzip(ctx, filter, tempf.Name(), output)
 }
