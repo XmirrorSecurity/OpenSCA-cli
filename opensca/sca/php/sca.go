@@ -62,6 +62,12 @@ loop:
 			}
 		}
 
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		// 从数据源下载
 		call(json.File, ParseComposerJsonWithOrigin(json))
 	}
