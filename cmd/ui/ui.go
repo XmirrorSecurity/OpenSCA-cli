@@ -63,20 +63,27 @@ func OpenUI(report format.Report) {
 	}
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
 		switch event.Rune() {
 		case 'h', 'l':
 			switchView()
 		case 'q':
 			app.Stop()
-		case '}', ']':
+		case ']':
 			tree.GetCurrentNode().ExpandAll()
-		case '{', '[':
+		case '[':
 			tree.GetCurrentNode().CollapseAll()
+		case '}':
+			tree.GetRoot().ExpandAll()
+		case '{':
+			tree.GetRoot().CollapseAll()
 		}
+
 		switch event.Key() {
 		case tcell.KeyLeft, tcell.KeyRight:
 			switchView()
 		}
+
 		return event
 	})
 
@@ -93,7 +100,7 @@ func TaskInfo(report format.Report) *tview.TextView {
 }
 
 func UIHelp() *tview.TextView {
-	tips := []string{"j:down", "k:up", "space:expand/collapse", "h/l:switch", "g:top", "G:bottom", "crtl+c/q:quit", "}:expand_all", "{:collapse_all"}
+	tips := []string{"j:down", "k:up", "space:expand/collapse", "h/l:switch", "g:top", "G:bottom", "crtl+c/q:quit", "{:collapse_all", "}:expand_all", "[:collapse_node", "]:expand_node"}
 	text := tview.NewTextView().SetText(strings.Join(tips, " | "))
 	return text
 }
