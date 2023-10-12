@@ -238,7 +238,11 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	for name := range pkgjson.DevDependencies {
 		dep := depNameMap[name]
 		if dep != nil {
-			root.AppendChild(_dep(dep.Name, dep.Version, "dev"))
+			devdep := _dep(dep.Name, dep.Version, "dev")
+			for _, c := range dep.Children {
+				devdep.AppendChild(c)
+			}
+			root.AppendChild(devdep)
 		}
 	}
 
