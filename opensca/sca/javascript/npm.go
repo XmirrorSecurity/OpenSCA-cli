@@ -53,12 +53,11 @@ func npmkey(name, version string) string {
 }
 
 func _depSet() *model.DepGraphMap {
-	return model.NewDepGraphMap(func(s ...string) string {
-		return fmt.Sprintf("%s:%s", s[0], s[1])
-	}, func(s ...string) *model.DepGraph {
+	return model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
 			Name:    s[0],
 			Version: s[1],
+			Develop: len(s) > 2 && s[2] == "dev",
 		}
 	})
 }
@@ -138,30 +137,27 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 // ParsePackageJsonWithNode 借助node_modules解析package.json
 func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
-	// root.AppendLicense(pkgjson.License)
-
 	_dep := _depSet().LoadOrStore
 
-	root.Expand = pkgjson
-
-	findDep := func(name, version, basedir string) *model.DepGraph {
+	findDep := func(dev bool, name, version, basedir string) *model.DepGraph {
 		var subjs *PackageJson
 		if len(nodeMap) > 0 {
 			// 从node_modules中查找
 			_, subjs = findFromNodeModules(name, basedir, nodeMap)
-		} else {
+		}
+		if subjs == nil {
 			// 从外部数据源下载
 			subjs = npmOrigin(name, version)
-			if subjs != nil {
-				// 忽略开发环境依赖
-				subjs.DevDependencies = nil
-			}
 		}
 		if subjs == nil {
 			return nil
 		}
-		dep := _dep(subjs.Name, subjs.Version)
+		var dep *model.DepGraph
+		if dev {
+			dep = _dep(subjs.Name, subjs.Version, "dev")
+		} else {
+			dep = _dep(subjs.Name, subjs.Version)
+		}
 		if dep.Expand == nil {
 			// dep.AppendLicense(subjs.License)
 			dep.Expand = subjs
@@ -169,25 +165,24 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 		return dep
 	}
 
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
+	// root.AppendLicense(pkgjson.License)
+	root.Expand = pkgjson
+
+	// 根节点需要添加开发组件 (需要在构建依赖图之前先添加开发组件 否则不会构建开发组件的子依赖)
+	for name, version := range pkgjson.DevDependencies {
+		root.AppendChild(findDep(true, name, version, pkgjson.File.Relpath()))
+	}
+
+	// 遍历*路径*构建依赖图
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
-
-		njs := n.Expand.(*PackageJson)
-		basedir := njs.File.Relpath()
-
-		for name, version := range njs.Dependencies {
-			n.AppendChild(findDep(name, version, basedir))
+		js := n.Expand.(*PackageJson)
+		for name, version := range js.Dependencies {
+			n.AppendChild(findDep(false, name, version, js.File.Relpath()))
 		}
-
-		for name, version := range njs.DevDependencies {
-			dep := findDep(name, version, basedir)
-			if dep != nil {
-				dep.Develop = true
-				n.AppendChild(dep)
-			}
-		}
-
 		return true
 	})
+
 	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
 
 	return root
@@ -199,9 +194,6 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	if pkglock.LockfileVersion == 3 {
 		return ParsePackageJsonWithLockV3(pkgjson, pkglock)
 	}
-
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
-	// root.AppendLicense(pkgjson.License)
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
@@ -236,6 +228,9 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 		}
 	}
 
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
+	// root.AppendLicense(pkgjson.License)
+
 	for name := range pkgjson.Dependencies {
 		root.AppendChild(depNameMap[name])
 	}
@@ -243,8 +238,7 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	for name := range pkgjson.DevDependencies {
 		dep := depNameMap[name]
 		if dep != nil {
-			dep.Develop = true
-			root.AppendChild(dep)
+			root.AppendChild(_dep(dep.Name, dep.Version, "dev"))
 		}
 	}
 

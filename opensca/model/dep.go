@@ -94,16 +94,17 @@ func (dep *DepGraph) String() string {
 
 // FlushDevelop 刷新依赖图develop依赖关系
 func (dep *DepGraph) FlushDevelop() {
+	// 传递develop
 	dep.ForEachNode(func(p, n *DepGraph) bool {
-		// 传递develop
 		n.Develop = n.IsDevelop()
 		return true
 	})
+	// 去除非实际引用的关系
 	dep.ForEachNode(func(p, n *DepGraph) bool {
-		// 去除非实际引用的关系
+		// 非开发组件的父组件为开发组件时 删除和开发父组件依赖关系
 		if !n.Develop {
 			for _, p := range n.Parents {
-				if p.Develop {
+				if len(n.Parents) > 1 && p.Develop {
 					p.RemoveChild(n)
 				}
 			}
