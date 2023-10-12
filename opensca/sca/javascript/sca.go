@@ -3,7 +3,7 @@ package javascript
 import (
 	"context"
 	"io"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -24,22 +24,24 @@ func (sca Sca) Filter(relpath string) bool {
 
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
-	// map[name]
+	// map[dirpath]
 	jsonMap := map[string]*PackageJson{}
-	// map[name]
+	// map[dirpath]
 	lockMap := map[string]*PackageLock{}
 	// map[dirpath]
 	nodeMap := map[string]*PackageJson{}
 	// map[dirpath]
 	yarnMap := map[string]map[string]*YarnLock{}
 
-	path2dir := func(relpath string) string { return path.Dir(strings.ReplaceAll(relpath, `\`, `/`)) }
-
 	// 将npm相关文件按上述方案分类
 	for _, f := range files {
+
+		dir := filepath.Dir(strings.ReplaceAll(f.Relpath(), `\`, `/`))
+
 		if filter.JavaScriptYarnLock(f.Relpath()) {
-			yarnMap[path2dir(f.Relpath())] = ParseYarnLock(f)
+			yarnMap[dir] = ParseYarnLock(f)
 		}
+
 		if filter.JavaScriptPackageJson(f.Relpath()) {
 			var js *PackageJson
 			f.OpenReader(func(reader io.Reader) {
@@ -49,35 +51,36 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 				}
 				js.File = f
 				if strings.Contains(f.Relpath(), "node_modules") {
-					nodeMap[path2dir(f.Relpath())] = js
+					nodeMap[dir] = js
 				} else {
-					jsonMap[js.Name] = js
+					jsonMap[dir] = js
 				}
 			})
 		}
+
 		if filter.JavaScriptPackageLock(f.Relpath()) {
 			f.OpenReader(func(reader io.Reader) {
 				lock := readJson[PackageLock](reader)
 				if lock == nil {
 					return
 				}
-				lockMap[lock.Name] = lock
+				lockMap[dir] = lock
 			})
 		}
 	}
 
 	// 遍历非node_modules下的package.json
-	for name, js := range jsonMap {
+	for dir, js := range jsonMap {
 
 		// 尝试从package-lock.json获取
-		if lock, ok := lockMap[name]; ok {
+		if lock, ok := lockMap[dir]; ok {
 			call(js.File, ParsePackageJsonWithLock(js, lock))
 			continue
 		}
 
 		// 尝试从yarn.lock获取
 		if js.File != nil {
-			if yarn, ok := yarnMap[path2dir(js.File.Relpath())]; ok {
+			if yarn, ok := yarnMap[dir]; ok {
 				call(js.File, ParsePackageJsonWithYarnLock(js, yarn))
 				continue
 			}
