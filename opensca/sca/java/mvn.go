@@ -473,7 +473,7 @@ func MvnTree(ctx context.Context, pom *Pom) *model.DepGraph {
 	cmd.Dir = filepath.Dir(pom.File.Abspath())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logs.Warn(err)
+		// logs.Warn(err)
 		return nil
 	}
 
