@@ -95,16 +95,29 @@ func (dep *DepGraph) String() string {
 // Flush 更新依赖图依赖关系
 func (dep *DepGraph) Flush() {
 
-	// 删除非dep的根节点
-	dep.ForEachNode(func(p, n *DepGraph) bool {
-		if p == nil && n != dep {
-			for _, c := range n.Children {
-				n.RemoveChild(c)
-			}
-			return true
+	// 删除不在dep依赖图的节点
+	parentMap := map[*DepGraph]bool{}
+	trueParentMap := map[*DepGraph]bool{}
+	dep.ForEachPath(func(p, n *DepGraph) bool {
+		// 记录所有节点的父节点
+		for _, p := range n.Parents {
+			parentMap[p] = true
+		}
+		// 记录在依赖图可遍历路径中的父节点
+		if p != nil {
+			trueParentMap[p] = true
 		}
 		return true
 	})
+	for p := range parentMap {
+		if trueParentMap[p] {
+			continue
+		}
+		// 删除遍历不到的父节点
+		for _, c := range p.Children {
+			p.RemoveChild(c)
+		}
+	}
 
 	// 锁定起始组件dev
 	dep.ForEachNode(func(p, n *DepGraph) bool {
