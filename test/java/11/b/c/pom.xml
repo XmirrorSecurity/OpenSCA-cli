@@ -11,4 +11,9 @@
     <packaging>pom</packaging>
     <artifactId>c</artifactId>
 
+    <properties>
+        <revision>${xx}</revision>
+    </properties>
+
+
 </project>
