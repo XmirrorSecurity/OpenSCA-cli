@@ -153,6 +153,15 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// 支持profiles
+	{Path: "13", Result: tool.Dep("", "",
+		tool.Dep3("my.foo", "demo", "1.0",
+			tool.Dep3("org.jboss.resteasy", "resteasy-jaxrs", "3.15.6.Final",
+				tool.Dep3("commons-io", "commons-io", "2.10.0"),
+			),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
