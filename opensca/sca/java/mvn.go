@@ -146,7 +146,7 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 					continue
 				}
 
-				// 间接依赖先用自身pom的dependencyManament检查是否需要排除
+				// 非根pom直接引入的依赖先用自身pom的dependencyManament检查是否需要排除
 				if np != pom {
 					if d, ok := depManagement[dep.Index2()]; ok {
 						if d.Optional ||
@@ -157,12 +157,21 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 					}
 				}
 
-				// 间接依赖优先通过dependencyManagement补全
+				np.Update(dep)
+
+				// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						exclusion := append(dep.Exclusions, d.Exclusions...)
+						dep = d
+						dep.Exclusions = exclusion
+						np.Update(dep)
+					}
+				}
+
+				// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
 				if np != pom || dep.Version == "" {
 					d, ok := rootPomManagement[dep.Index2()]
-					if !ok {
-						d, ok = depManagement[dep.Index2()]
-					}
 					if ok {
 						// exclusion 需要保留
 						exclusion := append(dep.Exclusions, d.Exclusions...)
@@ -171,8 +180,6 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 						pom.Update(dep)
 					}
 				}
-
-				np.Update(dep)
 
 				// 查看是否在Exclusion列表中
 				if np.NeedExclusion(*dep) {

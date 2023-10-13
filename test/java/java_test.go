@@ -162,6 +162,15 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// 子依赖需要先解析变量再尝试用dependencyManagement补全
+	{Path: "14", Result: tool.Dep("", "",
+		tool.Dep3("my.foo", "demo", "1.0",
+			tool.Dep3("org.glassfish.jaxb", "jaxb-runtime", "2.3.3-b02",
+				tool.Dep3("org.glassfish.jaxb", "txw2", "2.3.3-b02"),
+			),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
