@@ -128,29 +128,40 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 			}
 
 			// 记录在当前pom的dependencyManagement中非import组件信息
-			depManament := map[string]*PomDependency{}
+			depManagement := map[string]*PomDependency{}
 			for _, dep := range np.DependencyManagement {
 				if dep.Scope != "import" {
-					depManament[dep.Index2()] = dep
+					depManagement[dep.Index2()] = dep
 				}
 			}
 
 			for _, dep := range np.Dependencies {
 
+				// 丢弃provided或optional=true的组件
 				if dep.Scope == "provided" || dep.Optional {
 					continue
 				}
-
-				// 丢弃子依赖的test依赖
+				// 丢弃scope为test的间接依赖
 				if np != pom && dep.Scope == "test" {
 					continue
+				}
+
+				// 间接依赖先用自身pom的dependencyManament检查是否需要排除
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						if d.Optional ||
+							d.Scope == "provided" ||
+							d.Scope == "test" {
+							continue
+						}
+					}
 				}
 
 				// 间接依赖优先通过dependencyManagement补全
 				if np != pom || dep.Version == "" {
 					d, ok := rootPomManagement[dep.Index2()]
 					if !ok {
-						d, ok = depManament[dep.Index2()]
+						d, ok = depManagement[dep.Index2()]
 					}
 					if ok {
 						// exclusion 需要保留
