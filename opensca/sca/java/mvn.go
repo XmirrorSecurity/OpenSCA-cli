@@ -31,6 +31,7 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 	gavMap := map[string]*model.File{}
 	PathMap := map[string]*model.File{}
 	for _, pom := range poms {
+		gavMap[pom.GAV()] = pom.File
 		pom.Update(&pom.PomDependency)
 		gavMap[pom.GAV()] = pom.File
 		if pom.File.Relpath() != "" {
@@ -198,27 +199,33 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 	}
 }
 
-// inheritModules modules继承属性
+// inheritModules 继承modules属性
 func inheritModules(poms []*Pom) {
 
-	// 记录module信息
+	gavMap := map[string]bool{}
+	for _, pom := range poms {
+		gavMap[pom.GAV()] = true
+	}
+
+	// 记录pom继承关系
 	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
 	for _, pom := range poms {
 		n := _mod.LoadOrStore(pom.ArtifactId)
 		n.Expand = pom
-		// 通过module记录继承关系
+		// 记录modules继承关系
 		for _, subMod := range pom.Modules {
 			n.AppendChild(_mod.LoadOrStore(subMod))
 		}
-		// 存在relativePath时记录继承关系
-		if pom.Parent.RelativePath != "" {
+		// 记录parent继承关系
+		if gavMap[pom.Parent.GAV()] {
 			_mod.LoadOrStore(pom.Parent.ArtifactId).AppendChild(n)
 		}
 	}
 
-	// 将属性传递到子mod
+	// 传递属性
 	_mod.Range(func(k string, v *model.DepGraph) bool {
 
+		// 跳过非根pom
 		if len(v.Parents) > 0 {
 			return true
 		}
@@ -316,6 +323,10 @@ func inheritPom(pom *Pom, getpom getPomFunc) {
 		pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
 
 	}
+
+	// 更新pom坐标
+	pom.Update(&pom.PomDependency)
+	pom.Update(&pom.Parent)
 
 	// 删除重复依赖项
 	depIndex2Set := map[string]bool{}

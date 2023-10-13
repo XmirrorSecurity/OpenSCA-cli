@@ -155,25 +155,9 @@ var cases = []tool.TaskCase{
 	)},
 }
 
-var case1 = []tool.TaskCase{
-	// 支持relativePath
-	{Path: "11", Result: tool.Dep("", "",
-		tool.Dep3("com", "a", "2.0"),
-		tool.Dep3("com", "b", "2.0",
-			tool.Dep3("com", "xx", "2.0"),
-		),
-		tool.Dep3("com", "c", "1.0",
-			tool.Dep3("com", "xx", "1.0"),
-		),
-		tool.Dep3("com", "d", "1.0",
-			tool.Dep3("com", "xx", "1.0"),
-		),
-	)},
-}
-
 func Test_JavaWithStatic(t *testing.T) {
 	java.RegisterMavenRepo(common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"})
-	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})(case1)
+	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})(cases)
 }
 
 func Test_JavaWithMvn(t *testing.T) {
