@@ -31,6 +31,7 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 	gavMap := map[string]*model.File{}
 	PathMap := map[string]*model.File{}
 	for _, pom := range poms {
+		gavMap[pom.GAV()] = pom.File
 		pom.Update(&pom.PomDependency)
 		gavMap[pom.GAV()] = pom.File
 		if pom.File.Relpath() != "" {
@@ -64,7 +65,13 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 				rs = append(rs, common.RepoConfig{Url: url})
 			}
 		}
-		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+		p = mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+
+		if p == nil {
+			logs.Warnf("not found pom %s", dep.Index3())
+		}
+
+		return p
 	}
 
 	exclusionMap := map[*Pom]bool{}
@@ -121,30 +128,50 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 			}
 
 			// 记录在当前pom的dependencyManagement中非import组件信息
-			depManament := map[string]*PomDependency{}
+			depManagement := map[string]*PomDependency{}
 			for _, dep := range np.DependencyManagement {
 				if dep.Scope != "import" {
-					depManament[dep.Index2()] = dep
+					depManagement[dep.Index2()] = dep
 				}
 			}
 
 			for _, dep := range np.Dependencies {
 
+				// 丢弃provided或optional=true的组件
 				if dep.Scope == "provided" || dep.Optional {
 					continue
 				}
-
-				// 丢弃子依赖的test依赖
+				// 丢弃scope为test的间接依赖
 				if np != pom && dep.Scope == "test" {
 					continue
 				}
 
-				// 间接依赖优先通过dependencyManagement补全
+				// 非根pom直接引入的依赖先用自身pom的dependencyManament检查是否需要排除
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						if d.Optional ||
+							d.Scope == "provided" ||
+							d.Scope == "test" {
+							continue
+						}
+					}
+				}
+
+				np.Update(dep)
+
+				// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						exclusion := append(dep.Exclusions, d.Exclusions...)
+						dep = d
+						dep.Exclusions = exclusion
+						np.Update(dep)
+					}
+				}
+
+				// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
 				if np != pom || dep.Version == "" {
 					d, ok := rootPomManagement[dep.Index2()]
-					if !ok {
-						d, ok = depManament[dep.Index2()]
-					}
 					if ok {
 						// exclusion 需要保留
 						exclusion := append(dep.Exclusions, d.Exclusions...)
@@ -153,8 +180,6 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 						pom.Update(dep)
 					}
 				}
-
-				np.Update(dep)
 
 				// 查看是否在Exclusion列表中
 				if np.NeedExclusion(*dep) {
@@ -198,27 +223,33 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 	}
 }
 
-// inheritModules modules继承属性
+// inheritModules 继承modules属性
 func inheritModules(poms []*Pom) {
 
-	// 记录module信息
+	gavMap := map[string]bool{}
+	for _, pom := range poms {
+		gavMap[pom.GAV()] = true
+	}
+
+	// 记录pom继承关系
 	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
 	for _, pom := range poms {
 		n := _mod.LoadOrStore(pom.ArtifactId)
 		n.Expand = pom
-		// 通过module记录继承关系
+		// 记录modules继承关系
 		for _, subMod := range pom.Modules {
 			n.AppendChild(_mod.LoadOrStore(subMod))
 		}
-		// 存在relativePath时记录继承关系
-		if pom.Parent.RelativePath != "" {
+		// 记录parent继承关系
+		if gavMap[pom.Parent.GAV()] {
 			_mod.LoadOrStore(pom.Parent.ArtifactId).AppendChild(n)
 		}
 	}
 
-	// 将属性传递到子mod
+	// 传递属性
 	_mod.Range(func(k string, v *model.DepGraph) bool {
 
+		// 跳过非根pom
 		if len(v.Parents) > 0 {
 			return true
 		}
@@ -316,6 +347,10 @@ func inheritPom(pom *Pom, getpom getPomFunc) {
 		pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
 
 	}
+
+	// 更新pom坐标
+	pom.Update(&pom.PomDependency)
+	pom.Update(&pom.Parent)
 
 	// 删除重复依赖项
 	depIndex2Set := map[string]bool{}

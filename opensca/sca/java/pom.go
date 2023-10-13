@@ -21,6 +21,7 @@ type Pom struct {
 	Repositories         []string         `xml:"repositories>repository>url"`
 	Mirrors              []string         `xml:"mirrors>mirror>url"`
 	Licenses             []string         `xml:"licenses>license>name"`
+	Profiles             []Pom            `xml:"profiles>profile"`
 	File                 *model.File      `xml:"-" json:"-"`
 }
 
@@ -157,6 +158,21 @@ func ReadPom(reader io.Reader) *Pom {
 	p.Properties["pom.version"] = &Property{Key: "pom.version", Value: p.Version}
 	p.Properties["project.parent.version"] = &Property{Key: "project.parent.version", Value: p.Parent.Version}
 	p.Properties["parent.version"] = &Property{Key: "parent.version", Value: p.Parent.Version}
+
+	// 添加第一个Profile
+	if len(p.Profiles) > 0 {
+		profile := p.Profiles[0]
+		for k, v := range profile.Properties {
+			if _, ok := p.Properties[k]; !ok {
+				p.Properties[k] = v
+			}
+		}
+		p.Dependencies = append(p.Dependencies, profile.Dependencies...)
+		p.DependencyManagement = append(p.DependencyManagement, profile.DependencyManagement...)
+		p.Modules = append(p.Modules, profile.Modules...)
+		p.Mirrors = append(p.Mirrors, profile.Mirrors...)
+		p.Repositories = append(p.Repositories, profile.Repositories...)
+	}
 
 	// 处理版本范围
 	for _, d := range p.Dependencies {
