@@ -65,7 +65,13 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 				rs = append(rs, common.RepoConfig{Url: url})
 			}
 		}
-		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+		p = mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+
+		if p == nil {
+			logs.Warnf("not found pom %s", dep.Index3())
+		}
+
+		return p
 	}
 
 	exclusionMap := map[*Pom]bool{}
