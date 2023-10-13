@@ -10,4 +10,16 @@
     <artifactId>b</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <xx>1.0</xx>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>xx</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+
 </project>

@@ -29,22 +29,35 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 
 	// 记录当前项目的pom文件信息
 	gavMap := map[string]*model.File{}
+	PathMap := map[string]*model.File{}
 	for _, pom := range poms {
 		pom.Update(&pom.PomDependency)
 		gavMap[pom.GAV()] = pom.File
+		if pom.File.Relpath() != "" {
+			PathMap[pom.File.Relpath()] = pom.File
+		}
 	}
 
-	// 获取对应的pom信息
+	// 获取dependency对应的pom
 	getpom := func(dep PomDependency, repos ...[]string) *Pom {
+		// 通过gav查找pom
+		f, ok := gavMap[dep.GAV()]
+		// 通过relativaPath查找pom
+		if !ok && dep.RelativePath != "" && dep.Define != nil && dep.Define.File.Relpath() != "" {
+			pompath := filepath.Join(filepath.Dir(dep.Define.File.Relpath()), dep.RelativePath)
+			f, ok = PathMap[pompath]
+		}
 		var p *Pom
-		if f, ok := gavMap[dep.GAV()]; ok {
+		if ok {
 			f.OpenReader(func(reader io.Reader) {
 				p = ReadPom(reader)
+				p.File = f
 			})
 		}
 		if p != nil {
 			return p
 		}
+		// 从组件仓库下载pom
 		var rs []common.RepoConfig
 		for _, urls := range repos {
 			for _, url := range urls {
@@ -158,23 +171,21 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 					logs.Debugf("find %s", dep.ImportPathStack())
 				} else {
 					logs.Warnf("find invalid %s", dep.ImportPathStack())
-				}
-
-				subpom := getpom(*dep, np.Repositories, np.Mirrors)
-				if subpom == nil {
 					continue
 				}
 
-				subpom.PomDependency = *dep
-				// 继承根pom的exclusion
-				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-
-				// 子依赖继承自身pom
-				inheritPom(subpom, getpom)
-
 				sub := &model.DepGraph{Vendor: dep.GroupId, Name: dep.ArtifactId, Version: dep.Version}
-				sub.Expand = subpom
 				sub.Develop = dep.Scope == "test"
+
+				if subpom := getpom(*dep, np.Repositories, np.Mirrors); subpom != nil {
+					subpom.PomDependency = *dep
+					// 继承根pom的exclusion
+					subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
+					// 子依赖继承自身pom
+					inheritPom(subpom, getpom)
+					sub.Expand = subpom
+				}
+
 				n.AppendChild(sub)
 			}
 
