@@ -48,23 +48,13 @@ var cases = []tool.TaskCase{
 		),
 	)},
 
-	// 继承parent依赖项 优先使用根pom的属性
+	// 继承parent 优先使用根pom的属性及DependencyManagement
 	{Path: "4", Result: tool.Dep("", "",
 		tool.Dep3("com.foo", "demo", "1.0",
-			tool.Dep3("org.springframework", "spring-expression", "4.3.7.RELEASE"),
-			tool.Dep3("org.springframework", "spring-context", "4.3.7.RELEASE",
-				tool.Dep3("org.springframework", "spring-aop", "4.3.7.RELEASE"),
-				tool.Dep3("org.springframework", "spring-beans", "4.3.7.RELEASE"),
-				tool.Dep3("org.springframework", "spring-core", "4.3.7.RELEASE"),
-			),
+			tool.Dep3("org.springframework", "spring-expression", "4.3.6.RELEASE"),
 		),
 		tool.Dep3("com.foo", "mod", "1.0",
-			tool.Dep3("org.springframework", "spring-expression", "4.3.5.RELEASE"),
-			tool.Dep3("org.springframework", "spring-context", "4.3.7.RELEASE",
-				tool.Dep3("org.springframework", "spring-aop", "4.3.7.RELEASE"),
-				tool.Dep3("org.springframework", "spring-beans", "4.3.7.RELEASE"),
-				tool.Dep3("org.springframework", "spring-core", "4.3.7.RELEASE"),
-			),
+			tool.Dep3("org.springframework", "spring-expression", "4.3.4.RELEASE"),
 		),
 	)},
 
