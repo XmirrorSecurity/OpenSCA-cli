@@ -33,6 +33,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 			}
 			file.OpenReader(func(reader io.Reader) {
 				p := ReadPom(reader)
+				p.Update(&p.PomDependency)
 				if !p.Check() {
 					return
 				}
@@ -44,6 +45,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 				})
 			})
 		}
+		return
 	}
 
 	// 记录pom文件
