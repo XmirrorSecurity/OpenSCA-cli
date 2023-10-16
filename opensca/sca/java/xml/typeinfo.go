@@ -36,10 +36,12 @@ const (
 	fInnerXML
 	fComment
 	fAny
+	fStart
+	fEnd
 
 	fOmitEmpty
 
-	fMode = fElement | fAttr | fCDATA | fCharData | fInnerXML | fComment | fAny
+	fMode = fElement | fAttr | fCDATA | fCharData | fInnerXML | fComment | fAny | fStart | fEnd
 
 	xmlName = "XMLName"
 )
@@ -141,6 +143,10 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 				finfo.flags |= fAny
 			case "omitempty":
 				finfo.flags |= fOmitEmpty
+			case "start":
+				finfo.flags |= fStart
+			case "end":
+				finfo.flags |= fEnd
 			}
 		}
 
@@ -149,7 +155,7 @@ func structFieldInfo(typ reflect.Type, f *reflect.StructField) (*fieldInfo, erro
 		switch mode := finfo.flags & fMode; mode {
 		case 0:
 			finfo.flags |= fElement
-		case fAttr, fCDATA, fCharData, fInnerXML, fComment, fAny, fAny | fAttr:
+		case fAttr, fCDATA, fCharData, fInnerXML, fComment, fAny, fAny | fAttr, fStart, fEnd:
 			if f.Name == xmlName || tag != "" && mode != fAttr {
 				valid = false
 			}

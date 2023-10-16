@@ -516,6 +516,22 @@ func (d *Decoder) unmarshal(val reflect.Value, start *StartElement, depth int) e
 						saveXMLIndex = d.savedOffset()
 					}
 				}
+
+			case fStart:
+				if !val.IsValid() {
+					val = finfo.value(sv, true)
+				}
+				if val.CanSet() {
+					val.FieldByName(finfo.name).SetInt(int64(d.line))
+				}
+
+			case fEnd:
+				if !val.IsValid() {
+					val = finfo.value(sv, true)
+				}
+				if val.CanSet() {
+					defer func(name string) { val.FieldByName(name).SetInt(int64(d.line)) }(finfo.name)
+				}
 			}
 		}
 	}
