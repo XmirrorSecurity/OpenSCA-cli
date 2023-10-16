@@ -534,7 +534,7 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 		})
 
 		if metadata.LastTime == "" {
-			return
+			continue
 		}
 
 		for _, snap := range metadata.SnapVersions {
