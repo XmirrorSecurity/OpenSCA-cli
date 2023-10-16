@@ -1,7 +1,7 @@
 package java
 
 import (
-	"encoding/xml"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java/xml"
 	"fmt"
 	"io"
 	"regexp"
