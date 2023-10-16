@@ -19,7 +19,7 @@ type DepDetailGraph struct {
 	Develop                 bool              `json:"dev,omitempty" xml:"dev,omitempty"`
 	Direct                  bool              `json:"direct,omitempty" xml:"direct,omitempty"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
-	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
+	Licenses                []*License        `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
 	Children                []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
 	Parent                  *DepDetailGraph   `json:"-" xml:"-"`
@@ -79,7 +79,7 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Direct = dep.Direct
 	d.Develop = dep.Develop
 	for _, lic := range dep.Licenses {
-		d.Licenses = append(d.Licenses, License{ShortName: lic})
+		d.Licenses = append(d.Licenses, &License{ShortName: lic})
 	}
 }
 
@@ -284,8 +284,8 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 }
 
 // GetServerLicense 从云服务获取许可证
-func GetServerLicense(deps []Dep) (lics [][]License, err error) {
-	lics = [][]License{}
+func GetServerLicense(deps []Dep) (lics [][]*License, err error) {
+	lics = [][]*License{}
 	data, err := json.Marshal(deps)
 	if err != nil {
 		logs.Error(err)
