@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -459,6 +460,39 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 
 	repoSet := map[string]bool{}
 
+	downloadUrl := func(url, user, pswd string, do func(io.Reader)) bool {
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			logs.Warn(err)
+			return false
+		}
+
+		if user+pswd != "" {
+			req.SetBasicAuth(user, pswd)
+		}
+
+		resp, err := common.HttpClient.Do(req)
+		if err != nil {
+			logs.Warn(err)
+			return false
+		}
+
+		defer resp.Body.Close()
+		defer io.Copy(io.Discard, resp.Body)
+
+		if resp.StatusCode != 200 {
+			logs.Warnf("%d %s", resp.StatusCode, url)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+			return false
+		} else {
+			logs.Debugf("%d %s", resp.StatusCode, url)
+			do(resp.Body)
+			return true
+		}
+	}
+
 	for _, repo := range append(defaultMavenRepo, repos...) {
 
 		if repo.Url == "" {
@@ -469,37 +503,53 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 		}
 		repoSet[repo.Url] = true
 
+		// 正式版本
 		url := fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
 			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version,
 			dep.ArtifactId, dep.Version)
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			logs.Warn(err)
-			continue
-		}
-		if repo.Username+repo.Password != "" {
-			req.SetBasicAuth(repo.Username, repo.Password)
+		if downloadUrl(url, repo.Username, repo.Password, do) {
+			return
 		}
 
-		resp, err := common.HttpClient.Do(req)
-		if err != nil {
-			logs.Warn(err)
+		if !strings.HasSuffix(strings.ToLower(dep.Version), "-snapshot") {
 			continue
 		}
 
-		if resp.StatusCode != 200 {
-			logs.Warnf("%d %s", resp.StatusCode, url)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-			continue
-		} else {
-			logs.Debugf("%d %s", resp.StatusCode, url)
-			do(resp.Body)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
+		// 快照版本
+		metadata := struct {
+			LastTime     string `xml:"versioning>lastUpdated"`
+			SnapVersions []struct {
+				Version string `xml:"value"`
+				Time    string `xml:"updated"`
+			} `xml:"versioning>snapshotVersions>snapshotVersion"`
+		}{}
+
+		url = fmt.Sprintf("%s/%s/%s/%s/maven-metadata.xml", strings.TrimRight(repo.Url, "/"),
+			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version)
+		downloadUrl(url, repo.Username, repo.Password, func(r io.Reader) {
+			err := xml.NewDecoder(r).Decode(&metadata)
+			if err != nil {
+				logs.Warn(err)
+			}
+		})
+
+		if metadata.LastTime == "" {
+			return
+		}
+
+		for _, snap := range metadata.SnapVersions {
+			if snap.Time != metadata.LastTime {
+				continue
+			}
+			url = fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
+				strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, snap.Version,
+				dep.ArtifactId, snap.Version)
+			if downloadUrl(url, repo.Username, repo.Password, do) {
+				return
+			}
 			break
 		}
+
 	}
 }
 
