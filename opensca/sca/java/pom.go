@@ -294,8 +294,8 @@ func (dep PomDependency) ImportPathStack() string {
 			importPath += fmt.Sprintf("(line:%d-%d)", pre.Start, pre.End)
 		}
 		if d.RefProperty != nil {
-			if d.Define != nil {
-				importPath += fmt.Sprintf("#[%s](line:%d)", d.Define.Index4(), d.RefProperty.Start)
+			if d.RefProperty.Define != nil {
+				importPath += fmt.Sprintf("#[%s](line:%d)", d.RefProperty.Define.Index4(), d.RefProperty.Start)
 			}
 			importPath += fmt.Sprintf("${%s}=%s", d.RefProperty.Key, d.RefProperty.Value)
 		}
