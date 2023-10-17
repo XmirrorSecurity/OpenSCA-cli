@@ -192,7 +192,7 @@ var composerOrigin = func(name, version string) *ComposerPackage {
 		origin = ReadComposerRepoJson(reader, name, version)
 		reader.Seek(0, io.SeekStart)
 		cache.Save(path, reader)
-	}, common.RepoConfig{Url: "http://repo.packagist.org/p2"})
+	}, defaultComposerRepo...)
 
 	return origin
 }

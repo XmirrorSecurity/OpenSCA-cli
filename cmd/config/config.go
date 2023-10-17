@@ -42,6 +42,7 @@ type OptionalConfig struct {
 
 type RepoConfig struct {
 	Maven    []common.RepoConfig `json:"maven"`
+	Npm      []common.RepoConfig `json:"npm"`
 	Composer []common.RepoConfig `json:"composer"`
 }
 

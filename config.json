@@ -58,6 +58,13 @@
       }
     ],
 
+    // npm repo
+    "npm": [
+      {
+        "url": "https://r.cnpmjs.org/"
+      }
+    ],
+
     // composer repo
     "composer": [
       {
