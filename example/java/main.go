@@ -33,16 +33,15 @@ func init() {
 
 func main() {
 
-	// maven project dir
-	mvnProjectDir := "../../test/java/9"
+	projectDir := "../../test/java/9"
 
 	// find pom files
 	var poms []*java.Pom
-	filepath.WalkDir(mvnProjectDir, func(path string, d fs.DirEntry, err error) error {
+	filepath.WalkDir(projectDir, func(path string, d fs.DirEntry, err error) error {
 		if !strings.HasSuffix(path, "pom.xml") {
 			return nil
 		}
-		pomfile := model.NewFile(path, strings.TrimPrefix(path, mvnProjectDir))
+		pomfile := model.NewFile(path, strings.TrimPrefix(path, projectDir))
 		pomfile.OpenReader(func(reader io.Reader) {
 			pom := java.ReadPom(reader)
 			pom.File = pomfile
