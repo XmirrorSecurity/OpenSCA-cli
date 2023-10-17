@@ -46,6 +46,6 @@ func main() {
 
 	A.Build(true, model.Lan_Golang)
 	logs.Infof("build by dfs, foreach path:\n%s", A.Tree(true, false))
-	logs.Infof("build by bfs, foreach node:\n%s", A.Tree(false, false))
+	logs.Infof("build by dfs, foreach node:\n%s", A.Tree(false, false))
 
 }
