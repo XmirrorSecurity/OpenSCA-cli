@@ -162,12 +162,12 @@ func (dep *DepGraph) Flush() {
 // lan: 更新依赖语言
 func (dep *DepGraph) Build(deep bool, lan Language) {
 	dep.Flush()
-	dep.ForEach(deep, false, false, func(p, n *DepGraph) bool {
+	dep.ForEach(deep, true, false, func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
 			n.Path = p.Path
 		}
-		if n.Name != "" {
+		if n.Name != "" && !strings.HasSuffix(n.Path, n.Index()) {
 			n.Path += n.Index()
 		}
 		// 补全语言
@@ -200,7 +200,6 @@ func (dep *DepGraph) RemoveDevelop() {
 }
 
 // Tree 依赖树
-// 注意依赖树固定深度优先遍历 依赖路径是广度优先构建时返回的依赖树结构与实际不一致
 // path: true=>记录全部路径 false=>记录全部节点
 // name: true=>名称升序排序 false=>添加顺序排列
 func (dep *DepGraph) Tree(path, name bool) string {
