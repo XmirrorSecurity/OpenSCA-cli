@@ -96,7 +96,7 @@ var npmOrigin = func(name, version string) *PackageJson {
 		origin = ReadNpmJson(reader, version)
 		reader.Seek(0, io.SeekStart)
 		cache.Save(path, reader)
-	}, common.RepoConfig{Url: "https://r.cnpmjs.org/"})
+	}, defaultNpmRepo...)
 
 	return origin
 }

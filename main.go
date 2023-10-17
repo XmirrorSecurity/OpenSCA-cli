@@ -17,6 +17,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 )
 
@@ -100,6 +101,7 @@ func args() {
 	logs.CreateLog(config.Conf().LogFile)
 
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
+	javascript.RegisterNpmRepo(config.Conf().Repo.Npm...)
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
 

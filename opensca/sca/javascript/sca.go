@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
@@ -94,5 +95,16 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 
 		// 尝试从node_modules及外部源获取
 		call(js.File, ParsePackageJsonWithNode(js, nodeMap))
+	}
+}
+
+var defaultNpmRepo = []common.RepoConfig{
+	{Url: "https://r.cnpmjs.org/"},
+}
+
+func RegisterNpmRepo(repos ...common.RepoConfig) {
+	newRepo := common.TrimRepo(repos...)
+	if len(newRepo) > 0 {
+		defaultNpmRepo = newRepo
 	}
 }
