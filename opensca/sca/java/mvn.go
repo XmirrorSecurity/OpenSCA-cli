@@ -7,7 +7,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"net/http"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -418,19 +417,13 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...common.Repo
 	}
 
 	DownloadPomFromRepo(PomDependency{GroupId: groupId, ArtifactId: artifactId, Version: version}, func(r io.Reader) {
-
 		data, err := io.ReadAll(r)
 		if err != nil {
 			logs.Warn(err)
 			return
 		}
 		reader := bytes.NewReader(data)
-
 		p = ReadPom(reader)
-		if p == nil {
-			return
-		}
-
 		reader.Seek(0, io.SeekStart)
 		cache.Save(path, reader)
 	}, repos...)
@@ -458,64 +451,17 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 		return
 	}
 
-	repoSet := map[string]bool{}
+	// 正式版本
+	pom := fmt.Sprintf("%s/%s/%s/%s-%s.pom", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version, dep.ArtifactId, dep.Version)
+	common.DownloadUrlFromRepos(pom, func(repo common.RepoConfig, r io.Reader) { do(r) }, append(defaultMavenRepo, repos...)...)
 
-	downloadUrl := func(url, user, pswd string, do func(io.Reader)) bool {
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			logs.Warn(err)
-			return false
-		}
-
-		if user+pswd != "" {
-			req.SetBasicAuth(user, pswd)
-		}
-
-		resp, err := common.HttpClient.Do(req)
-		if err != nil {
-			logs.Warn(err)
-			return false
-		}
-
-		defer resp.Body.Close()
-		defer io.Copy(io.Discard, resp.Body)
-
-		if resp.StatusCode != 200 {
-			logs.Warnf("%d %s", resp.StatusCode, url)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-			return false
-		} else {
-			logs.Debugf("%d %s", resp.StatusCode, url)
-			do(resp.Body)
-			return true
-		}
+	// 快照版本
+	if !strings.HasSuffix(strings.ToLower(dep.Version), "-snapshot") {
+		return
 	}
+	snap := fmt.Sprintf("%s/%s/%s/maven-metadata.xml", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version)
+	common.DownloadUrlFromRepos(snap, func(repo common.RepoConfig, r io.Reader) {
 
-	for _, repo := range append(defaultMavenRepo, repos...) {
-
-		if repo.Url == "" {
-			continue
-		}
-		if repoSet[repo.Url] {
-			continue
-		}
-		repoSet[repo.Url] = true
-
-		// 正式版本
-		url := fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
-			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version,
-			dep.ArtifactId, dep.Version)
-		if downloadUrl(url, repo.Username, repo.Password, do) {
-			return
-		}
-
-		if !strings.HasSuffix(strings.ToLower(dep.Version), "-snapshot") {
-			continue
-		}
-
-		// 快照版本
 		metadata := struct {
 			LastTime     string `xml:"versioning>lastUpdated"`
 			SnapVersions []struct {
@@ -524,33 +470,25 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 			} `xml:"versioning>snapshotVersions>snapshotVersion"`
 		}{}
 
-		url = fmt.Sprintf("%s/%s/%s/%s/maven-metadata.xml", strings.TrimRight(repo.Url, "/"),
-			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version)
-		downloadUrl(url, repo.Username, repo.Password, func(r io.Reader) {
-			err := xml.NewDecoder(r).Decode(&metadata)
-			if err != nil {
-				logs.Warn(err)
-			}
-		})
+		err := xml.NewDecoder(r).Decode(&metadata)
+		if err != nil {
+			logs.Warn(err)
+		}
 
 		if metadata.LastTime == "" {
-			continue
+			return
 		}
 
 		for _, snap := range metadata.SnapVersions {
-			if snap.Time != metadata.LastTime {
-				continue
+			if snap.Time == metadata.LastTime {
+				snapom := fmt.Sprintf("%s/%s/%s/%s-%s.pom", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, snap.Version, dep.ArtifactId, snap.Version)
+				common.DownloadUrlFromRepos(snapom, func(repo common.RepoConfig, r io.Reader) { do(r) }, repo)
+				break
 			}
-			url = fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
-				strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, snap.Version,
-				dep.ArtifactId, snap.Version)
-			if downloadUrl(url, repo.Username, repo.Password, do) {
-				return
-			}
-			break
 		}
 
-	}
+	}, append(defaultMavenRepo, repos...)...)
+
 }
 
 // MvnTree 调用mvn dependency:tree解析依赖
