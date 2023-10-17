@@ -158,7 +158,8 @@ func (dep *DepGraph) Flush() {
 }
 
 // Build 构建依赖图路径
-// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
+// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先
+// 广度优先的路径更短 如果不清楚该用什么推荐false
 // lan: 更新依赖语言
 func (dep *DepGraph) Build(deep bool, lan Language) {
 	dep.Flush()
