@@ -17,12 +17,10 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.RubyGemfileLock(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	var root []*model.DepGraph
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 	for _, file := range files {
 		if filter.RubyGemfileLock(file.Relpath()) {
-			root = append(root, ParseGemfileLock(file)...)
+			call(file, ParseGemfileLock(file)...)
 		}
 	}
-	return root
 }

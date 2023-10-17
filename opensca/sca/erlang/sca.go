@@ -18,14 +18,12 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.ErlangRebarLock(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
-	var deps []*model.DepGraph
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 	for _, f := range files {
 		if sca.Filter(f.Relpath()) {
-			deps = append(deps, ParseRebarLock(f))
+			call(f, ParseRebarLock(f))
 		}
 	}
-	return deps
 }
 
 func ParseRebarLock(file *model.File) *model.DepGraph {

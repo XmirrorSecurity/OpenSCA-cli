@@ -1,4 +1,5 @@
 {
+
   // 检测项目路径
   // project path
   // support http(s)/ftp/file protocol
@@ -12,6 +13,7 @@
   // opensca 配置项
   // opensca optional
   "optional": {
+
     // 开启ui
     // open ui
     "ui": false,
@@ -35,22 +37,31 @@
     // 保留开发组件
     // save develop components
     "dev": true
+
   },
 
   // 组件仓库配置
   // repo config
   "repo": {
+
     // maven repo
     "maven": [
       {
         "url": "https://repo.maven.apache.org/maven2/",
         // 认证信息 没有可不填
-        // auth info
+        // auth info, not required
         "username": "",
         "password": ""
       },
       {
         "url": "https://maven.aliyun.com/repository/public"
+      }
+    ],
+
+    // npm repo
+    "npm": [
+      {
+        "url": "https://r.cnpmjs.org/"
       }
     ],
 
@@ -60,11 +71,13 @@
         "url": "https://repo.packagist.org/p2"
       }
     ]
+
   },
 
   // 数据库源
   // database origin
   "origin": {
+
     // opensca web service url
     "url": "https://opensca.xmirror.cn",
     // opensca web service token
@@ -86,5 +99,6 @@
       "dsn": "",
       "table": ""
     }
+
   }
 }

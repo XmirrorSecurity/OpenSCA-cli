@@ -120,15 +120,25 @@ func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
 			Name:    s[1],
 			Version: s[2],
 		}
-	}).LoadOrStore
+	})
 
-	for _, pkg := range doc.Packages {
-		depIdMap[pkg.SPDXID] = _dep(pkg.Supplier, pkg.Name, pkg.Version)
+	if len(doc.Packages) == 0 {
+		return nil
+	}
+
+	var root *model.DepGraph
+	for i, pkg := range doc.Packages {
+		vendor := strings.TrimSpace(strings.TrimPrefix(pkg.Supplier, "Organization:"))
+		dep := _dep.LoadOrStore(vendor, pkg.Name, pkg.Version)
+		depIdMap[pkg.SPDXID] = dep
+		if i == 0 {
+			root = dep
+		}
 	}
 
 	for _, relation := range doc.Relationships {
 		depIdMap[relation.SPDXElementID].AppendChild(depIdMap[relation.RelatedSPDXElement])
 	}
 
-	return nil
+	return root
 }

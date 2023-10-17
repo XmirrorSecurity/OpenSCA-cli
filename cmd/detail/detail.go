@@ -15,11 +15,11 @@ import (
 
 type DepDetailGraph struct {
 	Dep
-	ID                      string            `json:"id" xml:"id"`
-	Develop                 bool              `json:"dev" xml:"dev"`
-	Direct                  bool              `json:"direct" xml:"direct"`
+	ID                      string            `json:"id,omitempty" xml:"id,omitempty"`
+	Develop                 bool              `json:"dev,omitempty" xml:"dev,omitempty"`
+	Direct                  bool              `json:"direct,omitempty" xml:"direct,omitempty"`
 	Paths                   []string          `json:"paths,omitempty" xml:"paths,omitempty"`
-	Licenses                []License         `json:"licenses,omitempty" xml:"licenses,omitempty"`
+	Licenses                []*License        `json:"licenses,omitempty" xml:"licenses,omitempty"`
 	Vulnerabilities         []*Vuln           `json:"vulnerabilities,omitempty" xml:"vulnerabilities,omitempty" `
 	Children                []*DepDetailGraph `json:"children,omitempty" xml:"children,omitempty"`
 	Parent                  *DepDetailGraph   `json:"-" xml:"-"`
@@ -73,11 +73,13 @@ func (d *DepDetailGraph) Update(dep *model.DepGraph) {
 	d.Vendor = dep.Vendor
 	d.Version = dep.Version
 	d.Language = string(dep.Language)
-	d.Paths = append(d.Paths, dep.Path)
+	if dep.Path != "" {
+		d.Paths = append(d.Paths, dep.Path)
+	}
 	d.Direct = dep.Direct
 	d.Develop = dep.Develop
 	for _, lic := range dep.Licenses {
-		d.Licenses = append(d.Licenses, License{ShortName: lic})
+		d.Licenses = append(d.Licenses, &License{ShortName: lic})
 	}
 }
 
@@ -135,23 +137,7 @@ func (d *DepDetailGraph) RemoveDev() {
 }
 
 func (dep *DepDetailGraph) Purl() string {
-	var purlMap = map[model.Language]string{
-		model.Lan_Rust:       "cargo",
-		model.Lan_Php:        "composer",
-		model.Lan_Ruby:       "gem",
-		model.Lan_Golang:     "golang",
-		model.Lan_Java:       "maven",
-		model.Lan_JavaScript: "npm",
-		model.Lan_Python:     "pypi",
-	}
-	group := ""
-	if g, ok := purlMap[model.Language(dep.Language)]; ok {
-		group = g
-	}
-	if dep.Vendor == "" {
-		return fmt.Sprintf("pkg:%s/%s@%s", group, dep.Name, dep.Version)
-	}
-	return fmt.Sprintf("pkg:%s/%s/%s@%s", group, dep.Vendor, dep.Name, dep.Version)
+	return model.Purl(dep.Vendor, dep.Name, dep.Version, model.Language(dep.Language))
 }
 
 // Vuln 组件漏洞
@@ -194,13 +180,13 @@ func vulnLanguageKey(language model.Language) string {
 
 type Dep struct {
 	// 厂商
-	Vendor string `json:"vendor"`
+	Vendor string `json:"vendor,omitempty" xml:"vendor,omitempty"`
 	// 名称
-	Name string `json:"name"`
+	Name string `json:"name,omitempty" xml:"name,omitempty"`
 	// 版本号
-	Version string `json:"version"`
+	Version string `json:"version,omitempty" xml:"version,omitempty"`
 	// 语言
-	Language string `json:"language"`
+	Language string `json:"language,omitempty" xml:"language,omitempty"`
 }
 
 func (d Dep) Key() string {
@@ -298,8 +284,8 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 }
 
 // GetServerLicense 从云服务获取许可证
-func GetServerLicense(deps []Dep) (lics [][]License, err error) {
-	lics = [][]License{}
+func GetServerLicense(deps []Dep) (lics [][]*License, err error) {
+	lics = [][]*License{}
 	data, err := json.Marshal(deps)
 	if err != nil {
 		logs.Error(err)

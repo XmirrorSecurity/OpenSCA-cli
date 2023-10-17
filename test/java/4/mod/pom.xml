@@ -9,14 +9,8 @@
 	</parent>
 	<artifactId>mod</artifactId>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-expression</artifactId>
-                <version>4.3.5.RELEASE</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <properties>
+        <tt.v>4.3.4.RELEASE</tt.v>
+    </properties>
 
 </project>

@@ -108,8 +108,11 @@ func ParsePackageJsonWithYarnLock(pkgjson *PackageJson, yarnlock map[string]*Yar
 		lock := yarnlock[npmkey(name, version)]
 		if lock != nil {
 			dep := _dep(lock.Name, lock.Version)
-			dep.Develop = true
-			root.AppendChild(dep)
+			devdep := _dep(lock.Name, lock.Version, "dev")
+			for _, c := range dep.Children {
+				devdep.AppendChild(c)
+			}
+			root.AppendChild(devdep)
 		} else {
 			root.AppendChild(&model.DepGraph{Name: name, Version: version, Develop: true})
 		}

@@ -92,15 +92,60 @@ func (dep *DepGraph) String() string {
 	return fmt.Sprintf("%s%s<%s>(%s)", dev, dep.Index(), dep.Language, dep.Path)
 }
 
-// FlushDevelop 刷新依赖图develop依赖关系
-func (dep *DepGraph) FlushDevelop() {
-	dep.ForEachNode(func(p, n *DepGraph) bool {
-		// 传递develop
-		n.Develop = n.IsDevelop()
+// Flush 更新依赖图依赖关系
+func (dep *DepGraph) Flush() {
+
+	// 删除不在dep依赖图的节点
+	parentMap := map[*DepGraph]bool{}
+	trueParentMap := map[*DepGraph]bool{}
+	dep.ForEachPath(func(p, n *DepGraph) bool {
+		// 记录所有节点的父节点
+		for _, p := range n.Parents {
+			parentMap[p] = true
+		}
+		// 记录在依赖图可遍历路径中的父节点
+		if p != nil {
+			trueParentMap[p] = true
+		}
 		return true
 	})
+	for p := range parentMap {
+		if trueParentMap[p] {
+			continue
+		}
+		// 删除遍历不到的父节点
+		for _, c := range p.Children {
+			p.RemoveChild(c)
+		}
+	}
+
+	// 锁定起始组件dev
 	dep.ForEachNode(func(p, n *DepGraph) bool {
-		// 去除非实际引用的关系
+		// 起始开发组件状态锁定为开发组件
+		if len(n.Parents) == 0 || n.Develop {
+			n.Expand = struct{}{}
+		}
+		return true
+	})
+
+	// 传递develop
+	dep.ForEachPath(func(p, n *DepGraph) bool {
+		// 组件dev已锁定则跳过
+		if n.Expand != nil {
+			return true
+		}
+		// 传递父组件dev
+		n.Develop = p.Develop
+		// 存在任一父组件为实际引入则锁定组件dev
+		if !p.Develop {
+			n.Expand = struct{}{}
+		}
+		return true
+	})
+
+	// 去除非实际引用的关系
+	dep.ForEachNode(func(p, n *DepGraph) bool {
+		// 非开发组件的父组件为开发组件时 删除和开发父组件依赖关系
 		if !n.Develop {
 			for _, p := range n.Parents {
 				if p.Develop {
@@ -113,16 +158,17 @@ func (dep *DepGraph) FlushDevelop() {
 }
 
 // Build 构建依赖图路径
-// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先 推荐false
+// deep: 依赖路径构建顺序 true=>深度优先 false=>广度优先
+// 广度优先的路径更短 如果不清楚该用什么推荐false
 // lan: 更新依赖语言
 func (dep *DepGraph) Build(deep bool, lan Language) {
-	dep.FlushDevelop()
-	dep.ForEach(deep, false, false, func(p, n *DepGraph) bool {
+	dep.Flush()
+	dep.ForEach(deep, true, false, func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
 			n.Path = p.Path
 		}
-		if n.Name != "" {
+		if n.Name != "" && !strings.HasSuffix(n.Path, n.Index()) {
 			n.Path += n.Index()
 		}
 		// 补全语言
@@ -135,19 +181,6 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 		}
 		return true
 	})
-}
-
-// IsDevelop 判断是否为开发依赖
-func (dep *DepGraph) IsDevelop() bool {
-	if len(dep.Parents) == 0 || dep.Develop {
-		return dep.Develop
-	}
-	for _, p := range dep.Parents {
-		if !p.Develop {
-			return false
-		}
-	}
-	return true
 }
 
 // RemoveDevelop 移除develop组件
@@ -168,7 +201,6 @@ func (dep *DepGraph) RemoveDevelop() {
 }
 
 // Tree 依赖树
-// 注意依赖树固定深度优先遍历 依赖路径是广度优先构建时返回的依赖树结构与实际不一致
 // path: true=>记录全部路径 false=>记录全部节点
 // name: true=>名称升序排序 false=>添加顺序排列
 func (dep *DepGraph) Tree(path, name bool) string {

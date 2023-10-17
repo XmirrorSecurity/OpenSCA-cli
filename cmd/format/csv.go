@@ -9,7 +9,7 @@ import (
 
 func Csv(report Report, out string) {
 
-	table := "Name, Version, Vendor, License, Langauge, PURL\n"
+	table := "Name, Version, Vendor, License, Language, PURL\n"
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 

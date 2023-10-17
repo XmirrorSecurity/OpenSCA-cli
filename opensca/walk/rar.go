@@ -1,6 +1,7 @@
 package walk
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 	"github.com/nwaples/rardecode"
 )
 
-func xrar(filter ExtractFileFilter, input, output string) bool {
+func xrar(ctx context.Context, filter ExtractFileFilter, input, output string) bool {
 
 	if !checkFileHead(input, M_RAR) {
 		return false
@@ -24,6 +25,12 @@ func xrar(filter ExtractFileFilter, input, output string) bool {
 	defer fr.Close()
 
 	for {
+
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+		}
 
 		fh, err := fr.Next()
 		if err == io.EOF {

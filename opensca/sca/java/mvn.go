@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/xml"
 	"fmt"
 	"io"
-	"net/http"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -19,59 +19,78 @@ import (
 )
 
 // ParsePoms 解析一个项目中的pom文件
-// poms: pom文件列表
-// return: 每个pom文件会解析成一个依赖图 返回依赖图根节点列表
-func ParsePoms(poms []*Pom) []*model.DepGraph {
+// poms: 项目中全部的pom文件列表
+// exclusion: 不需要解析的pom文件
+// call: 每个pom文件会解析成一个依赖图 返回对应的依赖图
+func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom *Pom, root *model.DepGraph)) {
 
-	// 记录module信息
-	modules := map[string]*Pom{}
-	for _, pom := range poms {
-		modules[filepath.Base(filepath.Dir(pom.File.Relpath()))] = pom
-	}
-
-	// 将revision主动推送到所有modules
-	for _, pom := range poms {
-		if revision, ok := pom.Properties["revision"]; ok {
-			for _, name := range pom.Modules {
-				if p, ok := modules[name]; ok {
-					if _, ok := p.Properties["revision"]; !ok {
-						p.Properties["revision"] = revision
-					}
-				}
-			}
-		}
-	}
+	// modules继承属性
+	inheritModules(poms)
 
 	// 记录当前项目的pom文件信息
 	gavMap := map[string]*model.File{}
+	PathMap := map[string]*model.File{}
 	for _, pom := range poms {
+		gavMap[pom.GAV()] = pom.File
 		pom.Update(&pom.PomDependency)
 		gavMap[pom.GAV()] = pom.File
+		if pom.File.Relpath() != "" {
+			PathMap[pom.File.Relpath()] = pom.File
+		}
 	}
 
-	// 获取对应的pom信息
+	// 获取dependency对应的pom
 	getpom := func(dep PomDependency, repos ...[]string) *Pom {
+		// 通过gav查找pom
+		f, ok := gavMap[dep.GAV()]
+		// 通过relativaPath查找pom
+		if !ok && dep.RelativePath != "" && dep.Define != nil && dep.Define.File.Relpath() != "" {
+			pompath := filepath.Join(filepath.Dir(dep.Define.File.Relpath()), dep.RelativePath)
+			f, ok = PathMap[pompath]
+		}
 		var p *Pom
-		if f, ok := gavMap[dep.GAV()]; ok {
+		if ok {
 			f.OpenReader(func(reader io.Reader) {
 				p = ReadPom(reader)
+				p.File = f
 			})
 		}
 		if p != nil {
 			return p
 		}
+		// 从组件仓库下载pom
 		var rs []common.RepoConfig
 		for _, urls := range repos {
 			for _, url := range urls {
 				rs = append(rs, common.RepoConfig{Url: url})
 			}
 		}
-		return mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+		p = mavenOrigin(dep.GroupId, dep.ArtifactId, dep.Version, rs...)
+
+		if p == nil {
+			logs.Warnf("not found pom %s", dep.Index3())
+		}
+
+		return p
 	}
 
-	var roots []*model.DepGraph
+	exclusionMap := map[*Pom]bool{}
+	for _, pom := range exclusion {
+		exclusionMap[pom] = true
+	}
 
 	for _, pom := range poms {
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// 提过不需要解析的pom
+		if exclusionMap[pom] {
+			continue
+		}
 
 		// 补全nil值
 		if pom.Properties == nil {
@@ -80,102 +99,22 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 
 		pom.Update(&pom.PomDependency)
 
-		// 继承parent
-		parent := pom.Parent
-		for parent.ArtifactId != "" {
+		// 继承pom
+		inheritPom(pom, getpom)
 
-			pom.Update(&parent)
-
-			parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
-			if parentPom == nil {
-				break
-			}
-			parentPom.PomDependency = parent
-			parent = parentPom.Parent
-
-			// 继承properties
-			for k, v := range parentPom.Properties {
-				if _, ok := pom.Properties[k]; !ok {
-					pom.Properties[k] = v
-				}
-			}
-
-			// 继承dependencyManagement
-			pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
-
-			// 继承dependencies
-			pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
-
-			// 继承repo&mirror
-			pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
-			pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
-		}
-
-		// 删除重复依赖项
-		depIndex2Set := map[string]bool{}
-		for i := len(pom.Dependencies) - 1; i >= 0; i-- {
-			dep := pom.Dependencies[i]
-			if depIndex2Set[dep.Index2()] {
-				pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
-			} else {
-				depIndex2Set[dep.Index2()] = true
-			}
-		}
-
-		// 处理dependencyManagement
-		depIndex2Set = map[string]bool{}
-		depManagement := map[string]*PomDependency{}
-		for i := 0; i < len(pom.DependencyManagement); {
-
-			dep := pom.DependencyManagement[i]
-
-			pom.Update(dep)
-
-			// 去重 保留第一个声明
-			if depIndex2Set[dep.Index2()] {
-				pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
-				continue
-			} else {
-				i++
-				depIndex2Set[dep.Index2()] = true
-			}
-
+		// 记录在根pom的dependencyManagement中非import组件信息
+		rootPomManagement := map[string]*PomDependency{}
+		for _, dep := range pom.DependencyManagement {
 			if dep.Scope != "import" {
-				depManagement[dep.Index2()] = dep
-				continue
-			}
-
-			// 引入scope为import的pom
-			ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
-			if ipom == nil {
-				continue
-			}
-			ipom.PomDependency = *dep
-
-			// 复制dependencyManagement内容
-			for _, idep := range ipom.DependencyManagement {
-				if depIndex2Set[idep.Index2()] {
-					continue
-				}
-				// import的dependencyManagement使用自身pom属性而非根pom属性
-				ipom.Update(idep)
-				pom.DependencyManagement = append(pom.DependencyManagement, idep)
+				rootPomManagement[dep.Index2()] = dep
 			}
 		}
-
-		_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
-			return &model.DepGraph{
-				Vendor:  s[0],
-				Name:    s[1],
-				Version: s[2],
-			}
-		}).LoadOrStore
 
 		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Relpath()}
 		root.Expand = pom
 
 		// 解析子依赖构建依赖关系
-		depIndex2Set = map[string]bool{}
+		depIndex2Set := map[string]bool{}
 		root.ForEachNode(func(p, n *model.DepGraph) bool {
 
 			if n.Expand == nil {
@@ -188,20 +127,52 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				n.AppendLicense(lic)
 			}
 
+			// 记录在当前pom的dependencyManagement中非import组件信息
+			depManagement := map[string]*PomDependency{}
+			for _, dep := range np.DependencyManagement {
+				if dep.Scope != "import" {
+					depManagement[dep.Index2()] = dep
+				}
+			}
+
 			for _, dep := range np.Dependencies {
 
+				// 丢弃provided或optional=true的组件
 				if dep.Scope == "provided" || dep.Optional {
 					continue
 				}
-
-				// 丢弃子依赖的test依赖
+				// 丢弃scope为test的间接依赖
 				if np != pom && dep.Scope == "test" {
 					continue
 				}
 
-				// 间接依赖优先通过dependencyManagement补全
-				if np != pom || dep.Version == "" {
+				// 非根pom直接引入的依赖先用自身pom的dependencyManament检查是否需要排除
+				if np != pom {
 					if d, ok := depManagement[dep.Index2()]; ok {
+						if d.Optional ||
+							d.Scope == "provided" ||
+							d.Scope == "test" {
+							continue
+						}
+					}
+				}
+
+				np.Update(dep)
+
+				// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
+				if np != pom {
+					if d, ok := depManagement[dep.Index2()]; ok {
+						exclusion := append(dep.Exclusions, d.Exclusions...)
+						dep = d
+						dep.Exclusions = exclusion
+						np.Update(dep)
+					}
+				}
+
+				// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
+				if np != pom || dep.Version == "" {
+					d, ok := rootPomManagement[dep.Index2()]
+					if ok {
 						// exclusion 需要保留
 						exclusion := append(dep.Exclusions, d.Exclusions...)
 						dep = d
@@ -209,8 +180,6 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 						pom.Update(dep)
 					}
 				}
-
-				np.Update(dep)
 
 				// 查看是否在Exclusion列表中
 				if np.NeedExclusion(*dep) {
@@ -223,43 +192,25 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 				}
 				depIndex2Set[dep.Index2()] = true
 
-				logs.Debugf("find %s", dep.ImportPathStack())
-
-				sub := _dep(dep.GroupId, dep.ArtifactId, dep.Version)
-
-				if sub.Expand != nil {
-					if dep.Scope != "test" {
-						sub.Develop = false
-					}
+				if dep.Check() {
+					logs.Debugf("find %s", dep.ImportPathStack())
+				} else {
+					logs.Warnf("find invalid %s", dep.ImportPathStack())
 					continue
 				}
 
-				subpom := getpom(*dep, np.Repositories, np.Mirrors)
-				if subpom == nil {
-					continue
-				}
-
-				subpom.PomDependency = *dep
-				// 继承根pom的exclusion
-				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-
-				// 子依赖继承自身parent属性
-				subParent := subpom.Parent
-				for subParent.ArtifactId != "" {
-					subParentPom := getpom(subParent, np.Repositories, np.Mirrors)
-					if subParentPom == nil {
-						break
-					}
-					for k, v := range subParentPom.Properties {
-						if _, ok := subpom.Properties[k]; !ok {
-							subpom.Properties[k] = v
-						}
-					}
-					subParent = subParentPom.Parent
-				}
-
-				sub.Expand = subpom
+				sub := &model.DepGraph{Vendor: dep.GroupId, Name: dep.ArtifactId, Version: dep.Version}
 				sub.Develop = dep.Scope == "test"
+
+				if subpom := getpom(*dep, np.Repositories, np.Mirrors); subpom != nil {
+					subpom.PomDependency = *dep
+					// 继承根pom的exclusion
+					subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
+					// 子依赖继承自身pom
+					inheritPom(subpom, getpom)
+					sub.Expand = subpom
+				}
+
 				n.AppendChild(sub)
 			}
 
@@ -267,11 +218,189 @@ func ParsePoms(poms []*Pom) []*model.DepGraph {
 		})
 
 		if root.Name != "" {
-			roots = append(roots, root)
+			call(pom, root)
+		}
+	}
+}
+
+// inheritModules 继承modules属性
+func inheritModules(poms []*Pom) {
+
+	gavMap := map[string]bool{}
+	for _, pom := range poms {
+		gavMap[pom.GAV()] = true
+	}
+
+	// 记录pom继承关系
+	_mod := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph { return &model.DepGraph{Name: s[0]} })
+	for _, pom := range poms {
+		n := _mod.LoadOrStore(pom.ArtifactId)
+		n.Expand = pom
+		// 记录modules继承关系
+		for _, subMod := range pom.Modules {
+			n.AppendChild(_mod.LoadOrStore(subMod))
+		}
+		// 记录parent继承关系
+		if gavMap[pom.Parent.GAV()] {
+			_mod.LoadOrStore(pom.Parent.ArtifactId).AppendChild(n)
 		}
 	}
 
-	return roots
+	// 传递属性
+	_mod.Range(func(k string, v *model.DepGraph) bool {
+
+		// 跳过非根pom
+		if len(v.Parents) > 0 {
+			return true
+		}
+
+		// 从每个根pom开始遍历
+		v.ForEachPath(func(p, n *model.DepGraph) bool {
+
+			// 判断parent是否有expand来判断是否已经继承过属性
+			expand := false
+			for _, p := range n.Parents {
+				if p.Expand != nil {
+					expand = true
+					return true
+				}
+			}
+
+			// 至少一个parent尚未继承属性则暂不处理当前节点
+			if expand {
+				return true
+			}
+
+			if n.Expand == nil {
+				return true
+			}
+
+			// 获取当前pom
+			pom, ok := n.Expand.(*Pom)
+			if !ok {
+				return true
+			}
+
+			// 删除expand标识已继承属性
+			n.Expand = nil
+
+			// 将属性传递给需要继承的pom
+			for _, c := range n.Children {
+				mod := _mod.LoadOrStore(c.Name)
+				if mod.Expand == nil {
+					continue
+				}
+				modpom, ok := mod.Expand.(*Pom)
+				if !ok {
+					continue
+				}
+				if modpom.Properties == nil {
+					modpom.Properties = PomProperties{}
+				}
+				for k, v := range pom.Properties {
+					if _, ok := modpom.Properties[k]; !ok {
+						modpom.Properties[k] = v
+					}
+				}
+			}
+
+			return true
+		})
+
+		return true
+	})
+}
+
+type getPomFunc func(dep PomDependency, repos ...[]string) *Pom
+
+// inheritPom 继承pom所需内容
+func inheritPom(pom *Pom, getpom getPomFunc) {
+
+	// 继承parent
+	parent := pom.Parent
+	for parent.ArtifactId != "" {
+
+		pom.Update(&parent)
+
+		parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
+		if parentPom == nil {
+			break
+		}
+		parentPom.PomDependency = parent
+		parent = parentPom.Parent
+
+		// 继承properties
+		for k, v := range parentPom.Properties {
+			if _, ok := pom.Properties[k]; !ok {
+				pom.Properties[k] = v
+			}
+		}
+
+		// 继承dependencyManagement
+		pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
+
+		// 继承dependencies
+		pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
+
+		// 继承repo&mirror
+		pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
+		pom.Mirrors = append(pom.Mirrors, parentPom.Mirrors...)
+
+	}
+
+	// 更新pom坐标
+	pom.Update(&pom.PomDependency)
+	pom.Update(&pom.Parent)
+
+	// 删除重复依赖项
+	depIndex2Set := map[string]bool{}
+	for i := len(pom.Dependencies) - 1; i >= 0; i-- {
+		dep := pom.Dependencies[i]
+		if depIndex2Set[dep.Index2()] {
+			pom.Dependencies = append(pom.Dependencies[:i], pom.Dependencies[i+1:]...)
+		} else {
+			depIndex2Set[dep.Index2()] = true
+		}
+	}
+
+	// 处理dependencyManagement
+	depIndex2Set = map[string]bool{}
+	for i := 0; i < len(pom.DependencyManagement); {
+
+		dep := pom.DependencyManagement[i]
+
+		pom.Update(dep)
+
+		// 去重 保留第一个声明
+		if depIndex2Set[dep.Index2()] {
+			pom.DependencyManagement = append(pom.DependencyManagement[:i], pom.DependencyManagement[i+1:]...)
+			continue
+		} else {
+			i++
+			depIndex2Set[dep.Index2()] = true
+		}
+
+		if dep.Scope != "import" {
+			continue
+		}
+
+		// 引入scope为import的pom
+		ipom := getpom(*dep, pom.Repositories, pom.Mirrors)
+		if ipom == nil {
+			continue
+		}
+		ipom.PomDependency = *dep
+
+		// 复制dependencyManagement内容
+		for _, idep := range ipom.DependencyManagement {
+			if depIndex2Set[idep.Index2()] {
+				continue
+			}
+			// import的dependencyManagement使用自身pom属性而非根pom属性
+			ipom.Update(idep)
+			pom.DependencyManagement = append(pom.DependencyManagement, idep)
+		}
+	}
 }
 
 var mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {
@@ -288,19 +417,13 @@ var mavenOrigin = func(groupId, artifactId, version string, repos ...common.Repo
 	}
 
 	DownloadPomFromRepo(PomDependency{GroupId: groupId, ArtifactId: artifactId, Version: version}, func(r io.Reader) {
-
 		data, err := io.ReadAll(r)
 		if err != nil {
 			logs.Warn(err)
 			return
 		}
 		reader := bytes.NewReader(data)
-
 		p = ReadPom(reader)
-		if p == nil {
-			return
-		}
-
 		reader.Seek(0, io.SeekStart)
 		cache.Save(path, reader)
 	}, repos...)
@@ -328,57 +451,51 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 		return
 	}
 
-	repoSet := map[string]bool{}
+	// 正式版本
+	pom := fmt.Sprintf("%s/%s/%s/%s-%s.pom", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version, dep.ArtifactId, dep.Version)
+	common.DownloadUrlFromRepos(pom, func(repo common.RepoConfig, r io.Reader) { do(r) }, append(defaultMavenRepo, repos...)...)
 
-	for _, repo := range append(defaultMavenRepo, repos...) {
-
-		if repo.Url == "" {
-			continue
-		}
-		if repoSet[repo.Url] {
-			continue
-		}
-		repoSet[repo.Url] = true
-
-		url := fmt.Sprintf("%s/%s/%s/%s/%s-%s.pom", strings.TrimRight(repo.Url, "/"),
-			strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version,
-			dep.ArtifactId, dep.Version)
-
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			logs.Warn(err)
-			continue
-		}
-		if repo.Username+repo.Password != "" {
-			req.SetBasicAuth(repo.Username, repo.Password)
-		}
-
-		resp, err := common.HttpClient.Do(req)
-		if err != nil {
-			logs.Warn(err)
-			continue
-		}
-
-		if resp.StatusCode != 200 {
-			logs.Warnf("%d %s", resp.StatusCode, url)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-			continue
-		} else {
-			logs.Debugf("%d %s", resp.StatusCode, url)
-			do(resp.Body)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-			break
-		}
+	// 快照版本
+	if !strings.HasSuffix(strings.ToLower(dep.Version), "-snapshot") {
+		return
 	}
+	snap := fmt.Sprintf("%s/%s/%s/maven-metadata.xml", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, dep.Version)
+	common.DownloadUrlFromRepos(snap, func(repo common.RepoConfig, r io.Reader) {
+
+		metadata := struct {
+			LastTime     string `xml:"versioning>lastUpdated"`
+			SnapVersions []struct {
+				Version string `xml:"value"`
+				Time    string `xml:"updated"`
+			} `xml:"versioning>snapshotVersions>snapshotVersion"`
+		}{}
+
+		err := xml.NewDecoder(r).Decode(&metadata)
+		if err != nil {
+			logs.Warn(err)
+		}
+
+		if metadata.LastTime == "" {
+			return
+		}
+
+		for _, snap := range metadata.SnapVersions {
+			if snap.Time == metadata.LastTime {
+				snapom := fmt.Sprintf("%s/%s/%s/%s-%s.pom", strings.ReplaceAll(dep.GroupId, ".", "/"), dep.ArtifactId, snap.Version, dep.ArtifactId, snap.Version)
+				common.DownloadUrlFromRepos(snapom, func(repo common.RepoConfig, r io.Reader) { do(r) }, repo)
+				break
+			}
+		}
+
+	}, append(defaultMavenRepo, repos...)...)
+
 }
 
 // MvnTree 调用mvn dependency:tree解析依赖
-// dir: 临时目录路径信息
-func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
+// pom: pom文件信息
+func MvnTree(ctx context.Context, pom *Pom) *model.DepGraph {
 
-	if dir == nil {
+	if pom == nil {
 		return nil
 	}
 
@@ -387,10 +504,10 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	}
 
 	cmd := exec.CommandContext(ctx, "mvn", "dependency:tree")
-	cmd.Dir = dir.Abspath()
+	cmd.Dir = filepath.Dir(pom.File.Abspath())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logs.Warn(err)
+		// logs.Warn(err)
 		return nil
 	}
 
@@ -400,8 +517,6 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	tree := false
 	// 捕获依赖树起始位置
 	title := regexp.MustCompile(`--- [^\n]+ ---`)
-
-	var roots []*model.DepGraph
 
 	scan := bufio.NewScanner(bytes.NewBuffer(output))
 	for scan.Scan() {
@@ -413,9 +528,9 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		if tree && strings.Trim(line, "-") == "" {
 			tree = false
 			root := parseMvnTree(lines)
-			if root != nil {
-				root.Path = dir.Relpath()
-				roots = append(roots, root)
+			if root != nil && root.Name == pom.ArtifactId {
+				root.Path = pom.File.Relpath()
+				return root
 			}
 			lines = nil
 			continue
@@ -426,7 +541,7 @@ func MvnTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 		}
 	}
 
-	return roots
+	return nil
 }
 
 // parseMvnTree 解析 mvn dependency:tree 的输出

@@ -24,7 +24,7 @@ type Report struct {
 	// 任务检测耗时 单位s
 	CostTime float64 `json:"cost_time" xml:"cost_time" `
 	// 错误信息
-	ErrorString string `json:"error" xml:"error"`
+	ErrorString string `json:"error,omitempty" xml:"error,omitempty"`
 	*detail.DepDetailGraph
 }
 

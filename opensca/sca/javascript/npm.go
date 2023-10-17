@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
@@ -53,12 +53,11 @@ func npmkey(name, version string) string {
 }
 
 func _depSet() *model.DepGraphMap {
-	return model.NewDepGraphMap(func(s ...string) string {
-		return fmt.Sprintf("%s:%s", s[0], s[1])
-	}, func(s ...string) *model.DepGraph {
+	return model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
 			Name:    s[0],
 			Version: s[1],
+			Develop: len(s) > 2 && s[2] == "dev",
 		}
 	})
 }
@@ -79,12 +78,7 @@ var npmOrigin = func(name, version string) *PackageJson {
 	// 读取缓存
 	path := cache.Path("", name, version, model.Lan_JavaScript)
 	cache.Load(path, func(reader io.Reader) {
-		npm := readJson[NpmJson](reader)
-		vers := []string{}
-		for v := range npm.Versions {
-			vers = append(vers, v)
-		}
-		origin = npm.Versions[findMaxVersion(version, vers)]
+		origin = ReadNpmJson(reader, version)
 	})
 
 	if origin != nil {
@@ -92,38 +86,17 @@ var npmOrigin = func(name, version string) *PackageJson {
 	}
 
 	// 从npm仓库下载
-	url := fmt.Sprintf(`https://r.cnpmjs.org/%s`, name)
-	if rep, err := http.Get(url); err == nil {
-		defer rep.Body.Close()
-
-		if rep.StatusCode != 200 {
-			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
-			io.Copy(io.Discard, rep.Body)
-		} else {
-
-			logs.Infof("code:%d url:%s", rep.StatusCode, url)
-			data, err := io.ReadAll(rep.Body)
-			if err != nil {
-				logs.Warn(err)
-			}
-
-			reader := bytes.NewReader(data)
-			var npm NpmJson
-			if err := json.NewDecoder(reader).Decode(&npm); err != nil {
-				logs.Warnf("unmarshal json from %s err: %s", url, err)
-				return origin
-			}
-
-			vers := []string{}
-			for v := range npm.Versions {
-				vers = append(vers, v)
-			}
-			origin = npm.Versions[findMaxVersion(version, vers)]
-
-			reader.Seek(0, io.SeekStart)
-			cache.Save(path, reader)
+	common.DownloadUrlFromRepos(name, func(repo common.RepoConfig, r io.Reader) {
+		data, err := io.ReadAll(r)
+		if err != nil {
+			logs.Warn(err)
+			return
 		}
-	}
+		reader := bytes.NewReader(data)
+		origin = ReadNpmJson(reader, version)
+		reader.Seek(0, io.SeekStart)
+		cache.Save(path, reader)
+	}, defaultNpmRepo...)
 
 	return origin
 }
@@ -138,30 +111,27 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 // ParsePackageJsonWithNode 借助node_modules解析package.json
 func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
 
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
-	// root.AppendLicense(pkgjson.License)
-
 	_dep := _depSet().LoadOrStore
 
-	root.Expand = pkgjson
-
-	findDep := func(name, version, basedir string) *model.DepGraph {
+	findDep := func(dev bool, name, version, basedir string) *model.DepGraph {
 		var subjs *PackageJson
 		if len(nodeMap) > 0 {
 			// 从node_modules中查找
 			_, subjs = findFromNodeModules(name, basedir, nodeMap)
-		} else {
+		}
+		if subjs == nil {
 			// 从外部数据源下载
 			subjs = npmOrigin(name, version)
-			if subjs != nil {
-				// 忽略开发环境依赖
-				subjs.DevDependencies = nil
-			}
 		}
 		if subjs == nil {
 			return nil
 		}
-		dep := _dep(subjs.Name, subjs.Version)
+		var dep *model.DepGraph
+		if dev {
+			dep = _dep(subjs.Name, subjs.Version, "dev")
+		} else {
+			dep = _dep(subjs.Name, subjs.Version)
+		}
 		if dep.Expand == nil {
 			// dep.AppendLicense(subjs.License)
 			dep.Expand = subjs
@@ -169,25 +139,24 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 		return dep
 	}
 
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
+	// root.AppendLicense(pkgjson.License)
+	root.Expand = pkgjson
+
+	// 根节点需要添加开发组件 (需要在构建依赖图之前先添加开发组件 否则不会构建开发组件的子依赖)
+	for name, version := range pkgjson.DevDependencies {
+		root.AppendChild(findDep(true, name, version, pkgjson.File.Relpath()))
+	}
+
+	// 遍历*路径*构建依赖图
 	root.ForEachPath(func(p, n *model.DepGraph) bool {
-
-		njs := n.Expand.(*PackageJson)
-		basedir := njs.File.Relpath()
-
-		for name, version := range njs.Dependencies {
-			n.AppendChild(findDep(name, version, basedir))
+		js := n.Expand.(*PackageJson)
+		for name, version := range js.Dependencies {
+			n.AppendChild(findDep(false, name, version, js.File.Relpath()))
 		}
-
-		for name, version := range njs.DevDependencies {
-			dep := findDep(name, version, basedir)
-			if dep != nil {
-				dep.Develop = true
-				n.AppendChild(dep)
-			}
-		}
-
 		return true
 	})
+
 	root.ForEachNode(func(p, n *model.DepGraph) bool { n.Expand = nil; return true })
 
 	return root
@@ -199,9 +168,6 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	if pkglock.LockfileVersion == 3 {
 		return ParsePackageJsonWithLockV3(pkgjson, pkglock)
 	}
-
-	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
-	// root.AppendLicense(pkgjson.License)
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
@@ -236,6 +202,9 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 		}
 	}
 
+	root := &model.DepGraph{Name: pkgjson.Name, Version: pkgjson.Version, Path: pkgjson.File.Relpath()}
+	// root.AppendLicense(pkgjson.License)
+
 	for name := range pkgjson.Dependencies {
 		root.AppendChild(depNameMap[name])
 	}
@@ -243,8 +212,11 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	for name := range pkgjson.DevDependencies {
 		dep := depNameMap[name]
 		if dep != nil {
-			dep.Develop = true
-			root.AppendChild(dep)
+			devdep := _dep(dep.Name, dep.Version, "dev")
+			for _, c := range dep.Children {
+				devdep.AppendChild(c)
+			}
+			root.AppendChild(devdep)
 		}
 	}
 
@@ -330,11 +302,23 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 	return root
 }
 
-// findMaxVersion 从一组版本中查找符合版本约束的最大版本
+func ReadNpmJson(reader io.Reader, version string) *PackageJson {
+	npm := readJson[NpmJson](reader)
+	if npm == nil {
+		return nil
+	}
+	vers := []string{}
+	for v := range npm.Versions {
+		vers = append(vers, v)
+	}
+	return npm.Versions[FindMaxVersion(version, vers)]
+}
+
+// FindMaxVersion 从一组版本中查找符合版本约束的最大版本
 // version: 范围约束
 // versions: 待查找的版本列表
 // return: 符合要求的最大版本
-func findMaxVersion(version string, versions []string) string {
+func FindMaxVersion(version string, versions []string) string {
 	c, err := semver.NewConstraint(version)
 	if err != nil {
 		return version

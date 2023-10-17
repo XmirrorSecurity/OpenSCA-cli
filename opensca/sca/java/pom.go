@@ -1,7 +1,6 @@
 package java
 
 import (
-	"encoding/xml"
 	"fmt"
 	"io"
 	"regexp"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java/xml"
 )
 
 type Pom struct {
@@ -21,6 +21,7 @@ type Pom struct {
 	Repositories         []string         `xml:"repositories>repository>url"`
 	Mirrors              []string         `xml:"mirrors>mirror>url"`
 	Licenses             []string         `xml:"licenses>license>name"`
+	Profiles             []Pom            `xml:"profiles>profile"`
 	File                 *model.File      `xml:"-" json:"-"`
 }
 
@@ -36,16 +37,16 @@ type PomDependency struct {
 	Exclusions   []*PomDependency `xml:"exclusions>exclusion"`
 	Define       *Pom             `xml:"-"`
 	RefProperty  *Property        `xml:"-"`
-	// Start        int              `xml:",start"`
-	// End          int              `xml:",end"`
+	Start        int              `xml:",start"`
+	End          int              `xml:",end"`
 }
 
 type Property struct {
 	Key    string
 	Value  string
 	Define *Pom
-	// Start  int
-	// End    int
+	Start  int `xml:",start"`
+	End    int `xml:",end"`
 }
 
 type PomProperties map[string]*Property
@@ -56,8 +57,8 @@ func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error 
 		e := struct {
 			XMLName xml.Name
 			Value   string `xml:",chardata"`
-			// Start   int    `xml:",start" json:"-"`
-			// End     int    `xml:",end" json:"-"`
+			Start   int    `xml:",start"`
+			End     int    `xml:",end"`
 		}{}
 		err := d.Decode(&e)
 		if err == io.EOF {
@@ -68,8 +69,8 @@ func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error 
 		(*pp)[e.XMLName.Local] = &Property{
 			Key:   e.XMLName.Local,
 			Value: e.Value,
-			// Start: e.Start,
-			// End:   e.End,
+			Start: e.Start,
+			End:   e.End,
 		}
 	}
 	return nil
@@ -158,6 +159,21 @@ func ReadPom(reader io.Reader) *Pom {
 	p.Properties["project.parent.version"] = &Property{Key: "project.parent.version", Value: p.Parent.Version}
 	p.Properties["parent.version"] = &Property{Key: "parent.version", Value: p.Parent.Version}
 
+	// 添加第一个Profile
+	if len(p.Profiles) > 0 {
+		profile := p.Profiles[0]
+		for k, v := range profile.Properties {
+			if _, ok := p.Properties[k]; !ok {
+				p.Properties[k] = v
+			}
+		}
+		p.Dependencies = append(p.Dependencies, profile.Dependencies...)
+		p.DependencyManagement = append(p.DependencyManagement, profile.DependencyManagement...)
+		p.Modules = append(p.Modules, profile.Modules...)
+		p.Mirrors = append(p.Mirrors, profile.Mirrors...)
+		p.Repositories = append(p.Repositories, profile.Repositories...)
+	}
+
 	// 处理版本范围
 	for _, d := range p.Dependencies {
 		if strings.ContainsAny(d.Version, "()[]") {
@@ -191,34 +207,43 @@ func ReadPom(reader io.Reader) *Pom {
 	return p
 }
 
+func (p *Pom) Update(dep *PomDependency) {
+	var ref *Property
+	dep.GroupId, ref = p.update(dep.GroupId)
+	if ref != nil {
+		dep.RefProperty = ref
+	}
+	dep.Version, ref = p.update(dep.Version)
+	if ref != nil {
+		dep.RefProperty = ref
+	}
+}
+
 var propertyReg = regexp.MustCompile(`\$\{[^{}]*\}`)
 
-func (p *Pom) Update(dep *PomDependency) {
-	rep := func(value string) string {
-		return propertyReg.ReplaceAllStringFunc(value,
-			func(s string) string {
-				exist := map[string]struct{}{}
-				for strings.HasPrefix(s, "$") {
-					if _, ok := exist[s]; ok {
-						break
-					} else {
-						exist[s] = struct{}{}
-					}
-					k := s[2 : len(s)-1]
-					if v, ok := p.Properties[k]; ok {
-						if len(v.Value) > 0 {
-							s = v.Value
-							p.RefProperty = v
-							continue
-						}
-					}
+func (p *Pom) update(value string) (val string, ref *Property) {
+	val = propertyReg.ReplaceAllStringFunc(value,
+		func(s string) string {
+			exist := map[string]struct{}{}
+			for strings.HasPrefix(s, "$") {
+				if _, ok := exist[s]; ok {
 					break
+				} else {
+					exist[s] = struct{}{}
 				}
-				return s
-			})
-	}
-	dep.Version = rep(dep.Version)
-	dep.GroupId = rep(dep.GroupId)
+				k := s[2 : len(s)-1]
+				if v, ok := p.Properties[k]; ok {
+					if len(v.Value) > 0 {
+						s = v.Value
+						ref = v
+						continue
+					}
+				}
+				break
+			}
+			return s
+		})
+	return
 }
 
 var reg = regexp.MustCompile(`\s`)
@@ -260,16 +285,21 @@ func (dep PomDependency) ImportPath() []PomDependency {
 
 // ImportPathStack 引入路径栈
 func (dep PomDependency) ImportPathStack() string {
-	var paths []string
-	for _, p := range dep.ImportPath() {
-		var ref, rpom string
-		if p.RefProperty != nil {
-			if p.Define != nil {
-				rpom = fmt.Sprintf("#[%s]", p.Define.Index4())
-			}
-			ref = fmt.Sprintf("${%s}=%s", p.RefProperty.Key, p.RefProperty.Value)
+	var importPaths []string
+	paths := dep.ImportPath()
+	for i, d := range paths {
+		importPath := fmt.Sprintf("[%s]", d.Index4())
+		if i > 0 {
+			pre := paths[i-1]
+			importPath += fmt.Sprintf("(line:%d-%d)", pre.Start, pre.End)
 		}
-		paths = append(paths, fmt.Sprintf("[%s]%s%s", p.Index4(), rpom, ref))
+		if d.RefProperty != nil {
+			if d.RefProperty.Define != nil {
+				importPath += fmt.Sprintf("#[%s](line:%d)", d.RefProperty.Define.Index4(), d.RefProperty.Start)
+			}
+			importPath += fmt.Sprintf("${%s}=%s", d.RefProperty.Key, d.RefProperty.Value)
+		}
+		importPaths = append(importPaths, importPath)
 	}
-	return strings.Join(paths, "<=")
+	return strings.Join(importPaths, "<=")
 }

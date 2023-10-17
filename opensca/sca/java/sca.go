@@ -11,7 +11,8 @@ import (
 )
 
 type Sca struct {
-	NotUseMvn bool
+	NotUseMvn    bool
+	NotUseStatic bool
 }
 
 func (sca Sca) Language() model.Language {
@@ -22,21 +23,21 @@ func (sca Sca) Filter(relpath string) bool {
 	return filter.JavaPom(relpath)
 }
 
-func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File) []*model.DepGraph {
+func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 
 	// jar包中的pom仅读取pom自身信息 不获取子依赖
 	if strings.Contains(parent.Relpath(), ".jar") {
-		var deps []*model.DepGraph
 		for _, file := range files {
 			if !filter.JavaPom(file.Relpath()) {
 				continue
 			}
 			file.OpenReader(func(reader io.Reader) {
 				p := ReadPom(reader)
+				p.Update(&p.PomDependency)
 				if !p.Check() {
 					return
 				}
-				deps = append(deps, &model.DepGraph{
+				call(file, &model.DepGraph{
 					Vendor:  p.GroupId,
 					Name:    p.ArtifactId,
 					Version: p.Version,
@@ -44,7 +45,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 				})
 			})
 		}
-		return deps
+		return
 	}
 
 	// 记录pom文件
@@ -59,16 +60,26 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File)
 		}
 	}
 
+	// 记录不需要静态解析的pom
+	var exclusionPom []*Pom
+
 	// 优先尝试调用mvn
-	if len(poms) > 0 && !sca.NotUseMvn {
-		deps := MvnTree(ctx, parent)
-		if len(deps) > 0 {
-			return deps
+	if !sca.NotUseMvn {
+		for _, pom := range poms {
+			dep := MvnTree(ctx, pom)
+			if dep != nil {
+				call(pom.File, dep)
+				exclusionPom = append(exclusionPom, pom)
+			}
 		}
 	}
 
 	// 静态解析
-	return ParsePoms(poms)
+	if !sca.NotUseStatic {
+		ParsePoms(ctx, poms, exclusionPom, func(pom *Pom, root *model.DepGraph) {
+			call(pom.File, root)
+		})
+	}
 }
 
 var defaultMavenRepo = []common.RepoConfig{

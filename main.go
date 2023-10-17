@@ -17,6 +17,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 )
 
@@ -100,6 +101,7 @@ func args() {
 	logs.CreateLog(config.Conf().LogFile)
 
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
+	javascript.RegisterNpmRepo(config.Conf().Repo.Npm...)
 	php.RegisterComposerRepo(config.Conf().Repo.Composer...)
 }
 
@@ -107,35 +109,28 @@ func startProgressBar(arg *opensca.TaskArg) (stop func()) {
 
 	progress := true
 
-	var find, done, deps, bar int
+	var find, deps, bar int
 
 	go func() {
 		logos := []string{`[   ]`, `[=  ]`, `[== ]`, `[===]`, `[ ==]`, `[  =]`, `[   ]`, `[  =]`, `[ ==]`, `[===]`, `[== ]`, `[=  ]`}
 		for progress {
-			fmt.Printf("\r%s find:%d done:%d dependencies:%d", logos[bar], find, done, deps)
+			fmt.Printf("\r%s file:%d dependencies:%d", logos[bar], find, deps)
 			bar = (bar + 1) % len(logos)
 			<-time.After(time.Millisecond * 100)
 		}
 	}()
 
-	// 记录需要解析的文件
-	arg.WalkFileFunc = func(parent *model.File, files []*model.File) {
-		find += len(files)
-	}
-
-	// 记录处理完的文件
-	arg.DeferWalkFileFunc = func(parent *model.File, files []*model.File) {
-		done += len(files)
-	}
-
-	// 记录解析到的依赖个数
-	arg.WalkDepFunc = func(dep *model.DepGraph) {
-		dep.ForEachNode(func(p, n *model.DepGraph) bool {
-			if n.Name != "" {
-				deps++
-			}
-			return true
-		})
+	// 记录解析过的文件及依赖
+	arg.ResCallFunc = func(file *model.File, root ...*model.DepGraph) {
+		find++
+		for _, dep := range root {
+			dep.ForEachNode(func(p, n *model.DepGraph) bool {
+				if n.Name != "" {
+					deps++
+				}
+				return true
+			})
+		}
 	}
 
 	return func() {
