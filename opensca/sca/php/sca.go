@@ -7,7 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
 )
@@ -70,16 +69,5 @@ loop:
 
 		// 从数据源下载
 		call(json.File, ParseComposerJsonWithOrigin(json))
-	}
-}
-
-var defaultComposerRepo = []common.RepoConfig{
-	{Url: "http://repo.packagist.org/p2"},
-}
-
-func RegisterComposerRepo(repos ...common.RepoConfig) {
-	newRepo := common.TrimRepo(repos...)
-	if len(newRepo) > 0 {
-		defaultComposerRepo = newRepo
 	}
 }

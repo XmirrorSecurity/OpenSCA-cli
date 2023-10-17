@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"sort"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
@@ -78,12 +78,7 @@ var npmOrigin = func(name, version string) *PackageJson {
 	// 读取缓存
 	path := cache.Path("", name, version, model.Lan_JavaScript)
 	cache.Load(path, func(reader io.Reader) {
-		npm := readJson[NpmJson](reader)
-		vers := []string{}
-		for v := range npm.Versions {
-			vers = append(vers, v)
-		}
-		origin = npm.Versions[findMaxVersion(version, vers)]
+		origin = ReadNpmJson(reader, version)
 	})
 
 	if origin != nil {
@@ -91,38 +86,17 @@ var npmOrigin = func(name, version string) *PackageJson {
 	}
 
 	// 从npm仓库下载
-	url := fmt.Sprintf(`https://r.cnpmjs.org/%s`, name)
-	if rep, err := http.Get(url); err == nil {
-		defer rep.Body.Close()
-
-		if rep.StatusCode != 200 {
-			logs.Warnf("code:%d url:%s", rep.StatusCode, url)
-			io.Copy(io.Discard, rep.Body)
-		} else {
-
-			logs.Infof("code:%d url:%s", rep.StatusCode, url)
-			data, err := io.ReadAll(rep.Body)
-			if err != nil {
-				logs.Warn(err)
-			}
-
-			reader := bytes.NewReader(data)
-			var npm NpmJson
-			if err := json.NewDecoder(reader).Decode(&npm); err != nil {
-				logs.Warnf("unmarshal json from %s err: %s", url, err)
-				return origin
-			}
-
-			vers := []string{}
-			for v := range npm.Versions {
-				vers = append(vers, v)
-			}
-			origin = npm.Versions[findMaxVersion(version, vers)]
-
-			reader.Seek(0, io.SeekStart)
-			cache.Save(path, reader)
+	common.DownloadUrlFromRepos(name, func(repo common.RepoConfig, r io.Reader) {
+		data, err := io.ReadAll(r)
+		if err != nil {
+			logs.Warn(err)
+			return
 		}
-	}
+		reader := bytes.NewReader(data)
+		origin = ReadNpmJson(reader, version)
+		reader.Seek(0, io.SeekStart)
+		cache.Save(path, reader)
+	}, common.RepoConfig{Url: "https://r.cnpmjs.org/"})
 
 	return origin
 }
@@ -328,11 +302,23 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 	return root
 }
 
-// findMaxVersion 从一组版本中查找符合版本约束的最大版本
+func ReadNpmJson(reader io.Reader, version string) *PackageJson {
+	npm := readJson[NpmJson](reader)
+	if npm == nil {
+		return nil
+	}
+	vers := []string{}
+	for v := range npm.Versions {
+		vers = append(vers, v)
+	}
+	return npm.Versions[FindMaxVersion(version, vers)]
+}
+
+// FindMaxVersion 从一组版本中查找符合版本约束的最大版本
 // version: 范围约束
 // versions: 待查找的版本列表
 // return: 符合要求的最大版本
-func findMaxVersion(version string, versions []string) string {
+func FindMaxVersion(version string, versions []string) string {
 	c, err := semver.NewConstraint(version)
 	if err != nil {
 		return version

@@ -170,81 +170,31 @@ func ParseComposerJsonWithOrigin(json *ComposerJson) *model.DepGraph {
 
 var composerOrigin = func(name, version string) *ComposerPackage {
 
-	findComposerJsonFromRepo := func(repo ComposerRepo) *ComposerPackage {
-		vers := []string{}
-		for _, packages := range repo.Packages {
-			for _, pkg := range packages {
-				vers = append(vers, pkg.Version)
-			}
-		}
-		maxv := findMaxVersion(version, vers)
-		for _, packages := range repo.Packages {
-			for _, pkg := range packages {
-				if strings.EqualFold(pkg.Version, maxv) {
-					pkg.Name = name
-					return pkg
-				}
-			}
-		}
-		return nil
-	}
-
 	// 读取缓存
 	var origin *ComposerPackage
 	path := cache.Path("", name, version, model.Lan_Php)
-	if cache.Load(path, func(reader io.Reader) {
-		var repo ComposerRepo
-		if err := json.NewDecoder(reader).Decode(&repo); err != nil {
-			logs.Warnf("unmarshal %s err: %s", name, err)
-		}
-		origin = findComposerJsonFromRepo(repo)
-	}) {
+	cache.Load(path, func(reader io.Reader) {
+		origin = ReadComposerRepoJson(reader, name, version)
+	})
+
+	if origin != nil {
 		return origin
 	}
 
 	// 从composer仓库下载
-	for _, repo := range defaultComposerRepo {
-
-		url := fmt.Sprintf("%s/%s.json", strings.TrimRight(repo.Url, "/"), name)
-		resp, err := common.HttpClient.Get(url)
-		if err != nil {
-			logs.Warnf("download %s err: %s", url, err)
-			continue
-		}
-
-		if resp.StatusCode != 200 {
-			logs.Warnf("code:%d url:%s", resp.StatusCode, url)
-			io.Copy(io.Discard, resp.Body)
-			resp.Body.Close()
-			continue
-		}
-
-		logs.Infof("code:%d url:%s", resp.StatusCode, url)
-
-		data, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
+	common.DownloadUrlFromRepos(fmt.Sprintf("%s.json", name), func(repo common.RepoConfig, r io.Reader) {
+		data, err := io.ReadAll(r)
 		if err != nil {
 			logs.Warn(err)
-			continue
+			return
 		}
-
 		reader := bytes.NewReader(data)
-		var repo ComposerRepo
-		if err := json.NewDecoder(reader).Decode(&repo); err != nil {
-			logs.Warnf("unmarshal json from %s err: %s", url, err)
-			// continue
-		}
-
+		origin = ReadComposerRepoJson(reader, name, version)
 		reader.Seek(0, io.SeekStart)
 		cache.Save(path, reader)
+	}, common.RepoConfig{Url: "http://repo.packagist.org/p2"})
 
-		origin = findComposerJsonFromRepo(repo)
-		if origin != nil {
-			return origin
-		}
-	}
-
-	return nil
+	return origin
 }
 
 func RegisterComposerOrigin(origin func(name, version string) *ComposerPackage) {
@@ -253,7 +203,30 @@ func RegisterComposerOrigin(origin func(name, version string) *ComposerPackage) 
 	}
 }
 
-func findMaxVersion(version string, versions []string) string {
+func ReadComposerRepoJson(reader io.Reader, name, version string) *ComposerPackage {
+	var repo ComposerRepo
+	if err := json.NewDecoder(reader).Decode(&repo); err != nil {
+		logs.Warnf("unmarshal %s err: %s", name, err)
+	}
+	vers := []string{}
+	for _, packages := range repo.Packages {
+		for _, pkg := range packages {
+			vers = append(vers, pkg.Version)
+		}
+	}
+	maxv := FindMaxVersion(version, vers)
+	for _, packages := range repo.Packages {
+		for _, pkg := range packages {
+			if strings.EqualFold(pkg.Version, maxv) {
+				pkg.Name = name
+				return pkg
+			}
+		}
+	}
+	return nil
+}
+
+func FindMaxVersion(version string, versions []string) string {
 	fix := func(s string) string {
 		if i := strings.Index(s, "@"); i != -1 {
 			s = s[:i]
