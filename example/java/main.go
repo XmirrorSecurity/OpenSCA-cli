@@ -52,7 +52,15 @@ func main() {
 
 	// pure static parse pom
 	java.ParsePoms(context.TODO(), poms, nil, func(pom *java.Pom, root *model.DepGraph) {
+
+		logs.Infof("file %s dep track:", pom.File.Relpath())
+		root.ForEachNode(func(p, n *model.DepGraph) bool {
+			logs.Info(n.Expand.(*java.Pom).PomDependency.ImportPathStack())
+			return true
+		})
+
 		root.Build(false, model.Lan_Java)
-		logs.Infof("file %s:\n%s", pom.File.Relpath(), root.Tree(false, false))
+		logs.Infof("file %s dep tree:\n%s", pom.File.Relpath(), root.Tree(false, false))
+
 	})
 }
