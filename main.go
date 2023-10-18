@@ -69,6 +69,7 @@ func main() {
 
 	// 打印概览信息
 	fmt.Println("\n\nComplete!\n" + format.Statis(report))
+	logs.Info("\nComplete!\n" + format.Statis(report))
 
 	// 开启ui
 	if config.Conf().Optional.UI {
