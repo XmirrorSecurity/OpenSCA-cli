@@ -1,15 +1,13 @@
-<p align="center">
+[![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
+[![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
+
+<div align="center">
 	<img alt="logo" src="../logo.svg">
-</p>
-<h1 align="center" style="margin: 30px 0 30px; font-weight: bold;">OpenSCA-Cli</h1>
-<p align="center">
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE"><img src="https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
-	<a href="https://github.com/XmirrorSecurity/OpenSCA-cli/releases"><img src="https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli?style=flat-square"></a>
-</p>
+</div>
 
 English|[中文](../README.md)
 
-<!-- TOC -->
 - [Introduction](#introduction)
 - [Detection Ability](#detection-ability)
 - [Download and Deployment](#download-and-deployment)
@@ -28,7 +26,7 @@ English|[中文](../README.md)
 - [Contact Us](#contact-us)
 - [Authors](#authors)
 - [Contributing](#contributing)
-<!-- TOC -->
+
 
 ## Introduction
 
