@@ -2,7 +2,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
 [![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
 
-<div style="text-align: center">
+<div align="center">
 	<img alt="logo" src="../logo.svg">
 </div>
 
