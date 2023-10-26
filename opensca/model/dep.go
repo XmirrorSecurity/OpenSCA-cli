@@ -163,12 +163,12 @@ func (dep *DepGraph) Flush() {
 // lan: 更新依赖语言
 func (dep *DepGraph) Build(deep bool, lan Language) {
 	dep.Flush()
-	dep.ForEach(deep, true, false, func(p, n *DepGraph) bool {
+	dep.ForEach(deep, false, false, func(p, n *DepGraph) bool {
 		// 补全路径
 		if p != nil && n.Path == "" {
 			n.Path = p.Path
 		}
-		if n.Name != "" && !strings.HasSuffix(n.Path, n.Index()) {
+		if n.Name != "" {
 			n.Path += n.Index()
 		}
 		// 补全语言
@@ -176,7 +176,7 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 			n.Language = lan
 		}
 		// 直接依赖
-		if p == nil || len(p.Parents) == 0 {
+		if len(n.Parents) == 0 || len(p.Parents) == 0 {
 			n.Direct = true
 		}
 		return true
@@ -283,7 +283,7 @@ func (dep *DepGraph) ForEach(deep, path, name bool, do func(p, n *DepGraph) bool
 			q = q[1:]
 		}
 
-		if !do(n.p, n.n) {
+		if set(n.p, n.n) || !do(n.p, n.n) {
 			continue
 		}
 
@@ -301,9 +301,6 @@ func (dep *DepGraph) ForEach(deep, path, name bool, do func(p, n *DepGraph) bool
 		}
 
 		for _, c := range next {
-			if set(n.n, c) {
-				continue
-			}
 			q = append(q, &pn{n.n, c})
 		}
 
