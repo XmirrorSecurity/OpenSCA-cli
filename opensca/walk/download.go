@@ -64,7 +64,7 @@ func downloadFromHttp(url, output string) error {
 		return err
 	}
 	if resp.StatusCode > 299 {
-		return fmt.Errorf("response code:%d", resp.StatusCode)
+		return fmt.Errorf("response code:%d url:%s", resp.StatusCode, url)
 	}
 
 	// 创建目标文件
