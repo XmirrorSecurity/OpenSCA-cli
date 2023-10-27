@@ -106,7 +106,7 @@ func UIHelp() *tview.TextView {
 }
 
 func TaskLog() *tview.TextView {
-	log := tview.NewTextView().SetDynamicColors(true)
+	log := tview.NewTextView().SetDynamicColors(true).ScrollToEnd()
 	if logs.LogFilePath == "" {
 		log.SetText("log file not found")
 		return log
