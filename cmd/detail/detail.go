@@ -101,21 +101,20 @@ func (d *DepDetailGraph) RemoveDedup() {
 	// map[key]
 	depSet := map[string]*DepDetailGraph{}
 	d.ForEach(func(n *DepDetailGraph) bool {
-		dep, ok := depSet[n.Key()]
-		if !ok {
+		if dep, ok := depSet[n.Key()]; ok {
+			dep.Paths = append(dep.Paths, n.Paths...)
+		} else {
 			depSet[n.Key()] = n
-			return true
 		}
-		dep.Paths = append(dep.Paths, n.Paths...)
-		for i, c := range dep.Parent.Children {
-			if c.ID == n.ID {
-				dep.Parent.Children = append(dep.Parent.Children[:i], dep.Parent.Children[i+1:]...)
-				break
-			}
-		}
-		dep.Children = append(dep.Children, n.Children...)
 		return true
 	})
+	d.Children = nil
+	for _, c := range depSet {
+		if c != d {
+			c.Children = nil
+			d.Children = append(d.Children, c)
+		}
+	}
 }
 
 func (d *DepDetailGraph) RemoveDev() {
