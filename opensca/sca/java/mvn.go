@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
@@ -79,148 +80,21 @@ func ParsePoms(ctx context.Context, poms []*Pom, exclusion []*Pom, call func(pom
 		exclusionMap[pom] = true
 	}
 
+	wg := sync.WaitGroup{}
 	for _, pom := range poms {
 
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		// 提过不需要解析的pom
+		// 跳过不需要解析的pom
 		if exclusionMap[pom] {
 			continue
 		}
 
-		// 补全nil值
-		if pom.Properties == nil {
-			pom.Properties = PomProperties{}
-		}
-
-		pom.Update(&pom.PomDependency)
-
-		// 继承pom
-		inheritPom(pom, getpom)
-
-		// 记录在根pom的dependencyManagement中非import组件信息
-		rootPomManagement := map[string]*PomDependency{}
-		for _, dep := range pom.DependencyManagement {
-			if dep.Scope != "import" {
-				rootPomManagement[dep.Index2()] = dep
-			}
-		}
-
-		root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Relpath()}
-		root.Expand = pom
-
-		// 解析子依赖构建依赖关系
-		depIndex2Set := map[string]bool{}
-		root.ForEachNode(func(p, n *model.DepGraph) bool {
-
-			if n.Expand == nil {
-				return true
-			}
-
-			np := n.Expand.(*Pom)
-
-			for _, lic := range np.Licenses {
-				n.AppendLicense(lic)
-			}
-
-			// 记录在当前pom的dependencyManagement中非import组件信息
-			depManagement := map[string]*PomDependency{}
-			for _, dep := range np.DependencyManagement {
-				if dep.Scope != "import" {
-					depManagement[dep.Index2()] = dep
-				}
-			}
-
-			for _, dep := range np.Dependencies {
-
-				// 丢弃provided或optional=true的组件
-				if dep.Scope == "provided" || dep.Optional {
-					continue
-				}
-				// 丢弃scope为test的间接依赖
-				if np != pom && dep.Scope == "test" {
-					continue
-				}
-
-				// 非根pom直接引入的依赖先用自身pom的dependencyManament检查是否需要排除
-				if np != pom {
-					if d, ok := depManagement[dep.Index2()]; ok {
-						if d.Optional ||
-							d.Scope == "provided" ||
-							d.Scope == "test" {
-							continue
-						}
-					}
-				}
-
-				np.Update(dep)
-
-				// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
-				if np != pom {
-					if d, ok := depManagement[dep.Index2()]; ok {
-						exclusion := append(dep.Exclusions, d.Exclusions...)
-						dep = d
-						dep.Exclusions = exclusion
-						np.Update(dep)
-					}
-				}
-
-				// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
-				if np != pom || dep.Version == "" {
-					d, ok := rootPomManagement[dep.Index2()]
-					if ok {
-						// exclusion 需要保留
-						exclusion := append(dep.Exclusions, d.Exclusions...)
-						dep = d
-						dep.Exclusions = exclusion
-						pom.Update(dep)
-					}
-				}
-
-				// 查看是否在Exclusion列表中
-				if np.NeedExclusion(*dep) {
-					continue
-				}
-
-				// 保留先声明的组件
-				if depIndex2Set[dep.Index2()] {
-					continue
-				}
-				depIndex2Set[dep.Index2()] = true
-
-				if dep.Check() {
-					logs.Debugf("find %s", dep.ImportPathStack())
-				} else {
-					logs.Warnf("find invalid %s", dep.ImportPathStack())
-					continue
-				}
-
-				sub := &model.DepGraph{Vendor: dep.GroupId, Name: dep.ArtifactId, Version: dep.Version}
-				sub.Develop = dep.Scope == "test"
-
-				if subpom := getpom(*dep, np.Repositories, np.Mirrors); subpom != nil {
-					subpom.PomDependency = *dep
-					// 继承根pom的exclusion
-					subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-					// 子依赖继承自身pom
-					inheritPom(subpom, getpom)
-					sub.Expand = subpom
-				}
-
-				n.AppendChild(sub)
-			}
-
-			return true
-		})
-
-		if root.Name != "" {
-			call(pom, root)
-		}
+		wg.Add(1)
+		go func(pom *Pom) {
+			defer wg.Done()
+			call(pom, parsePom(ctx, pom, getpom))
+		}(pom)
 	}
+	wg.Wait()
 }
 
 // inheritModules 继承modules属性
@@ -401,6 +275,143 @@ func inheritPom(pom *Pom, getpom getPomFunc) {
 			pom.DependencyManagement = append(pom.DependencyManagement, idep)
 		}
 	}
+}
+
+// parsePom 解析单个pom 返回该pom的依赖图
+func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph {
+
+	// 补全nil值
+	if pom.Properties == nil {
+		pom.Properties = PomProperties{}
+	}
+
+	pom.Update(&pom.PomDependency)
+
+	// 继承pom
+	inheritPom(pom, getpom)
+
+	// 记录在根pom的dependencyManagement中非import组件信息
+	rootPomManagement := map[string]*PomDependency{}
+	for _, dep := range pom.DependencyManagement {
+		if dep.Scope != "import" {
+			rootPomManagement[dep.Index2()] = dep
+		}
+	}
+
+	root := &model.DepGraph{Vendor: pom.GroupId, Name: pom.ArtifactId, Version: pom.Version, Path: pom.File.Relpath()}
+	root.Expand = pom
+
+	// 解析子依赖构建依赖关系
+	depIndex2Set := map[string]bool{}
+	root.ForEachNode(func(p, n *model.DepGraph) bool {
+
+		select {
+		case <-ctx.Done():
+			return false
+		default:
+		}
+
+		if n.Expand == nil {
+			return true
+		}
+
+		np := n.Expand.(*Pom)
+
+		for _, lic := range np.Licenses {
+			n.AppendLicense(lic)
+		}
+
+		// 记录在当前pom的dependencyManagement中非import组件信息
+		depManagement := map[string]*PomDependency{}
+		for _, dep := range np.DependencyManagement {
+			if dep.Scope != "import" {
+				depManagement[dep.Index2()] = dep
+			}
+		}
+
+		for _, dep := range np.Dependencies {
+
+			// 丢弃provided或optional=true的组件
+			if dep.Scope == "provided" || dep.Optional {
+				continue
+			}
+			// 丢弃scope为test的间接依赖
+			if np != pom && dep.Scope == "test" {
+				continue
+			}
+
+			// 非根pom直接引入的依赖先用自身pom的dependencyManament检查是否需要排除
+			if np != pom {
+				if d, ok := depManagement[dep.Index2()]; ok {
+					if d.Optional ||
+						d.Scope == "provided" ||
+						d.Scope == "test" {
+						continue
+					}
+				}
+			}
+
+			np.Update(dep)
+
+			// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
+			if np != pom {
+				if d, ok := depManagement[dep.Index2()]; ok {
+					exclusion := append(dep.Exclusions, d.Exclusions...)
+					dep = d
+					dep.Exclusions = exclusion
+					np.Update(dep)
+				}
+			}
+
+			// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
+			if np != pom || dep.Version == "" {
+				d, ok := rootPomManagement[dep.Index2()]
+				if ok {
+					// exclusion 需要保留
+					exclusion := append(dep.Exclusions, d.Exclusions...)
+					dep = d
+					dep.Exclusions = exclusion
+					pom.Update(dep)
+				}
+			}
+
+			// 查看是否在Exclusion列表中
+			if np.NeedExclusion(*dep) {
+				continue
+			}
+
+			// 保留先声明的组件
+			if depIndex2Set[dep.Index2()] {
+				continue
+			}
+			depIndex2Set[dep.Index2()] = true
+
+			if dep.Check() {
+				logs.Debugf("find %s", dep.ImportPathStack())
+			} else {
+				logs.Warnf("find invalid %s", dep.ImportPathStack())
+				continue
+			}
+
+			sub := &model.DepGraph{Vendor: dep.GroupId, Name: dep.ArtifactId, Version: dep.Version}
+			sub.Develop = dep.Scope == "test"
+
+			if subpom := getpom(*dep, np.Repositories, np.Mirrors); subpom != nil {
+				subpom.PomDependency = *dep
+				// 继承根pom的exclusion
+				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
+				// 子依赖继承自身pom
+				inheritPom(subpom, getpom)
+				sub.Expand = subpom
+			}
+
+			n.AppendChild(sub)
+		}
+
+		return true
+	})
+
+	return root
 }
 
 var mavenOrigin = func(groupId, artifactId, version string, repos ...common.RepoConfig) *Pom {
