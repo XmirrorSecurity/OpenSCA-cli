@@ -51,7 +51,7 @@ type SqlOrigin struct {
 	Table string `json:"table"`
 }
 
-var _config *Config
+var _config *Config = &Config{}
 
 func Conf() *Config {
 	return _config
