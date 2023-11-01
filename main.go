@@ -81,9 +81,11 @@ func main() {
 func args() {
 
 	v := false
+	login := false
 	var cfgf string
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
+	flag.BoolVar(&login, "login", false, "login to cloud server. example: -login")
 	flag.StringVar(&cfgf, "config", "", "config path. example: -config config.json")
 	flag.StringVar(&cfg.Path, "path", cfg.Path, "project path. example: -path project_path")
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
@@ -94,6 +96,10 @@ func args() {
 	if v {
 		fmt.Println(version)
 		os.Exit(0)
+	}
+
+	if login {
+		detail.Login()
 	}
 
 	config.LoadConfig(cfgf)
