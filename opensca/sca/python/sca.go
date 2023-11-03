@@ -47,7 +47,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 		} else {
 			continue
 		}
-		root := ParsePythonWithEnv(ctx, file.Abspath())
+		root := ParsePythonWithEnv(ctx, file)
 		if root == nil {
 			continue
 		}
