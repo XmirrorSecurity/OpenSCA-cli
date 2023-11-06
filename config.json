@@ -47,14 +47,14 @@
     // maven repo
     "maven": [
       {
-        "url": "https://repo.maven.apache.org/maven2/",
+        "url": "https://maven.aliyun.com/repository/public",
         // 认证信息 没有可不填
         // auth info, not required
         "username": "",
         "password": ""
       },
       {
-        "url": "https://maven.aliyun.com/repository/public"
+        "url": "https://repo.maven.apache.org/maven2/"
       }
     ],
 
