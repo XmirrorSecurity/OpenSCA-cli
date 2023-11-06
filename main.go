@@ -21,7 +21,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 )
 
-var version string
+var version string = "v3.0.0"
 
 func main() {
 
@@ -100,6 +100,7 @@ func args() {
 
 	if login {
 		detail.Login()
+		os.Exit(0)
 	}
 
 	config.LoadConfig(cfgf)
