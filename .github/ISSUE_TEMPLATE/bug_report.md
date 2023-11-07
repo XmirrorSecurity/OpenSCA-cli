@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[Bug] --a clear and concise title--
+title: "[Bug] --a clear and concise title--"
 labels: bug
 assignees: luotianqi777, SuperChen-CC
 
