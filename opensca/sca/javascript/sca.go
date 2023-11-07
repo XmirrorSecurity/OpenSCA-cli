@@ -50,6 +50,11 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 				if js == nil {
 					return
 				}
+				// 记录 resolutions
+				for k, v := range js.Resolutions {
+					k = k[strings.LastIndex(k, "/")+1:]
+					js.Dependencies[k] = v
+				}
 				js.File = f
 				if strings.Contains(f.Relpath(), "node_modules") {
 					nodeMap[dir] = js
