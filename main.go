@@ -21,7 +21,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
 )
 
-var version string = "v3.0.0"
+var version string
 
 func main() {
 
