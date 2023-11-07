@@ -67,13 +67,13 @@
    ```shell
    // github
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build -o opensca-cli main.go
+   go build
    ```
 
    ```shell
    // gitee
    git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build -o opensca-cli main.go
+   go build
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译

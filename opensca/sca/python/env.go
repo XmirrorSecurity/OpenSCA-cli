@@ -17,7 +17,7 @@ import (
 )
 
 // ParsePythonWithEnv 借助pipenv解析python依赖
-func ParsePythonWithEnv(ctx context.Context, file string) *model.DepGraph {
+func ParsePythonWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
 
 	if _, err := exec.LookPath("python"); err != nil {
 		return nil
@@ -28,8 +28,8 @@ func ParsePythonWithEnv(ctx context.Context, file string) *model.DepGraph {
 
 	// 复制到临时目录
 	tempdir := common.MkdirTemp("pipenv")
-	tempfile := filepath.Join(tempdir, filepath.Base(file))
-	src, _ := os.Open(file)
+	tempfile := filepath.Join(tempdir, filepath.Base(file.Abspath()))
+	src, _ := os.Open(file.Abspath())
 	dst, _ := os.Create(tempfile)
 	io.Copy(dst, src)
 	src.Close()
@@ -47,7 +47,9 @@ func ParsePythonWithEnv(ctx context.Context, file string) *model.DepGraph {
 	}
 
 	defer runCmd(ctx, dir, "pipenv", "--rm")
-	return pipenvGraph(ctx, dir)
+	root := pipenvGraph(ctx, dir)
+	root.Path = file.Relpath()
+	return root
 }
 
 func pipenvGraph(ctx context.Context, dir string) *model.DepGraph {
@@ -57,7 +59,7 @@ func pipenvGraph(ctx context.Context, dir string) *model.DepGraph {
 		return nil
 	}
 
-	root := &model.DepGraph{Path: dir}
+	root := &model.DepGraph{}
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 	tops := []*model.DepGraph{}

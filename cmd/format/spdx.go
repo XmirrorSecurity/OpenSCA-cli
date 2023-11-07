@@ -33,7 +33,7 @@ func SpdxXml(report Report, out string) {
 
 func spdxDoc(report Report) *model.SpdxDocument {
 
-	doc := model.NewSpdxDocument(report.AppName)
+	doc := model.NewSpdxDocument(report.TaskInfo.AppName)
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 

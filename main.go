@@ -151,14 +151,13 @@ func taskReport(r opensca.TaskResult) format.Report {
 	path := config.Conf().Path
 	optional := config.Conf().Optional
 
-	report := format.Report{
-		ToolVersion: version,
-		AppName:     path,
-		Size:        r.Size,
-	}
+	report := format.Report{}
+	report.TaskInfo.ToolVersion = version
+	report.TaskInfo.AppName = path
+	report.TaskInfo.Size = r.Size
 
 	if r.Error != nil {
-		report.ErrorString = r.Error.Error()
+		report.TaskInfo.ErrorString = r.Error.Error()
 	}
 
 	// 合并检测结果
@@ -185,10 +184,10 @@ func taskReport(r opensca.TaskResult) format.Report {
 	// 查询组件详情(漏洞/许可证)
 	err := detail.SearchDetail(report.DepDetailGraph)
 	if err != nil {
-		if report.ErrorString != "" {
-			report.ErrorString += "\n"
+		if report.TaskInfo.ErrorString != "" {
+			report.TaskInfo.ErrorString += "\n"
 		}
-		report.ErrorString += err.Error()
+		report.TaskInfo.ErrorString += err.Error()
 	}
 
 	// 仅保留漏洞组件
@@ -204,9 +203,9 @@ func taskReport(r opensca.TaskResult) format.Report {
 	}
 
 	end := time.Now()
-	report.StartTime = r.Start.Format("2006-01-02 15:04:05")
-	report.EndTime = end.Format("2006-01-02 15:04:05")
-	report.CostTime = end.Sub(r.Start).Seconds()
+	report.TaskInfo.StartTime = r.Start.Format("2006-01-02 15:04:05")
+	report.TaskInfo.EndTime = end.Format("2006-01-02 15:04:05")
+	report.TaskInfo.CostTime = end.Sub(r.Start).Seconds()
 
 	return report
 }
