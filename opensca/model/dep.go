@@ -120,6 +120,7 @@ func (dep *DepGraph) Flush() {
 	}
 
 	// 锁定起始组件dev
+	dep.ForEachNode(func(p, n *DepGraph) bool { n.Expand = nil; return true })
 	dep.ForEachNode(func(p, n *DepGraph) bool {
 		// 起始开发组件状态锁定为开发组件
 		if len(n.Parents) == 0 || n.Develop {
