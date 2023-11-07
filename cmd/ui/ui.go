@@ -142,7 +142,7 @@ func DepTree(report format.Report) *tview.TreeView {
 	if report.DepDetailGraph != nil && report.DepDetailGraph.Name != "" {
 		root = newTreeNode(report.DepDetailGraph)
 	} else {
-		root = tview.NewTreeNode(report.AppName).SetColor(colorPath)
+		root = tview.NewTreeNode(report.TaskInfo.AppName).SetColor(colorPath)
 	}
 
 	depTreeRoot := report.DepDetailGraph
