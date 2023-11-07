@@ -33,7 +33,7 @@ func DsdxXml(report Report, out string) {
 
 func dsdxDoc(report Report) *model.DsdxDocument {
 
-	doc := model.NewDsdxDocument(report.AppName, "opensca-cli")
+	doc := model.NewDsdxDocument(report.TaskInfo.AppName, "opensca-cli")
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 

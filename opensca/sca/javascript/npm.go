@@ -20,6 +20,7 @@ type PackageJson struct {
 	Version string `json:"version"`
 	// License              string            `json:"license"`
 	Develop              bool              `json:"dev"` // lock v3
+	Resolutions          map[string]string `json:"resolutions"`
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
 	PeerDependencies     map[string]string `json:"peerDependencies"`

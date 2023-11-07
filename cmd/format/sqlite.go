@@ -33,7 +33,7 @@ func Sqlite(report Report, out string) {
 		}
 	}
 
-	moduleName := filepath.Base(report.AppName)
+	moduleName := filepath.Base(report.TaskInfo.AppName)
 
 	if report.DepDetailGraph != nil && report.DepDetailGraph.Name != "" {
 		moduleName = report.DepDetailGraph.Name

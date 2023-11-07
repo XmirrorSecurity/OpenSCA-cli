@@ -12,19 +12,21 @@ import (
 )
 
 type Report struct {
-	ToolVersion string `json:"tool_version" xml:"tool_version" `
-	// 检测目标名
-	AppName string `json:"app_name" xml:"app_name" `
-	// 检测文件大小
-	Size int64 `json:"size" xml:"size" `
-	// 任务开始时间
-	StartTime string `json:"start_time" xml:"start_time" `
-	// 任务结束时间
-	EndTime string `json:"end_time" xml:"end_time" `
-	// 任务检测耗时 单位s
-	CostTime float64 `json:"cost_time" xml:"cost_time" `
-	// 错误信息
-	ErrorString string `json:"error,omitempty" xml:"error,omitempty"`
+	TaskInfo struct {
+		ToolVersion string `json:"tool_version" xml:"tool_version" `
+		// 检测目标名
+		AppName string `json:"app_name" xml:"app_name" `
+		// 检测文件大小
+		Size int64 `json:"size" xml:"size" `
+		// 任务开始时间
+		StartTime string `json:"start_time" xml:"start_time" `
+		// 任务结束时间
+		EndTime string `json:"end_time" xml:"end_time" `
+		// 任务检测耗时 单位s
+		CostTime float64 `json:"cost_time" xml:"cost_time" `
+		// 错误信息
+		ErrorString string `json:"error,omitempty" xml:"error,omitempty"`
+	} `json:"task_info" xml:"task_info"`
 	*detail.DepDetailGraph
 }
 
