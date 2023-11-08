@@ -68,7 +68,7 @@
     // composer repo
     "composer": [
       {
-        "url": "https://repo.packagist.org/p2"
+        "url":"https://mirrors.aliyun.com/composer/p2"
       }
     ]
 
