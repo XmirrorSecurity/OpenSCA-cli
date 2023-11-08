@@ -24,6 +24,7 @@ type PackageJson struct {
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
 	PeerDependencies     map[string]string `json:"peerDependencies"`
+	OptionalDependencies map[string]string `json:"optionalDependencies"`
 	PeerDependenciesMeta map[string]struct {
 		Optional bool `json:"optional"`
 	} `json:"peerDependenciesMeta"`
@@ -286,6 +287,10 @@ func ParsePackageJsonWithLockV3(pkgjson *PackageJson, pkglock *PackageLock) *mod
 					continue
 				}
 			}
+			n.AppendChild(findDep(name, njs.path))
+		}
+
+		for name := range njs.js.OptionalDependencies {
 			n.AppendChild(findDep(name, njs.path))
 		}
 
