@@ -65,6 +65,7 @@ func ParseGosum(file *model.File) *model.DepGraph {
 		if len(words) >= 2 {
 			name := strings.Trim(words[0], `'"`)
 			version := strings.TrimSuffix(words[1], "+incompatible")
+			version = strings.TrimSuffix(version, "/go.mod")
 			depMap[name] = version
 		}
 	})
