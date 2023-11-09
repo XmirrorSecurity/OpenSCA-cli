@@ -55,10 +55,9 @@ func ParseGemfileLock(file *model.File) *model.DepGraph {
 		}
 	})
 
-	root := &model.DepGraph{}
+	root := &model.DepGraph{Path: file.Relpath()}
 	for _, d := range depMap {
 		if len(d.Parents) == 0 {
-			d.Path = file.Relpath()
 			root.AppendChild(d)
 		}
 	}

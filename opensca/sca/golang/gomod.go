@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
@@ -64,8 +65,8 @@ func ParseGosum(file *model.File) *model.DepGraph {
 		words := strings.Fields(line)
 		if len(words) >= 2 {
 			name := strings.Trim(words[0], `'"`)
-			version := strings.TrimSuffix(words[1], "+incompatible")
-			version = strings.TrimSuffix(version, "/go.mod")
+			version := strings.TrimSuffix(words[1], "/go.mod")
+			version = strings.TrimSuffix(version, "+incompatible")
 			depMap[name] = version
 		}
 	})
@@ -78,11 +79,15 @@ func ParseGosum(file *model.File) *model.DepGraph {
 		})
 	}
 
+	sort.Slice(root.Children, func(i, j int) bool {
+		return root.Children[i].Name < root.Children[j].Name
+	})
+
 	return root
 }
 
 // GoModGraph 调用 go mod graph 解析依赖
-func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
+func GoModGraph(ctx context.Context, dir *model.File) *model.DepGraph {
 
 	_, err := exec.LookPath("go")
 	if err != nil {
@@ -121,14 +126,13 @@ func GoModGraph(ctx context.Context, dir *model.File) []*model.DepGraph {
 		}
 	}
 
-	var roots []*model.DepGraph
+	root := &model.DepGraph{Path: dir.Relpath()}
 	_dep.Range(func(k string, v *model.DepGraph) bool {
 		if len(v.Parents) == 0 {
-			v.Path = dir.Relpath()
-			roots = append(roots, v)
+			root.AppendChild(v)
 		}
 		return true
 	})
 
-	return roots
+	return root
 }
