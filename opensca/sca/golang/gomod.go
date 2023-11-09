@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -87,7 +88,7 @@ func ParseGosum(file *model.File) *model.DepGraph {
 }
 
 // GoModGraph 调用 go mod graph 解析依赖
-func GoModGraph(ctx context.Context, dir *model.File) *model.DepGraph {
+func GoModGraph(ctx context.Context, modfile *model.File) *model.DepGraph {
 
 	_, err := exec.LookPath("go")
 	if err != nil {
@@ -95,7 +96,7 @@ func GoModGraph(ctx context.Context, dir *model.File) *model.DepGraph {
 	}
 
 	cmd := exec.CommandContext(ctx, "go", "mod", "graph")
-	cmd.Dir = dir.Abspath()
+	cmd.Dir = filepath.Dir(modfile.Abspath())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil
@@ -126,7 +127,7 @@ func GoModGraph(ctx context.Context, dir *model.File) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{Path: dir.Relpath()}
+	root := &model.DepGraph{Path: modfile.Relpath()}
 	_dep.Range(func(k string, v *model.DepGraph) bool {
 		if len(v.Parents) == 0 {
 			root.AppendChild(v)
