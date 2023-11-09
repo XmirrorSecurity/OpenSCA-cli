@@ -3,10 +3,9 @@ package python
 import (
 	_ "embed"
 	"encoding/json"
-	"io"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
@@ -32,28 +31,17 @@ func ParseSetup(file *model.File) *model.DepGraph {
 		return nil
 	}
 
-	ossfile := path.Join(file.Abspath(), "oss.py")
-	setupfile := path.Join(file.Abspath(), "setup.py")
+	dir := filepath.Dir(file.Abspath())
+	ossfile := filepath.Join(dir, "oss.py")
 
 	// 创建 oss.py
-	if err := os.WriteFile(ossfile, ossPy, 0444); err != nil {
+	if err := os.WriteFile(ossfile, ossPy, 0777); err != nil {
 		logs.Warn(err)
 		return nil
 	}
 
-	// 创建 setup.py
-	file.OpenReader(func(reader io.Reader) {
-		f, err := os.Create(setupfile)
-		if err != nil {
-			logs.Warn(err)
-			return
-		}
-		defer f.Close()
-		io.Copy(f, reader)
-	})
-
 	// 解析 setup.py
-	cmd := exec.Command("python", ossfile, setupfile)
+	cmd := exec.Command("python", ossfile, file.Abspath())
 	out, _ := cmd.CombinedOutput()
 	startTag, endTag := `opensca_start<<`, `>>opensca_end`
 	startIndex, endIndex := strings.Index(string(out), startTag), strings.Index(string(out), endTag)
