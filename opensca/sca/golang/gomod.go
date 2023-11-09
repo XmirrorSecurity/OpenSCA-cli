@@ -19,7 +19,7 @@ func ParseGomod(file *model.File) *model.DepGraph {
 
 	var require bool
 
-	file.ReadLineNoComment(&model.FileCommentType{
+	file.ReadLineNoComment(&model.CommentType{
 		Simple: "//",
 	}, func(line string) {
 
