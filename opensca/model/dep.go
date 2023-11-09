@@ -19,7 +19,8 @@ type DepGraph struct {
 	// 检出路径
 	Path string
 	// 许可证
-	Licenses []string
+	Licenses   []string
+	licenseMap map[string]bool
 	// 仅用于开发环境
 	Develop bool
 	// 直接依赖
@@ -74,6 +75,16 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 }
 
 func (dep *DepGraph) AppendLicense(lic string) {
+	if dep.licenseMap == nil {
+		dep.licenseMap = map[string]bool{}
+	}
+	if lic == "" {
+		return
+	}
+	if dep.licenseMap[lic] {
+		return
+	}
+	dep.licenseMap[lic] = true
 	dep.Licenses = append(dep.Licenses, lic)
 }
 
