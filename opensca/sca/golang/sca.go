@@ -29,9 +29,10 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 		}
 	}
 	if gomod {
-		roots := GoModGraph(ctx, parent)
-		if len(roots) > 0 {
-			call(parent, roots...)
+		root := GoModGraph(ctx, parent)
+		if root != nil && len(root.Children) > 0 {
+			call(parent, root)
+			return
 		}
 	}
 
@@ -57,8 +58,8 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 			mod := ParseGomod(f)
 			if sumf, ok := gosum[path2dir(f.Relpath())]; ok {
 				sum := ParseGosum(sumf)
-				if len(sum.Children) > len(mod.Children) {
-					mod.Children = sum.Children
+				if len(sum.Children) >= len(mod.Children) {
+					mod = sum
 				}
 			}
 			call(f, mod)
@@ -69,8 +70,8 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 			pkg := ParseGopkgToml(f)
 			if lockf, ok := pkglock[path2dir(f.Relpath())]; ok {
 				lock := ParseGopkgLock(lockf)
-				if len(lock.Children) > len(pkg.Children) {
-					pkg.Children = lock.Children
+				if len(lock.Children) >= len(pkg.Children) {
+					pkg = lock
 				}
 			}
 			call(f, pkg)
