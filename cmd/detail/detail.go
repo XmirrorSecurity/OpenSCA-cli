@@ -218,7 +218,9 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 		// license
 		serverLicenses, _ := GetServerLicense(ds)
 		for i, lics := range serverLicenses {
-			details[i].Licenses = append(details[i].Licenses, lics...)
+			if len(lics) > 0 {
+				details[i].Licenses = lics
+			}
 		}
 	} else if len(localVulns) == 0 {
 		if c.Url == "" && c.Token != "" {
