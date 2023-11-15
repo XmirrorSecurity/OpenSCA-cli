@@ -190,11 +190,20 @@ type getPomFunc func(dep PomDependency, repos ...[]string) *Pom
 // inheritPom 继承pom所需内容
 func inheritPom(pom *Pom, getpom getPomFunc) {
 
+	// 记录统计过的parent 避免pom循环引用
+	parentSet := map[string]bool{}
+
 	// 继承parent
 	parent := pom.Parent
 	for parent.ArtifactId != "" {
 
 		pom.Update(&parent)
+
+		if parentSet[parent.Index3()] {
+			break
+		} else {
+			parentSet[parent.Index3()] = true
+		}
 
 		parentPom := getpom(parent, pom.Repositories, pom.Mirrors)
 		if parentPom == nil {
