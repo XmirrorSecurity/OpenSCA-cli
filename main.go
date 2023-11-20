@@ -184,6 +184,7 @@ func taskReport(r opensca.TaskResult) format.Report {
 	// 查询组件详情(漏洞/许可证)
 	err := detail.SearchDetail(report.DepDetailGraph)
 	if err != nil {
+		logs.Warnf("database origin error: %s", err.Error())
 		if report.TaskInfo.ErrorString != "" {
 			report.TaskInfo.ErrorString += "\n"
 		}
