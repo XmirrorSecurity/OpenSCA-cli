@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -181,7 +182,7 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 			n.Path = p.Path
 		}
 		if n.Name != "" {
-			n.Path += n.Index()
+			n.Path = filepath.Join(n.Path, n.Index())
 		}
 		// 补全语言
 		if n.Language == Lan_None {
