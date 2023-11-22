@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -63,7 +63,7 @@ var (
 	PythonPipfileLock     = filterFunc(strings.HasSuffix, "Pipfile.lock")
 	PythonRequirementsTxt = func(filename string) bool {
 		return filterFunc(strings.HasSuffix, ".txt")(filename) &&
-			filterFunc(strings.Contains, "requirements")(path.Base(filename)) && !filterFunc(strings.Contains, "test")(path.Base(filename))
+			filterFunc(strings.Contains, "requirements")(filepath.Base(filename)) && !filterFunc(strings.Contains, "test")(filepath.Base(filename))
 	}
 	PythonRequirementsIn = filterFunc(strings.HasSuffix, "requirements.in")
 )
