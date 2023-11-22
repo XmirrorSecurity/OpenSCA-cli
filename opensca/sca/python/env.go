@@ -48,7 +48,9 @@ func ParsePythonWithEnv(ctx context.Context, file *model.File) *model.DepGraph {
 
 	defer runCmd(ctx, dir, "pipenv", "--rm")
 	root := pipenvGraph(ctx, dir)
-	root.Path = file.Relpath()
+	if root != nil {
+		root.Path = file.Relpath()
+	}
 	return root
 }
 
