@@ -20,7 +20,10 @@ func (sca Sca) Filter(relpath string) bool {
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 	for _, f := range files {
 		if filter.RustCargoLock(f.Relpath()) {
-			call(f, ParseCargoLock(f))
+			root := ParseCargoLock(f)
+			if root != nil && len(root.Children) > 0 {
+				call(f, root)
+			}
 		}
 	}
 }

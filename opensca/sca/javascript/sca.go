@@ -27,6 +27,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 
 	// map[dirpath]
 	jsonMap := map[string]*PackageJson{}
+	jsonNameMap := map[string]*PackageJson{}
 	// map[dirpath]
 	lockMap := map[string]*PackageLock{}
 	// map[dirpath]
@@ -64,6 +65,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 					nodeMap[dir] = js
 				} else {
 					jsonMap[dir] = js
+					jsonNameMap[js.Name] = js
 				}
 			})
 		}
@@ -103,7 +105,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 		}
 
 		// 尝试从node_modules及外部源获取
-		call(js.File, ParsePackageJsonWithNode(js, nodeMap))
+		call(js.File, ParsePackageJsonWithNode(js, nodeMap, jsonNameMap))
 	}
 }
 

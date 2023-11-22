@@ -48,33 +48,43 @@ func (file *File) OpenReader(do func(reader io.Reader)) error {
 
 func (file File) ReadLine(do func(line string)) {
 	file.OpenReader(func(reader io.Reader) {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			do(strings.TrimRight(scanner.Text(), "\n\r"))
-		}
+		ReadLine(reader, do)
 	})
 }
 
-type FileCommentType struct {
+func (file File) ReadLineNoComment(t *CommentType, do func(line string)) {
+	file.OpenReader(func(reader io.Reader) {
+		ReadLineNoComment(reader, t, do)
+	})
+}
+
+type CommentType struct {
 	Simple string
 	Begin  string
 	End    string
 }
 
 var (
-	CTypeComment = &FileCommentType{
+	CTypeComment = &CommentType{
 		Simple: "//",
 		Begin:  "/*",
 		End:    "*/",
 	}
-	PythonTypeComment = &FileCommentType{
+	PythonTypeComment = &CommentType{
 		Simple: "#",
 		Begin:  "'''",
 		End:    "'''",
 	}
 )
 
-func (file File) ReadLineNoComment(t *FileCommentType, do func(line string)) {
+func ReadLine(reader io.Reader, do func(line string)) {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		do(strings.TrimRight(scanner.Text(), "\n\r"))
+	}
+}
+
+func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 
 	if t == nil {
 		t = CTypeComment
@@ -82,12 +92,20 @@ func (file File) ReadLineNoComment(t *FileCommentType, do func(line string)) {
 
 	comment := false
 
-	file.ReadLine(func(line string) {
+	ReadLine(reader, func(line string) {
 
-		if t.Simple != "" && strings.HasPrefix(strings.TrimSpace(line), t.Simple) {
-			return
+		// 单行注释
+		if t.Simple != "" {
+			i := strings.Index(line, t.Simple)
+			if i != -1 {
+				line = line[:i]
+			}
+			if strings.TrimSpace(line) == "" {
+				return
+			}
 		}
 
+		// 多行注释
 		if t.Begin != "" && t.End != "" {
 			i := strings.Index(line, t.Begin)
 			if i != -1 {
@@ -108,6 +126,7 @@ func (file File) ReadLineNoComment(t *FileCommentType, do func(line string)) {
 
 		do(line)
 	})
+
 }
 
 type ResCallback func(file *File, root ...*DepGraph)

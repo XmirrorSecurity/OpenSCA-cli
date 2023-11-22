@@ -6,12 +6,50 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 )
+
+// ParseSetup 解析setup.py
+func ParseSetup(file *model.File) *model.DepGraph {
+
+	// 尝试调用python解析
+	root := ParseSetupPyWithPython(file)
+	if root != nil && len(root.Children) > 0 {
+		return root
+	}
+
+	root = &model.DepGraph{Path: file.Relpath()}
+
+	// 静态解析
+	file.OpenReader(func(reader io.Reader) {
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return
+		}
+		reg := regexp.MustCompile(`install_requires\s*=\s*\[([^\]]+)\]`)
+		requires := reg.FindStringSubmatch(string(data))
+		if len(requires) < 2 {
+			return
+		}
+		model.ReadLineNoComment(strings.NewReader(requires[1]), model.PythonTypeComment, func(line string) {
+			line = strings.Trim(strings.TrimSpace(line), `'",`)
+			words := strings.Fields(line)
+			name := words[0]
+			version := strings.Join(words[1:], "")
+			root.AppendChild(&model.DepGraph{
+				Name:    name,
+				Version: version,
+			})
+		})
+	})
+
+	return root
+}
 
 //go:embed oss.py
 var ossPy []byte
@@ -26,34 +64,23 @@ type setupDep struct {
 	Requires        []string `json:"requires"`
 }
 
-func ParseSetup(file *model.File) *model.DepGraph {
+func ParseSetupPyWithPython(file *model.File) *model.DepGraph {
 
 	if _, err := exec.LookPath("python"); err != nil {
 		return nil
 	}
 
-	ossfile := path.Join(file.Abspath(), "oss.py")
-	setupfile := path.Join(file.Abspath(), "setup.py")
+	dir := filepath.Dir(file.Abspath())
+	ossfile := filepath.Join(dir, "oss.py")
 
 	// 创建 oss.py
-	if err := os.WriteFile(ossfile, ossPy, 0444); err != nil {
+	if err := os.WriteFile(ossfile, ossPy, 0777); err != nil {
 		logs.Warn(err)
 		return nil
 	}
 
-	// 创建 setup.py
-	file.OpenReader(func(reader io.Reader) {
-		f, err := os.Create(setupfile)
-		if err != nil {
-			logs.Warn(err)
-			return
-		}
-		defer f.Close()
-		io.Copy(f, reader)
-	})
-
 	// 解析 setup.py
-	cmd := exec.Command("python", ossfile, setupfile)
+	cmd := exec.Command("python", ossfile, file.Abspath())
 	out, _ := cmd.CombinedOutput()
 	startTag, endTag := `opensca_start<<`, `>>opensca_end`
 	startIndex, endIndex := strings.Index(string(out), startTag), strings.Index(string(out), endTag)

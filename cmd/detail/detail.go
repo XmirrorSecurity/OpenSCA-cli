@@ -218,14 +218,12 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 		// license
 		serverLicenses, _ := GetServerLicense(ds)
 		for i, lics := range serverLicenses {
-			details[i].Licenses = append(details[i].Licenses, lics...)
+			if len(lics) > 0 {
+				details[i].Licenses = lics
+			}
 		}
 	} else if len(localVulns) == 0 {
-		if c.Url == "" && c.Token != "" {
-			err = errors.New("url is null")
-		} else if c.Url != "" && c.Token == "" {
-			err = errors.New("token is null")
-		}
+		err = errors.New("not config vuln database origin")
 	}
 
 	// 合并本地和云端库搜索的漏洞
@@ -327,7 +325,7 @@ func GetServerVuln(deps []Dep) (vulns [][]*Vuln, err error) {
 }
 
 func (o *BaseOrigin) SearchVuln(deps []Dep) (vulns [][]*Vuln) {
-	if o == nil || o.data == nil {
+	if o == nil || len(o.data) == 0 {
 		return nil
 	}
 	vulns = make([][]*Vuln, len(deps))

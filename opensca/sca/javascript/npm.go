@@ -111,15 +111,30 @@ func RegisterNpmOrigin(origin func(name, version string) *PackageJson) {
 }
 
 // ParsePackageJsonWithNode 借助node_modules解析package.json
-func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson) *model.DepGraph {
+// pkgjson: 需要解析的package.json
+// nodeMap: node_modules信息 key:node_modules下的package.json路径
+// pkgMap: 项目中存在的package.json信息 key:package.json的name
+func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJson, pkgMap map[string]*PackageJson) *model.DepGraph {
 
 	_dep := _depSet().LoadOrStore
 
 	findDep := func(dev bool, name, version, basedir string) *model.DepGraph {
 		var subjs *PackageJson
-		if len(nodeMap) > 0 {
+		if subjs == nil && len(nodeMap) > 0 {
 			// 从node_modules中查找
 			_, subjs = findFromNodeModules(name, basedir, nodeMap)
+		}
+		if subjs == nil && len(pkgMap) > 0 {
+			// 从项目中查找
+			if c, err := semver.NewConstraint(version); err == nil {
+				if pkg, ok := pkgMap[name]; ok {
+					if v, err := semver.NewVersion(pkg.Version); err == nil {
+						if c.Check(v) {
+							subjs = pkg
+						}
+					}
+				}
+			}
 		}
 		if subjs == nil {
 			// 从外部数据源下载
