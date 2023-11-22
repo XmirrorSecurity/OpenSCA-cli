@@ -20,7 +20,7 @@ func (sca Sca) Filter(relpath string) bool {
 func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File, call model.ResCallback) {
 	for _, file := range files {
 		if filter.RubyGemfileLock(file.Relpath()) {
-			call(file, ParseGemfileLock(file)...)
+			call(file, ParseGemfileLock(file))
 		}
 	}
 }

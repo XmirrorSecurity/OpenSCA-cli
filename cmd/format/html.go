@@ -76,11 +76,11 @@ func Html(report Report, out string) {
 
 	// 生成html报告需要的json数据
 	if data, err := json.Marshal(struct {
-		TaskInfo   Report     `json:"task_info"`
+		TaskInfo   TaskInfo   `json:"task_info"`
 		Statis     htmlStatis `json:"statis"`
 		Components []htmlDep  `json:"components"`
 	}{
-		TaskInfo:   report,
+		TaskInfo:   report.TaskInfo,
 		Statis:     statis,
 		Components: deps,
 	}); err != nil {

@@ -50,6 +50,10 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 				if js == nil {
 					return
 				}
+				// 记录peerDependencies
+				for k, v := range js.PeerDependencies {
+					js.Dependencies[k] = v
+				}
 				// 记录 resolutions
 				for k, v := range js.Resolutions {
 					k = k[strings.LastIndex(k, "/")+1:]
