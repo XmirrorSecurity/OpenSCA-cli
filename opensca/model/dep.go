@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -19,7 +20,8 @@ type DepGraph struct {
 	// 检出路径
 	Path string
 	// 许可证
-	Licenses []string
+	Licenses   []string
+	licenseMap map[string]bool
 	// 仅用于开发环境
 	Develop bool
 	// 直接依赖
@@ -74,6 +76,16 @@ func (dep *DepGraph) RemoveChild(child *DepGraph) {
 }
 
 func (dep *DepGraph) AppendLicense(lic string) {
+	if dep.licenseMap == nil {
+		dep.licenseMap = map[string]bool{}
+	}
+	if lic == "" {
+		return
+	}
+	if dep.licenseMap[lic] {
+		return
+	}
+	dep.licenseMap[lic] = true
 	dep.Licenses = append(dep.Licenses, lic)
 }
 
@@ -170,7 +182,7 @@ func (dep *DepGraph) Build(deep bool, lan Language) {
 			n.Path = p.Path
 		}
 		if n.Name != "" {
-			n.Path += n.Index()
+			n.Path = filepath.Join(n.Path, n.Index())
 		}
 		// 补全语言
 		if n.Language == Lan_None {

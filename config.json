@@ -61,7 +61,7 @@
     // npm repo
     "npm": [
       {
-        "url": "https://r.cnpmjs.org/"
+        "url": "https://registry.npmmirror.com"
       }
     ],
 

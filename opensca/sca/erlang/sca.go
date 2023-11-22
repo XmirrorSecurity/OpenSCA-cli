@@ -31,10 +31,12 @@ func ParseRebarLock(file *model.File) *model.DepGraph {
 	root := &model.DepGraph{Path: file.Relpath()}
 	file.ReadLine(func(line string) {
 		match := reg.FindStringSubmatch(line)
-		root.AppendChild(&model.DepGraph{
-			Name:    match[0],
-			Version: match[1],
-		})
+		if len(match) > 2 {
+			root.AppendChild(&model.DepGraph{
+				Name:    match[1],
+				Version: match[2],
+			})
+		}
 	})
 	return root
 }

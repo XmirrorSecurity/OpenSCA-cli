@@ -5,7 +5,7 @@ import json
 def parse_setup_py(setup_py_path):
 	"""解析setup.py文件"""
 
-	with open(setup_py_path, "r") as f:
+	with open(setup_py_path, "r", encoding='utf8') as f:
 		pass_func = lambda **x: x
 		try:
 			import distutils
