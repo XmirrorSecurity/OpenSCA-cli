@@ -4,6 +4,15 @@ on:
   push:
     tags:
       - v*.*.*
+  workflow_dispatch:
+    inputs:
+        tag:
+            description: 'Tag to build'
+            required: true
+        log_level:
+            description: 'Log level'
+            required: false
+            default: 'info'
 
 jobs:
   createRelease:
