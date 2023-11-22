@@ -21,7 +21,7 @@ English|[中文](../README.md)
   - [Local Vulnerability Database](#local-vulnerability-database)
     - [The Format of the Vulnerability Database File](#the-format-of-the-vulnerability-database-file)
     - [Explanations of Vulnerability Database Fields](#explanations-of-vulnerability-database-fields)
-    - [Sample of setting the vulnerability database](#sample-of-setting-the-vulnerability-database)
+    - [Sample of Setting the Vulnerability Database](#sample-of-setting-the-vulnerability-database)
 - [FAQ](#faq)
   - [Is the environment variable needed while using OpenSCA?](#is-the-environment-variable-needed-while-using-opensca)
   - [About the vulnerability database?](#about-the-vulnerability-database)
@@ -204,7 +204,7 @@ For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/o
 
 *There are several pre-set values to the "language" field, including java, js, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
 
-#### Sample of setting the vulnerability database
+#### Sample of Setting the Vulnerability Database
 
 ```json
 {
