@@ -3,9 +3,9 @@ FROM golang:1.21.4 AS builder
 ARG TARGETARCH
 ARG VERSION
 
-WORKDIR /app
 COPY ./ /app
-RUN go mod download
+WORKDIR /app
+RUN go mod download && ls -alh
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -ldflags "-X 'main.version=${VERSION}' " -o /app/opensca-cli main.go
 
 FROM scratch
