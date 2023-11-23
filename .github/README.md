@@ -1,8 +1,12 @@
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
+[![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
 [![Jetbrains Plugin](https://img.shields.io/jetbrains/plugin/v/18246)](https://plugins.jetbrains.com/plugin/18246-opensca-xcheck)
 [![VSCode Plugin](https://vsmarketplacebadges.dev/version/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
-[![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
 [![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
+<!--
+[![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)](/go.mod)
+-->
 
 <div align="center">
 	<img alt="logo" src="../logo.svg">
@@ -12,15 +16,16 @@ English|[中文](../README.md)
 
 - [Introduction](#introduction)
 - [Detection Ability](#detection-ability)
-- [Download and Deployment](#download-and-deployment)
-- [Samples](#samples)
-  - [Scan \& Report in CLI/CRT (default)](#scan--report-in-clicrt-default)
-  - [Scan \& Report in Files (use the `out` parameter)](#scan--report-in-files-use-the-out-parameter)
-    - [Sample](#sample)
-  - [Scan \& Report via docker container](#scan--report-via-docker-container)
-- [Parameters](#parameters)
-  - [The Format of the Vulnerability Database File](#the-format-of-the-vulnerability-database-file)
+- [Download \& Deployment](#download--deployment)
+- [Use OpenSCA](#use-opensca)
+  - [Parameters](#parameters)
+  - [Report Formats](#report-formats)
+  - [Sample](#sample)
+    - [Scan \& Report via docker container](#scan--report-via-docker-container)
+  - [Local Vulnerability Database](#local-vulnerability-database)
+    - [The Format of the Vulnerability Database File](#the-format-of-the-vulnerability-database-file)
     - [Explanations of Vulnerability Database Fields](#explanations-of-vulnerability-database-fields)
+    - [Sample of Setting the Vulnerability Database](#sample-of-setting-the-vulnerability-database)
 - [FAQ](#faq)
   - [Is the environment variable needed while using OpenSCA?](#is-the-environment-variable-needed-while-using-opensca)
   - [About the vulnerability database?](#about-the-vulnerability-database)
@@ -32,11 +37,11 @@ English|[中文](../README.md)
 
 ## Introduction
 
-OpenSCA is intended for scanning third-party dependencies and vulnerabilities.
+OpenSCA is intended for scanning third-party dependencies, vulnerabilities and licenses.
 
 Our website: [https://opensca.xmirror.cn](https://opensca.xmirror.cn)
 
-Click **STAR** to encourage us.
+Click **STAR** to leave encouragement.
 
 ------
 
@@ -56,16 +61,22 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 | `Erlang`     | `Rebar`         | `rebar.lock`                                                                                                                                      |
 | `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in`(For the latter two, pipenv environment & internet connection are needed) |
 
-## Download and Deployment
+## Download & Deployment
 
 1. Download the appropriate executable file according to your system architecture from [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).
 
-2. Or download the source code and compile (go 1.18 and above is needed)
+2. Or download the source code and compile (`go 1.18` and above is needed)
 
    ```shell
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca
-   cd opensca
-   go build -o opensca-cli main.go
+   // github
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
+   go build
+   ```
+   
+   ```shell
+   // gitee
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
+   go build
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
@@ -74,29 +85,37 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
    - Set the operating system `GOOS=${OS} \\ darwin,liunx,windows`
    - Set the architecture `GOARCH=${arch} \\ amd64,arm64`
 
-## Samples
+## Use OpenSCA
 
-### Scan & Report in CLI/CRT (default)
+### Parameters
 
-Detect the components only:
+| PARAMETER  | TYPE     | Descripation                                                                                                                                                                                                                                                                | SAMPLE                                                                                                                                                                                                                                                          |
+| ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config`   | `string` | Set the path of the configuration file         | `-config config.json`                                                                                                                                                                                                                                           |
+| `path`     | `string` | Set the path of the target file or directory                                                                                                                                                                                                                               | `-path ./foo`                                                                                                                                                                                                                                                   |                                                                                                            
+| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix | `-out out.json, out.html`  |
+| `log`    | `string`   | Specify the path of log file                                                                                                                                                                                                                                                  | `-log my_log.txt`                                                                                                                                                                                                                                                        |
+| `token`    | `string` | Cloud service verification coming from our offical website                                                                                                                                                   | `-token xxx`                                                                                                                                                                                                                                                |
 
-```shell
-opensca-cli -path ${project_path}
-```
+From v3.0.0, apart from these parameters available for CMD/CRT, there are also others for different requirements which have to be set in the configuration file. 
 
-Connect to the cloud vulnerability database:
+Full introduction about each parameters can be found in `config.json`
 
-```shell
-opensca-cli -url ${url} -token ${token} -path ${project_path}
-```
+If the configuration parameter conflicts with the command-line input parameter, the latter will be taken.
 
-Or use the local vulnerability database:
+When there's no configuration file in the set path, one in default settings will be generated there.
 
-```shell
-opensca-cli -db db.json -path ${project_path}
-```
+If no path of configuration file is set, the following ones will be checked:
 
-### Scan & Report in Files (use the `out` parameter)
+  1. `config.json` under the working directory
+  2. `opensca_config.json` under the user directory
+  3. `config.json` under `opensca-cli` directory
+
+From v3.0.0, `url` has been put in the configuration file. The default set goes to our cloud vulnerability database. Other online database in accordance with our database structure can also be set through configuration file.  
+
+Using previous versions to connect the cloud databse will still need the setting of `url`, which could be done via both CMD and configuration file. Example: `-url https://opensca.xmirror.cn`
+
+### Report Formats
 
 Files supported by the `out` parameter are listed below：
 
@@ -105,19 +124,24 @@ Files supported by the `out` parameter are listed below：
 | REPORT | `json` | `.json`                          | `*`                |
 |        | `xml`  | `.xml`                           | `*`                |
 |        | `html` | `.html`                          | `v1.0.6` and above |
-|        | `sqlite` | `.sqlite`                          | `v1.0.13` and above |
-|        | `csv` | `.csv`                          | `v1.0.13` and above |
+|        | `sqlite` | `.sqlite`                      | `v1.0.13` and above|
+|        | `csv` | `.csv`                            | `v1.0.13` and above|
 | SBOM   | `spdx` | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above |
 |        | `cdx`  | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above |
 |        | `swid` | `.swid.json` `.swid.xml`         | `v1.0.11`and above |
+|        | `dsdx` | `.dsdx` `.dsdx.json` `.dsdx.xml` | `v3.0.0`and above  |
 
-#### Sample
+### Sample
 
 ```shell
-opensca-cli -url ${url} -token ${token} -path ${project_path} -out ${filename}.${suffix}
+# Use opensca-cli to scan with CMD parameters:
+opensca-cli -path ${project_path} -config ${config_path} -out ${filename}.${suffix} -token ${token}
+
+# Start scanning after setting down the configuration file:
+opensca-cli
 ```
 
-### Scan & Report via Docker Container
+#### Scan & Report via Docker Container
 
 ```shell
 # Detect dependencies in the current directory:
@@ -125,50 +149,16 @@ docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
 
 # Connect to the cloud vulnerability database:
 docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
-
-# Use the local vulnerability database:
-docker run -ti --rm -v $(PWD):/src -v /localDB:/data opensca/opensca-cli -db /data/db.json
 ```
 
-You can also use the configuration file for advanced settings. Save `config.json` to the project folder and execute the command using `-v ${project path}:/src` to map the project directory to `/src` directory of the container.
+You can also use the configuration file for advanced settings. Save `config.json` to the mounted directory of `src` or set other paths within the container through `-config`.
 
 For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/opensca-cli)
 
-## Parameters
 
-**You can either configure the parameters in the configuration file or input the parameters in the command-line. When the two conflict, the input parameters will be prioritized.**
+### Local Vulnerability Database
 
-| PARAMETER  | TYPE     | Descripation                                                                                                                                                                                                                                                                | SAMPLE                                                                                                                                                                                                                                                          |
-| ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`   | `string` | Set the configuration file path, when the program runs, the parameter of the configuration file will be used as the startup parameters. If the configuration parameter conflicts with the command-line input parameter, the latter will be taken.                          | `-config config.json`                                                                                                                                                                                                                                           |
-| `path`     | `string` | Set the file or directory path to be detected.                                                                                                                                                                                                                             | `-path ./foo`                                                                                                                                                                                                                                                   |
-| `url`      | `string` | Check the vulnerabilities from the cloud vulnerability database and set the address of the cloud service. It needs to be used with the `token` parameter.                                                                                                                  | `-url https://opensca.xmirror.cn`                                                                                                                                                                                                                               |
-| `token`    | `string` | Cloud service verification. You have to apply for it on the cloud service platform and use it with the `url` parameter.                                                                                                                                                    | `-token xxxxxxx`                                                                                                                                                                                                                                                |
-| `vuln`     | `bool`   | Show the vulnerabilities info only. Using this parameter, the component hierarchical architecture will **NOT** be included in the result.                                                                                                                                  | `-vuln`                                                                                                                                                                                                                                                         |
-| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix. The default is `JSON` | `-out output.json` </br>`-out output.html`</br>`-out output.xml`</br>`-out output.sqlite`</br>`-out output.csv`</br>`-out output.spdx`</br>`-out output.spdx.xml`</br>`-out output.spdx.json`</br>`-out output.swid.xml`</br>`-out output.swid.json`</br>`-out output.cdx.xml`</br>`-out output.cdx.json`</br> |
-|`db`    |`string` | Set the local vulnerability database file. It helps when you prefer to use your own vulnerability database. The format of the vulnerability database is shown below. If the cloud and local vulnerability databases are both set, the result of detection will merge both. | `-db db.json` |
-| `progress` | `bool`   | Show the progress bar.                                                                                                                                                                                                                                                     | `-progress`                                                                                                                                                                                                                                                     |
-| `dedup`    | `bool`   | Same result deduplication                                                                                                                                                                                                                                                  | `-dedup`                                                                                                                                                                                                                                                        |
-| `dironly`    | `bool`   | Scan the directory without decompression                                                                                                                                                                                                                                 | `-dironly`                                                                                                                                                                                                                                                        |
-| `log`    | `string`   | Specify the path of log file                                                                                                                                                                                                                                                  | `-log`                                                                                                                                                                                                                                                        |
-
-For v1.0.9 and above, local maven component database can be configured in the following format in the configuration file:
-
-```json
-{
-    "maven": [
-        {
-            "repo": "url",
-            "user": "user",
-            "password": "password"
-        }
-    ]
-}
-```
-
-------
-
-### The Format of the Vulnerability Database File
+#### The Format of the Vulnerability Database File
 
 ```json
 [
@@ -218,22 +208,22 @@ For v1.0.9 and above, local maven component database can be configured in the fo
 
 *There are several pre-set values to the "language" field, including java, js, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
 
-Since v1.0.13, OpenSCA supports databases in `sql` format. Once the database is organized according to the format, set them through the configuration file as follows:
+#### Sample of Setting the Vulnerability Database
 
 ```json
-[
 {
   "origin":{
+    "json":"db.json",
     "mysql":{
       "dsn":"user:password@tcp(ip:port)/dbname",
       "table":"table_name"
     },
-    "json":{
-      "dsn":"db.json"
+    "sqlite":{
+      "dsn":"sqlite.db",
+      "table":"table_name"
     }
   }
 }
-]
 ```
 
 ## FAQ
