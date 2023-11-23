@@ -99,6 +99,7 @@
 | `token`  | `string` | 云端服务`token`  | `-token xxx`             |
 
 完整的检测参数需在配置文件中配置
+（*v3.0.0开始url参数不再通过命令行指定，默认为OpenSCA云漏洞库服务`https://opensca.xmirror.cn/`，也可通过配置文件指定其他数据格式相符的云漏洞库；使用过往版本可在命令行或配置文件指定url参数。）
 
 配置字段及说明详见[`config.json`](./config.json)
 
