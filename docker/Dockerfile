@@ -5,7 +5,7 @@ ARG VERSION
 
 WORKDIR /app
 COPY ./ /app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -ldflags "-s -w -X 'main.version=${VERSION}'" -o /app/opensca-cli .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -ldflags "-X 'main.version=${VERSION}' " -o /app/opensca-cli .
 
 FROM scratch
 LABEL authors="OpenSCA Team <opensca@anpro-tech.com>"
