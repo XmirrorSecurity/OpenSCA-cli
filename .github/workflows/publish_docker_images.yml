@@ -39,7 +39,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           build-args: |
             VERSION=${{ env.VERSION }}
           tags: opensca/opensca-cli:latest, opensca/opensca-cli:${{ env.VERSION }}
