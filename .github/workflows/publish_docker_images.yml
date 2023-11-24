@@ -49,6 +49,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Convert to lowercase
+        run: |
+          echo "ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+          echo "ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
       - name: Build and push to GitHub Packages
         uses: docker/build-push-action@v5
         with:
