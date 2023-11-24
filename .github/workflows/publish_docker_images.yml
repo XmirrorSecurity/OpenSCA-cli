@@ -43,3 +43,19 @@ jobs:
           build-args: |
             VERSION=${{ env.VERSION }}
           tags: opensca/opensca-cli:latest, opensca/opensca-cli:${{ env.VERSION }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push to GitHub Packages
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            VERSION=${{ env.VERSION }}
+          tags: ghcr.io/${{ github.repository }}/opensca-cli:latest, ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}
