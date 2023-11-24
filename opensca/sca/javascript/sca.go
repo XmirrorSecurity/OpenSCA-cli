@@ -51,6 +51,9 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 				if js == nil {
 					return
 				}
+				if js.Dependencies == nil {
+					js.Dependencies = map[string]string{}
+				}
 				// 记录peerDependencies
 				for k, v := range js.PeerDependencies {
 					js.Dependencies[k] = v
