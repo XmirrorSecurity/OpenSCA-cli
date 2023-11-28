@@ -14,6 +14,7 @@ class Dependency:
         self.vulnerabilities: list[Vulnerability] = []
         pass
 
+    @staticmethod
     def col_name():
         return [
             "Vendor",
@@ -66,6 +67,7 @@ class Vulnerability:
         self.exploit_level_id = 0
         pass
 
+    @staticmethod
     def col_name():
         return [
             "Name",
