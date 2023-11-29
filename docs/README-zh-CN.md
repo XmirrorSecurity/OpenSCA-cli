@@ -2,8 +2,8 @@
 
 # 目录
 
-- [关于 OpenSCA]()
-- [快速开始]()
+- [关于 OpenSCA](./About_OpenSCA-zh_CN.md)
+- [快速开始](./Quick_Start-zh_CN.md)
 - [用户指南]()
     - [安装]()
     - [扫描]()
