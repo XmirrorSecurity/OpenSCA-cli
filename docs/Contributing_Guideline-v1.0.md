@@ -70,32 +70,8 @@ If your PR is about **improving the functionality**, based on the code standard,
 
 We will reach out and invite you to sign our CLA (Contributor License Agreement) after we decide to approve your code. As long as CLA get signed, your code contribution will become part of OpenSCA project, and you will be one of our contributors. Contributors can take part in the further plan and implementation of the project, judgment for the BUG, review the PR and verify new contributors.
 
-### Code Standard
 
-#### Naming  
-
-| TYPE         | FORMAT                                                       | EXAMPLE                  |
-| ------------ | ------------------------------------------------------------ | ------------------------ |
-| Constant     | all in upper case                                            | `MAX_COUNT`              |
-| Variables    | camel-case; proper abbreviation is acceptable                | `taskId, TaskId`         |
-| Function     | camel-case                                                   | `checkToken, CheckToken` |
-| Structure    | camel-case                                                   | `fileInfo, FileInfo`     |
-| API          | camel-case; end with `er`                                    | `Analyzer`               |
-| Doc name     | all in lower case; use the underscore to show separation     | `db_test.go`             |
-| Package name | all in lower case; be brief and avoid using the underscore or camel-case if possible | `config`                 |
-
-#### Comments
-
-- Function: Please use single-line comments(`//`), starting with the name of the function.
-
-  ```go
-  // RunTask is run a task
-  // taskId is task id
-  func RunTask(taskId int64)
-  ```
-
-- Code: We recommend adding comments to your code so that we can grasp the underlying logic more effectively.
-
+---
 
 
 We appreciate all the contributions to OpenSCA.
