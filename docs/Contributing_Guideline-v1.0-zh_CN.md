@@ -70,36 +70,12 @@ OpenSCA项目需要通过您的代码贡献实现维护、完善和功能拓展�
 
 协议签署完毕后，您的代码贡献会成为OpenSCA项目的一部分，您也会成为我们的Contributor，将可以作为项目成员参与进一步的项目功能规划和落实、BUG判定、PR审核和Contributor认证等过程。
 
-### 代码规范
 
-#### 命名
-
-| 类型   | 格式                                           | 示例                     |
-| ------ | ---------------------------------------------- | ------------------------ |
-| 常量   | 全大写                                         | `MAX_COUNT`              |
-| 变量名 | 驼峰，可适当缩写                               | `taskId, TaskId`         |
-| 函数   | 驼峰                                           | `checkToken, CheckToken` |
-| 结构   | 驼峰                                           | `fileInfo, FileInfo`     |
-| 接口   | 驼峰，一般`er`结尾                             | `Analyzer`               |
-| 文件名 | 全小写，下划线分割                             | `db_test.go`             |
-| 包名   | 全小写，尽可能使用简短的单词，避免下划线或驼峰 | `config`                 |
-
-#### 注释
-
-- 函数 使用单行注释(`//`)，函数名开头。
-
-  ```go
-  // RunTask is run a task
-  // taskId is task id
-  func RunTask(taskId int64)
-  ```
-
-- 代码 无法直观了解逻辑的代码需要添加注释。
-
+---
 
 
 我们感激每位贡献者对OpenSCA做出的贡献。
 
 再次感谢您对OpenSCA的关注和对我们理念的认可。
 
-贡献指南的英文版本请见 *Contributing Guideline-en v.1.0*。
+贡献指南的英文版本请见 [Contributing Guideline-en v.1.0](./Contributing_Guideline-v1.0.md)。

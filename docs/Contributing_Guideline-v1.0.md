@@ -70,36 +70,12 @@ If your PR is about **improving the functionality**, based on the code standard,
 
 We will reach out and invite you to sign our CLA (Contributor License Agreement) after we decide to approve your code. As long as CLA get signed, your code contribution will become part of OpenSCA project, and you will be one of our contributors. Contributors can take part in the further plan and implementation of the project, judgment for the BUG, review the PR and verify new contributors.
 
-### Code Standard
 
-#### Naming  
-
-| TYPE         | FORMAT                                                       | EXAMPLE                  |
-| ------------ | ------------------------------------------------------------ | ------------------------ |
-| Constant     | all in upper case                                            | `MAX_COUNT`              |
-| Variables    | camel-case; proper abbreviation is acceptable                | `taskId, TaskId`         |
-| Function     | camel-case                                                   | `checkToken, CheckToken` |
-| Structure    | camel-case                                                   | `fileInfo, FileInfo`     |
-| API          | camel-case; end with `er`                                    | `Analyzer`               |
-| Doc name     | all in lower case; use the underscore to show separation     | `db_test.go`             |
-| Package name | all in lower case; be brief and avoid using the underscore or camel-case if possible | `config`                 |
-
-#### Comments
-
-- Function: Please use single-line comments(`//`), starting with the name of the function.
-
-  ```go
-  // RunTask is run a task
-  // taskId is task id
-  func RunTask(taskId int64)
-  ```
-
-- Code: We recommend adding comments to your code so that we can grasp the underlying logic more effectively.
-
+---
 
 
 We appreciate all the contributions to OpenSCA.
 
 Thanks again for your interest in OpenSCA and your support for our solution to open source vulnerabilities.
 
-For the Chinese version of our contributing guideline, please check [贡献指南（中文版）v1.0](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/docs/%E8%B4%A1%E7%8C%AE%E6%8C%87%E5%8D%97%EF%BC%88%E4%B8%AD%E6%96%87%E7%89%88%EF%BC%89v1.0.md)。
+For the Chinese version of our contributing guideline, please check [贡献指南（中文版）v1.0](./Contributing_Guideline-v1.0-zh_CN.md)。
