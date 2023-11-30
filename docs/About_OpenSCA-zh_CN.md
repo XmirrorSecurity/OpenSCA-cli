@@ -1,7 +1,7 @@
 ---
-creator: Cyber Chen
-editor: Cyber Chen
-modification time: 2023-11-29 11:22:00
+title: About OpenSCA
+author: Cyber Chen
+date: 2023-11-29T11:22:00+08:00
 ---
 
 [返回目录](/docs/README-zh-CN.md) | [English](./About_OpenSCA.md)
@@ -31,5 +31,4 @@ OpenSCA 是 SCA 技术原理的开源实现。作为[悬镜安全](https://www.x
 
 # 检测流程
 
-
-
+![DetectionProcess](/resources/DetectionProcess-zh_CN.png)
