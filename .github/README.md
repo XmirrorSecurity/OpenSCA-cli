@@ -9,7 +9,7 @@
 -->
 
 <div align="center">
-	<img alt="logo" src="../logo.svg">
+	<img alt="logo" src="/resources/logo.svg">
 </div>
 
 English|[中文](../README.md)
@@ -274,7 +274,7 @@ ISSUEs are warmly welcome.
 
 Add WeChat for further consults is also an option:
 
-![QR Code](../wechat.png)
+![QR Code](/resources/wechat.png)
 
 Our QQ Group: 832039395
 
