@@ -141,10 +141,10 @@ opensca-cli
 
 ```shell
 # 检测当前目录的依赖信息
-docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
+docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli
 
 # 使用云端漏洞数据库:
-docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
+docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_here}
 ```
 
 如需在`docker`容器中使用配置文件，将`config.json`放到`src`挂载目录即可。也可以使用`-config`指定其他容器内路径。
