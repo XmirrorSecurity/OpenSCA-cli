@@ -8,7 +8,7 @@
 
 
 <div align="center">
-	<img alt="logo" src="./logo.svg">
+	<img alt="logo" src="/resources/logo.svg">
 </div>
 
 中文 | [English](./.github/README.md)
@@ -269,7 +269,7 @@ v1.0.5及更低版本需要自行修改源码配置镜像库地址，建议升�
 
 也可添加下方微信：
 
-![二维码](./wechat.png)
+![二维码](/resources/wechat.png)
 
 QQ技术交流群：832039395
 
