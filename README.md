@@ -148,6 +148,13 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_h
 ```
 
 如需在`docker`容器中使用配置文件，将`config.json`放到`src`挂载目录即可。也可以使用`-config`指定其他容器内路径。
+不同终端挂载当前目录的写法不同，常见的几种终端写法如下：
+|terminal|pwd|
+|-|-|
+|`bash`|`$(pwd)`|
+|`zsh`|`${PWD}`|
+|`cmd`|`%cd%`|
+|`powershell`|`(Get-Location).Path`|
 
 更多信息请参考 [Docker Hub 主页](https://hub.docker.com/r/opensca/opensca-cli)
 
