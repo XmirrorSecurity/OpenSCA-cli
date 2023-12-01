@@ -39,7 +39,7 @@
     "dev": true,
 
     // 跳过 TLS 验证
-    // skip tls verify
+    // skip tls verify, default: false
     "insecure": false
 
   },

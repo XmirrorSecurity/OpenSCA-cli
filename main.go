@@ -14,6 +14,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
 	"github.com/xmirrorsecurity/opensca-cli/cmd/ui"
 	"github.com/xmirrorsecurity/opensca-cli/opensca"
+	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
@@ -41,6 +42,9 @@ func main() {
 	if config.Conf().Optional.ProgressBar {
 		stopProgress = startProgressBar(arg)
 	}
+
+	// 初始化 HttpClient
+	common.InitHttpClient(config.Conf().Optional.Insecure)
 
 	// 运行检测任务
 	result := opensca.RunTask(context.Background(), arg)
