@@ -145,10 +145,10 @@ opensca-cli
 
 ```shell
 # Detect dependencies in the current directory:
-docker run -ti --rm -v $(PWD):/src opensca/opensca-cli
+docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli
 
 # Connect to the cloud vulnerability database:
-docker run -ti --rm -v $(PWD):/src opensca/opensca-cli -token ${put_your_token_here}
+docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_here}
 ```
 
 You can also use the configuration file for advanced settings. Save `config.json` to the mounted directory of `src` or set other paths within the container through `-config`.
