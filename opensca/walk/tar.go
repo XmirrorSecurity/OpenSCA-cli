@@ -45,6 +45,13 @@ func xtar(ctx context.Context, filter ExtractFileFilter, input, output string) b
 		}
 
 		fp := filepath.Join(output, fh.Name)
+
+		// avoid zip slip
+		if !strings.HasPrefix(fp, filepath.Clean(output)+string(os.PathSeparator)) {
+			logs.Warn("Invalid file path: %s", fp)
+			continue
+		}
+
 		if fh.Typeflag == tar.TypeDir {
 			os.MkdirAll(fp, 0755)
 			continue
