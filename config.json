@@ -36,7 +36,11 @@
 
     // 保留开发组件
     // save develop components
-    "dev": true
+    "dev": true,
+
+    // 跳过 TLS 验证
+    // skip tls verify
+    "insecure": false
 
   },
 
