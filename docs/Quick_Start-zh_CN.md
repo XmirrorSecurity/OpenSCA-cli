@@ -18,7 +18,14 @@ date: 2023-11-30T11:01:15+08:00
 
 ### 下载安装
 
-- 方式一：使用一键安装脚本(TODO)
+- 方式一：使用一键安装脚本
+  - Mac/Linux 用户可通过以下命令下载并安装
+    ```shell
+    curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
+
+    # 如果在下载中遇到网络问题，可尝试使用以下命令
+    curl -sSL https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.sh | sh -s -- gitee
+    ```
 - 方式二：Mac/Linux 用户可通过 `Homebrew` 下载安装
   ```shell
   brew install opensca-cli
