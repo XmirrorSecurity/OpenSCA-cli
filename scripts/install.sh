@@ -93,10 +93,7 @@ main() {
 }
 
 parse_args() {
-    if [ $# -eq 0 ]; then
-        git="github"
-        return
-    fi
+    git="github"
     while [ $# -gt 0 ]; do
         case "${1}" in
         "-h" | "--help")
@@ -109,6 +106,9 @@ parse_args() {
             ;;
         "gitee")
             git="gitee"
+            ;;
+        "github")
+            git="github"
             ;;
         "update")
             UPDATE=1
