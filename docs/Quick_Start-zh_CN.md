@@ -30,7 +30,7 @@ date: 2023-11-30T11:01:15+08:00
   ```shell
   brew install opensca-cli
   ```
-- 方式三：从 [GitHub]() 或 [Gitee]() 下载对应系统架构的可执行程序压缩包，并解压到本地任意目录下
+- 方式三：从 [GitHub](https://github.com/XmirrorSecurity/OpenSCA-cli/releases/latest) 或 [Gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases/latest) 下载对应系统架构的可执行程序压缩包，并解压到本地任意目录下
 
 ### 开始检测
 
