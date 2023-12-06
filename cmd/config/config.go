@@ -38,6 +38,7 @@ type OptionalConfig struct {
 	VulnOnly    bool `json:"vuln"`
 	SaveDev     bool `json:"dev"`
 	ProgressBar bool `json:"progress"`
+	Insecure    bool `json:"insecure"`
 }
 
 type RepoConfig struct {

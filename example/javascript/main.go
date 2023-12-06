@@ -14,6 +14,7 @@ import (
 )
 
 func init() {
+
 	// register npm repository origin
 	javascript.RegisterNpmOrigin(func(name, version string) *javascript.PackageJson {
 		var pkgjson *javascript.PackageJson
