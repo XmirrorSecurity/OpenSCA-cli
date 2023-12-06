@@ -15,6 +15,9 @@ import (
 
 func init() {
 
+	// init http client
+	common.InitHttpClient(false)
+
 	// register default maven repository
 	java.RegisterMavenRepo(
 		common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"},

@@ -15,6 +15,9 @@ import (
 )
 
 func init() {
+	// init http client
+	common.InitHttpClient(false)
+
 	// register composer repository origin
 	php.RegisterComposerOrigin(func(name, version string) *php.ComposerPackage {
 		var composer *php.ComposerPackage
