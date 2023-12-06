@@ -71,6 +71,11 @@ func main() {
 	fmt.Println("\n\nComplete!\n" + format.Statis(report))
 	logs.Info("\nComplete!\n" + format.Statis(report))
 
+	// 发送检测报告
+	if err := format.Saas(report, config.Conf().Origin.Token, config.Conf().Origin.Uid); err != nil {
+		logs.Warnf("saas report error: %s", err)
+	}
+
 	// 开启ui
 	if config.Conf().Optional.UI {
 		ui.OpenUI(report)
