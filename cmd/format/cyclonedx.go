@@ -29,7 +29,7 @@ func cyclonedxbom(dep *detail.DepDetailGraph) *cyclonedx.BOM {
 
 		if n.Name != "" {
 			components = append(components, cyclonedx.Component{
-				BOMRef:     n.Purl(),
+				BOMRef:     "ref-" + n.ID,
 				Type:       cyclonedx.ComponentTypeLibrary,
 				Author:     n.Vendor,
 				Name:       n.Name[strings.LastIndex(n.Name, "/")+1:],

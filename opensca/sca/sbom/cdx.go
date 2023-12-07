@@ -27,7 +27,7 @@ func ParseCdxXml(f *model.File) *model.DepGraph {
 
 func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 
-	if bom == nil || bom.BOMFormat != "CycloneDX" {
+	if bom == nil {
 		return nil
 	}
 
@@ -36,11 +36,13 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 	}
 
 	depRefMap := map[string]*model.DepGraph{}
-	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+	_dep := model.NewDepGraphMap(func(s ...string) string {
+		return s[0]
+	}, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
-			Vendor:  s[0],
-			Name:    s[1],
-			Version: s[2],
+			Vendor:  s[1],
+			Name:    s[2],
+			Version: s[3],
 		}
 	}).LoadOrStore
 
@@ -49,7 +51,7 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 		if d.PackageURL != "" {
 			vendor, name, version, language := model.ParsePurl(d.PackageURL)
 			if name != "" {
-				dep := _dep(vendor, name, version)
+				dep := _dep(d.BOMRef, vendor, name, version)
 				dep.Language = language
 				depRefMap[d.BOMRef] = dep
 				continue
@@ -57,7 +59,7 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 		}
 
 		if d.Name != "" {
-			depRefMap[d.BOMRef] = _dep(d.Author, d.Name, d.Version)
+			depRefMap[d.BOMRef] = _dep(d.BOMRef, d.Author, d.Name, d.Version)
 		}
 	}
 
