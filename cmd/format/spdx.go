@@ -45,7 +45,7 @@ func spdxDoc(report Report) *model.SpdxDocument {
 		for _, lic := range n.Licenses {
 			lics = append(lics, lic.ShortName)
 		}
-		doc.AddPackage(n.ID, n.Vendor, n.Name, n.Version, lics)
+		doc.AddPackage(n.ID, n.Vendor, n.Name, n.Version, model.Language(n.Language), lics)
 
 		for _, c := range n.Children {
 			if c.Name == "" {

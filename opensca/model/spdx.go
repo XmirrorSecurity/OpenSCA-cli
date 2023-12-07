@@ -13,28 +13,35 @@ type SpdxDocument struct {
 	SPDXID        string         `json:"SPDXID" xml:"SPDXID"`
 	DocumentName  string         `json:"name" xml:"name"`
 	CreationInfo  CreationInfo   `json:"creationInfo" xml:"creationInfo"`
-	Packages      []SpdxPackage  `json:"packages" xml:"packages>package"`
-	Relationships []Relationship `json:"relationships" xml:"relationships>relationship"`
+	Packages      []SpdxPackage  `json:"packages" xml:"packages"`
+	Relationships []Relationship `json:"relationships" xml:"relationships"`
 }
 
 type SpdxPackage struct {
-	SPDXID   string `json:"SPDXID" xml:"SPDXID"`
-	Name     string `json:"name" xml:"name"`
-	Version  string `json:"versionInfo,omitempty" xml:"versionInfo,omitempty"`
-	Supplier string `json:"supplier,omitempty" xml:"supplier,omitempty"`
+	SPDXID       string        `json:"SPDXID" xml:"SPDXID"`
+	Name         string        `json:"name" xml:"name"`
+	Version      string        `json:"versionInfo,omitempty" xml:"versionInfo,omitempty"`
+	Supplier     string        `json:"supplier,omitempty" xml:"supplier,omitempty"`
+	ExternalRefs []ExternalRef `json:"externalRefs" xml:"externalRefs"`
 	// 从文件中解析的许可证名称不符合spdx规范
 	LicenseConcluded string `json:"-" xml:"-"`
 }
 
 type CreationInfo struct {
 	Created  string   `json:"created,omitempty" xml:"created,omitempty"`
-	Creators []string `json:"creators,omitempty" xml:"creators>creator,omitempty"`
+	Creators []string `json:"creators,omitempty" xml:"creators,omitempty"`
 }
 
 type Relationship struct {
 	SPDXElementID      string `json:"spdxElementId" xml:"spdxElementId"`
 	RelatedSPDXElement string `json:"relatedSpdxElement" xml:"relatedSpdxElement"`
 	RelationshipType   string `json:"relationshipType" xml:"relationshipType"`
+}
+
+type ExternalRef struct {
+	ReferenceCategory string `json:"referenceCategory" xml:"referenceCategory"`
+	ReferenceLocator  string `json:"referenceLocator" xml:"referenceLocator"`
+	ReferenceType     string `json:"referenceType" xml:"referenceType"`
 }
 
 func NewSpdxDocument(name string) *SpdxDocument {
@@ -47,13 +54,19 @@ func NewSpdxDocument(name string) *SpdxDocument {
 	}
 }
 
-func (doc *SpdxDocument) AddPackage(id, vendor, name, version string, lics []string) {
+func (doc *SpdxDocument) AddPackage(id, vendor, name, version string, language Language, lics []string) {
+	purlRef := ExternalRef{
+		ReferenceCategory: "PACKAGE-MANAGER",
+		ReferenceType:     "purl",
+		ReferenceLocator:  Purl(vendor, name, version, language),
+	}
 	doc.Packages = append(doc.Packages, SpdxPackage{
 		SPDXID:           "SPDXRef-" + id,
 		Name:             assert(name),
 		Version:          assert(version),
 		Supplier:         assert("Organization: " + vendor),
 		LicenseConcluded: assert(strings.Join(lics, " OR ")),
+		ExternalRefs:     []ExternalRef{purlRef},
 	})
 }
 
@@ -93,6 +106,9 @@ PackageName: {{ .Name }}
 SPDXID: {{ .SPDXID }}
 PackageVersion: {{ .Version }}
 PackageSupplier: {{ .Supplier }}
+{{- range .ExternalRefs	}}
+ExternalRef: {{ .ReferenceCategory }} {{ .ReferenceType }} {{ .ReferenceLocator }}
+{{- end }}
 # PackageLicenseConcluded: {{ .LicenseConcluded }}
 {{ end }}
 {{- range .Relationships }}
