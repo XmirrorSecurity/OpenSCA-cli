@@ -34,6 +34,7 @@ func Saas(report Report, token, uid string) error {
 	}
 	f := common.CreateTemp("dsdx")
 	f.Close()
+	defer os.Remove(f.Name())
 	Dsdx(report, f.Name())
 	dsdx, err := os.Open(f.Name())
 	if err != nil {
@@ -50,6 +51,7 @@ func Saas(report Report, token, uid string) error {
 	}
 	f = common.CreateTemp("json")
 	f.Close()
+	defer os.Remove(f.Name())
 	Json(report, f.Name())
 	json, err := os.Open(f.Name())
 	if err != nil {
@@ -58,6 +60,8 @@ func Saas(report Report, token, uid string) error {
 	io.Copy(jsonFile, json)
 	json.Close()
 	os.Remove(f.Name())
+
+	w.Close()
 
 	url := config.Conf().Origin.Url + "/oss-saas/api-v1/ide-plugin/sync/result"
 	req, err := http.NewRequest("POST", url, body)
