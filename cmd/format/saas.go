@@ -40,9 +40,8 @@ func Saas(report Report, token, uid string) error {
 	if err != nil {
 		return err
 	}
+	defer dsdx.Close()
 	io.Copy(dsdxFile, dsdx)
-	dsdx.Close()
-	os.Remove(f.Name())
 
 	// jsonFile
 	jsonFile, err := w.CreateFormFile("jsonFile", uuid.NewV4().String()+".json")
@@ -57,9 +56,8 @@ func Saas(report Report, token, uid string) error {
 	if err != nil {
 		return err
 	}
+	defer json.Close()
 	io.Copy(jsonFile, json)
-	json.Close()
-	os.Remove(f.Name())
 
 	w.Close()
 
