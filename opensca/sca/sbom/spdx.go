@@ -16,9 +16,10 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 		return s[0]
 	}, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
-			Vendor:  s[1],
-			Name:    s[2],
-			Version: s[3],
+			Vendor:   s[1],
+			Name:     s[2],
+			Version:  s[3],
+			Language: model.Language(s[4]),
 		}
 	}).LoadOrStore
 
@@ -26,7 +27,7 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 	tags := map[string]string{}
 	checkAndSet := func(k, v string) {
 		if _, ok := tags[k]; ok {
-			depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"])
+			depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"], tags["language"])
 			tags = map[string]string{}
 		}
 		tags[k] = strings.TrimSpace(v)
@@ -52,6 +53,12 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 			checkAndSet("group", strings.TrimPrefix(v, "Organization:"))
 		case "SPDXID":
 			checkAndSet("id", v)
+		case "ExternalRef":
+			words := strings.Fields(v)
+			if len(words) >= 3 && words[len(words)-2] == "purl" {
+				_, _, _, language := model.ParsePurl(words[len(words)-1])
+				checkAndSet("language", string(language))
+			}
 		case "Relationship":
 			ids := strings.Split(v, "DEPENDS_ON")
 			if len(ids) == 2 {
@@ -61,7 +68,7 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 			}
 		}
 	})
-	depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"])
+	depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"], tags["language"])
 
 	if len(depIdMap) == 0 {
 		return nil
@@ -114,11 +121,13 @@ func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
 	}
 
 	depIdMap := map[string]*model.DepGraph{}
-	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+	_dep := model.NewDepGraphMap(func(s ...string) string {
+		return s[0]
+	}, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
-			Vendor:  s[0],
-			Name:    s[1],
-			Version: s[2],
+			Vendor:  s[1],
+			Name:    s[2],
+			Version: s[3],
 		}
 	})
 
@@ -126,18 +135,27 @@ func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
 		return nil
 	}
 
-	var root *model.DepGraph
-	for i, pkg := range doc.Packages {
+	for _, pkg := range doc.Packages {
 		vendor := strings.TrimSpace(strings.TrimPrefix(pkg.Supplier, "Organization:"))
-		dep := _dep.LoadOrStore(vendor, pkg.Name, pkg.Version)
-		depIdMap[pkg.SPDXID] = dep
-		if i == 0 {
-			root = dep
+		dep := _dep.LoadOrStore(pkg.SPDXID, vendor, pkg.Name, pkg.Version)
+		for _, ref := range pkg.ExternalRefs {
+			if ref.ReferenceType == "purl" {
+				_, _, _, dep.Language = model.ParsePurl(ref.ReferenceLocator)
+				break
+			}
 		}
+		depIdMap[pkg.SPDXID] = dep
 	}
 
 	for _, relation := range doc.Relationships {
 		depIdMap[relation.SPDXElementID].AppendChild(depIdMap[relation.RelatedSPDXElement])
+	}
+
+	root := &model.DepGraph{Path: doc.DocumentName}
+	for _, dep := range depIdMap {
+		if len(dep.Parents) == 0 {
+			root.AppendChild(dep)
+		}
 	}
 
 	return root
