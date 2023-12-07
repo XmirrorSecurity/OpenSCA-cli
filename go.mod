@@ -12,6 +12,7 @@ require (
 	github.com/nwaples/rardecode v1.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/tview v0.0.0-20231126152417-33a1d271f2b6
+	github.com/satori/go.uuid v1.2.0
 	github.com/titanous/json5 v1.0.0
 	github.com/veraison/swid v1.1.0
 	golang.org/x/term v0.14.0
