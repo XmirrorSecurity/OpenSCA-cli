@@ -76,7 +76,7 @@ func main() {
 	logs.Info("\nComplete!\n" + format.Statis(report))
 
 	// 发送检测报告
-	if err := format.Saas(report, config.Conf().Origin.Token, config.Conf().Origin.Uid); err != nil {
+	if err := format.Saas(report); err != nil {
 		logs.Warnf("saas report error: %s", err)
 	}
 
