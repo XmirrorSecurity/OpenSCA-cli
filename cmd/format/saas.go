@@ -15,9 +15,13 @@ import (
 )
 
 // Saas 向saas平台发送检测报告
-func Saas(report Report, token, uid string) error {
+func Saas(report Report) error {
 
-	if token == "" || uid == "" {
+	url := config.Conf().Origin.Url
+	token := config.Conf().Origin.Token
+	uid := config.Conf().Origin.Uid
+
+	if url == "" || token == "" {
 		return nil
 	}
 
@@ -61,8 +65,7 @@ func Saas(report Report, token, uid string) error {
 
 	w.Close()
 
-	url := config.Conf().Origin.Url + "/oss-saas/api-v1/ide-plugin/sync/result"
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", url+"/oss-saas/api-v1/ide-plugin/sync/result", body)
 	if err != nil {
 		return err
 	}
