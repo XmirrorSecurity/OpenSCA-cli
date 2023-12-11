@@ -66,15 +66,14 @@
 2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
 
    ```shell
-   // github
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build
-   ```
-
-   ```shell
-   // gitee
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build
+   // github linux/mac
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+   // gitee linux/mac
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+   // github windows
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+   // gitee windows
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
