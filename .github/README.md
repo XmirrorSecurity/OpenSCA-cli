@@ -21,7 +21,7 @@ English|[中文](../README.md)
   - [Parameters](#parameters)
   - [Report Formats](#report-formats)
   - [Sample](#sample)
-    - [Scan \& Report via docker container](#scan--report-via-docker-container)
+    - [Scan \& Report via Docker Container](#scan--report-via-docker-container)
   - [Local Vulnerability Database](#local-vulnerability-database)
     - [The Format of the Vulnerability Database File](#the-format-of-the-vulnerability-database-file)
     - [Explanations of Vulnerability Database Fields](#explanations-of-vulnerability-database-fields)
@@ -68,15 +68,14 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 2. Or download the source code and compile (`go 1.18` and above is needed)
 
    ```shell
-   // github
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build
-   ```
-   
-   ```shell
-   // gitee
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca
-   go build
+   // github linux/mac
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+   // gitee linux/mac
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+   // github windows
+   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+   // gitee windows
+   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
    ```
 
    The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
