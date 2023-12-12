@@ -31,6 +31,10 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 		return nil
 	}
 
+	if bom.BOMFormat == "" && bom.XMLNS == "" {
+		return nil
+	}
+
 	if bom.Components == nil || len(*bom.Components) == 0 {
 		return nil
 	}

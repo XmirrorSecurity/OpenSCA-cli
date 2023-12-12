@@ -43,8 +43,6 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 		k := strings.TrimSpace(line[:i])
 		v := strings.TrimSpace(line[i+1:])
 		switch k {
-		case "DocumentName":
-			checkAndSet("name", v)
 		case "PackageName":
 			checkAndSet("name", v)
 		case "PackageVersion":
