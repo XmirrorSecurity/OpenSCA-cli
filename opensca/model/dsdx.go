@@ -24,7 +24,7 @@ type DsdxDocument struct {
 	// 组件列表
 	Components []DsdxComponent `json:"components" xml:"components"`
 	// 依赖关系
-	Dependencies DsdxDependencies `json:"dependencies" xml:"dependencies"`
+	Dependencies DsdxDependencies `json:"dependencies" xml:"-"`
 }
 
 type DsdxComponent struct {
