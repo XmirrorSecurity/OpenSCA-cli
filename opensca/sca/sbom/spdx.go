@@ -35,9 +35,16 @@ func ParseSpdx(f *model.File) *model.DepGraph {
 	// 记录relationship
 	relation := map[string][]string{}
 
+	start := false
 	f.ReadLine(func(line string) {
 		i := strings.Index(line, ":")
 		if strings.HasPrefix(line, "#") || i == -1 {
+			return
+		}
+		if strings.HasPrefix(line, "PackageName:") {
+			start = true
+		}
+		if !start {
 			return
 		}
 		k := strings.TrimSpace(line[:i])
