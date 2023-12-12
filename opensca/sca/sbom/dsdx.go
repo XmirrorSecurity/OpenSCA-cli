@@ -110,16 +110,18 @@ func parseDsdxDoc(doc *model.DsdxDocument) *model.DepGraph {
 	}
 
 	depIdMap := map[string]*model.DepGraph{}
-	_dep := model.NewDepGraphMap(nil, func(s ...string) *model.DepGraph {
+	_dep := model.NewDepGraphMap(func(s ...string) string {
+		return s[0]
+	}, func(s ...string) *model.DepGraph {
 		return &model.DepGraph{
-			Vendor:  s[0],
-			Name:    s[1],
-			Version: s[2],
+			Vendor:  s[1],
+			Name:    s[2],
+			Version: s[3],
 		}
 	}).LoadOrStore
 
 	for _, c := range doc.Components {
-		dep := _dep(c.Group, c.Name, c.Version)
+		dep := _dep(c.ID, c.Group, c.Name, c.Version)
 		dep.Language = model.Language(c.Language)
 		dep.Licenses = c.License
 		depIdMap[c.ID] = dep
