@@ -21,14 +21,14 @@ func Saas(report Report) error {
 	token := config.Conf().Origin.Token
 	uid := config.Conf().Origin.Uid
 
-	if url == "" || token == "" {
+	if url == "" || token == "" || uid == nil {
 		return nil
 	}
 
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
 	w.WriteField("token", token)
-	w.WriteField("projectUid", uid)
+	w.WriteField("projectUid", *uid)
 	w.WriteField("detectOrigin", strconv.Itoa(5))
 
 	// dsdxFile

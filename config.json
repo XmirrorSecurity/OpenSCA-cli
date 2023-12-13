@@ -87,7 +87,7 @@
     // opensca web service token
     "token": "",
     // opensca saas uid, not required
-    "uid": "",
+    // "uid": "",
 
     // json dbfile
     "json": "",
