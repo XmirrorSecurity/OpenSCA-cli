@@ -209,6 +209,9 @@ func taskReport(r opensca.TaskResult) format.Report {
 			}
 			return true
 		})
+		for _, d := range deps {
+			d.Children = nil
+		}
 		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
 	}
 
