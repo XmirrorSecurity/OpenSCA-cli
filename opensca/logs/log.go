@@ -64,6 +64,7 @@ func CreateLog(logPath string) {
 		return
 	}
 
+	os.MkdirAll(filepath.Dir(logPath), 0777)
 	if f, err := os.Create(logPath); err != nil {
 		Warnf("create log %s err: %s, create default log", logPath, err)
 		createDefaultLog()
