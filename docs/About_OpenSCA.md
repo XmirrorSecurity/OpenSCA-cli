@@ -20,3 +20,7 @@ Based on OpenSCA, we've built up a global community covering industries of telec
 | Python | Pip | `Pipfile`, `Pipfile.lock`, `setup.py`, `requirements.txt`(pipenv & internet needed), `requirements.in`(pipenv & internet needed) |
 | Rust | cargo | `Cargo.lock` |
 | Erlang | Rebar | `rebar.lock` |
+
+# Work Flow
+
+![DetectionProcess](/resources/DetectionProcess.png)
