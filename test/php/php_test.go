@@ -3,8 +3,8 @@ package php
 import (
 	"testing"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
-	"github.com/xmirrorsecurity/opensca-cli/test/tool"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/php"
+	"github.com/xmirrorsecurity/opensca-cli/v3/test/tool"
 )
 
 func Test_Php(t *testing.T) {

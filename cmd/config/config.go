@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/titanous/json5"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 type Config struct {

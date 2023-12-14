@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/cache"
 )
 
 type PackageJson struct {

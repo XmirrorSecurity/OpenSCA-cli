@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 type RepoConfig struct {

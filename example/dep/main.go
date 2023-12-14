@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 func main() {

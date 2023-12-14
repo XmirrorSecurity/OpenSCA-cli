@@ -3,8 +3,8 @@ package sbom
 import (
 	"context"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
 )
 
 type Sca struct{}

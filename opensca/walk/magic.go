@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 type Magic []byte

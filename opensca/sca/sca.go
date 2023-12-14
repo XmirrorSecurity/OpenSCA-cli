@@ -3,17 +3,17 @@ package sca
 import (
 	"context"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/erlang"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/golang"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/groovy"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/python"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/ruby"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/rust"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/sbom"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/erlang"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/golang"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/groovy"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/javascript"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/php"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/python"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/ruby"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/rust"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/sbom"
 )
 
 type Sca interface {

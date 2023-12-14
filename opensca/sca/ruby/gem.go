@@ -3,7 +3,7 @@ package ruby
 import (
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 // ParseGemfileLock 解析Gemfile.lock文件

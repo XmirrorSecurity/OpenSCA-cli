@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 // ParseGroovy 解析groovy文件
