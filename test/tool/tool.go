@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca"
 )
 
 func Diff(a, b *model.DepGraph) bool {

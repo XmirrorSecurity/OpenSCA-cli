@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/walk"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/walk"
 )
 
 // 任务检测参数

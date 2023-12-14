@@ -13,10 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/cache"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/cache"
 )
 
 // ParsePoms 解析一个项目中的pom文件

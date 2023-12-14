@@ -9,9 +9,9 @@ import (
 	"strconv"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 // Saas 向saas平台发送检测报告

@@ -16,8 +16,8 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 
 	"github.com/pkg/errors"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
 )
 
 func Csv(report Report, out string) {

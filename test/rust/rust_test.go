@@ -3,8 +3,8 @@ package rust
 import (
 	"testing"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/rust"
-	"github.com/xmirrorsecurity/opensca-cli/test/tool"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/rust"
+	"github.com/xmirrorsecurity/opensca-cli/v3/test/tool"
 )
 
 func Test_Rust(t *testing.T) {

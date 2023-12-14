@@ -8,9 +8,9 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/format"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 var (
