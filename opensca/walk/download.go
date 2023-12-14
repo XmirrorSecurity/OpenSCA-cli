@@ -12,6 +12,7 @@ import (
 
 	"github.com/jlaffaye/ftp"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 // isHttp 是否为http/https协议
@@ -82,8 +83,9 @@ func downloadFromHttp(url, output string) error {
 			return err
 		} else {
 			defer r.Body.Close()
-			io.Copy(f, r.Body)
-			return nil
+			size, err := io.Copy(f, r.Body)
+			logs.Infof("download %s size:%d", url, size)
+			return err
 		}
 	}
 
