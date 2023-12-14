@@ -1,4 +1,4 @@
-module github.com/xmirrorsecurity/opensca-cli
+module github.com/xmirrorsecurity/opensca-cli/v3
 
 go 1.20
 
