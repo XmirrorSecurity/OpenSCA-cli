@@ -113,7 +113,11 @@ func downloadFromHttp(url, output string) error {
 			return err
 		}
 		defer resp.Body.Close()
-		io.Copy(f, resp.Body)
+		_, err = io.Copy(f, resp.Body)
+		if err != nil {
+			return err
+		}
+		logs.Infof("download %s range:%d-%d", url, offset, next)
 		offset = next + 1
 	}
 	return nil
