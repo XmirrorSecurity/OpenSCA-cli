@@ -12,7 +12,7 @@ var tempdir = ".temp"
 func init() {
 	excpath, _ := os.Executable()
 	tempdir = filepath.Join(filepath.Dir(excpath), tempdir)
-	os.RemoveAll(tempdir)
+	// os.RemoveAll(tempdir)
 	os.MkdirAll(tempdir, 0755)
 }
 
