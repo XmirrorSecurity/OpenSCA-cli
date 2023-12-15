@@ -25,21 +25,21 @@ type WalkFileFunc func(parent *model.File, files []*model.File)
 // size: 检测文件大小
 func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
 
-	delete, filepath, err := download(origin)
+	delete, file, err := download(origin)
 	if err != nil {
 		return
 	}
 
-	logs.Debugf("walk %s", filepath)
+	logs.Debugf("walk %s", file)
 
 	if delete {
 		defer func() {
-			logs.Debugf("remove %s", filepath)
-			os.RemoveAll(filepath)
+			logs.Debugf("remove %s", filepath.Dir(file))
+			os.RemoveAll(filepath.Dir(file))
 		}()
 	}
 
-	if f, xerr := os.Stat(filepath); xerr == nil {
+	if f, xerr := os.Stat(file); xerr == nil {
 		if !f.IsDir() {
 			size = f.Size()
 		}
@@ -49,7 +49,7 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 		return
 	}
 
-	parent := model.NewFile(filepath, name)
+	parent := model.NewFile(file, name)
 	wg := &sync.WaitGroup{}
 	err = walk(ctx, wg, parent, filter, do)
 	wg.Wait()
