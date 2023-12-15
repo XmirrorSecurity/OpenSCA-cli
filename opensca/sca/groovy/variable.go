@@ -13,7 +13,7 @@ import (
 type Variable map[string]string
 
 var (
-	refReg = regexp.MustCompile(`((\w+)\[['"](\w+)['"]\])|(\$\{[^{}]*\})`)
+	refReg = regexp.MustCompile(`((\w+)\[['"](\w+)['"]\])|(\$\{?[^{}"']*\}?)`)
 )
 
 // Replace 使用当前变量表中的变量替换文本中的变量值
@@ -27,7 +27,7 @@ func (v Variable) Replace(text string) string {
 		exist[text] = true
 		text = refReg.ReplaceAllStringFunc(text, func(s string) string {
 			if strings.HasPrefix(s, "$") {
-				k := s[2 : len(s)-1]
+				k := strings.Trim(s[1:], "{}")
 				if value, ok := v[k]; ok {
 					if len(value) > 0 {
 						s = value
