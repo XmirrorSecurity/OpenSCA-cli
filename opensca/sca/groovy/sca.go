@@ -21,7 +21,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 
 	roots := GradleTree(ctx, parent)
 	if len(roots) == 0 {
-		roots = ParseGradle(files)
+		roots = ParseGradle(ctx, files)
 	}
 	if len(roots) > 0 {
 		call(parent, roots...)
