@@ -53,7 +53,7 @@ func (file *File) OpenReader(do func(reader io.Reader)) error {
 	return nil
 }
 
-// ReadLine 按行读取文件内容
+// ReadLine 按行读取文件内容 去除行尾换行符
 func (file File) ReadLine(do func(line string)) {
 	file.OpenReader(func(reader io.Reader) {
 		ReadLine(reader, do)
@@ -92,8 +92,13 @@ var (
 	}
 )
 
-// ReadLine 按行读取内容
+// ReadLine 按行读取内容 去除行尾换行符
 func ReadLine(reader io.Reader, do func(line string)) {
+
+	if do == nil {
+		return
+	}
+
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		do(strings.TrimRight(scanner.Text(), "\n\r"))
@@ -103,10 +108,15 @@ func ReadLine(reader io.Reader, do func(line string)) {
 // ReadLineNoComment 按行读取内容 忽略注释
 func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 
+	if do == nil {
+		return
+	}
+
 	if t == nil {
 		t = CTypeComment
 	}
 
+	// 标记当前是非位于多行注释段
 	comment := false
 
 	ReadLine(reader, func(line string) {
@@ -117,24 +127,25 @@ func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 			if i != -1 {
 				line = line[:i]
 			}
-			if strings.TrimSpace(line) == "" {
-				return
-			}
 		}
 
 		// 多行注释
 		if t.Begin != "" && t.End != "" {
-			i := strings.Index(line, t.Begin)
-			if !comment && i != -1 {
-				comment = true
-				do(line[:i])
-				return
-			}
-			i = strings.Index(line, t.End)
-			if comment && i != -1 {
-				comment = false
-				do(line[i+len(t.End):])
-				return
+			for {
+				// 当前非注释段且存在注释起始标记
+				if start_i := strings.Index(line, t.Begin); !comment && start_i != -1 {
+					comment = true
+					do(line[:start_i])
+					line = line[start_i+len(t.Begin):]
+					continue
+				}
+				// 当前为注释段且存在注释终止标记
+				if end_i := strings.Index(line, t.End); comment && end_i != -1 {
+					comment = false
+					line = line[end_i+len(t.End):]
+					continue
+				}
+				break
 			}
 			if comment {
 				return
