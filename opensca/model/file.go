@@ -7,11 +7,15 @@ import (
 	"strings"
 )
 
+// File 文件相关信息
 type File struct {
 	abspath string
 	relpath string
 }
 
+// NewFile 创建文件对象
+// abs: 文件绝对路径
+// rel: 文件相对路径(相对于项目根目录)
 func NewFile(abs, rel string) *File {
 	return &File{
 		abspath: abs,
@@ -19,6 +23,7 @@ func NewFile(abs, rel string) *File {
 	}
 }
 
+// Abspath 文件绝对路径
 func (file *File) Abspath() string {
 	if file != nil {
 		return file.abspath
@@ -26,6 +31,7 @@ func (file *File) Abspath() string {
 	return ""
 }
 
+// Relpath 文件相对路径
 func (file *File) Relpath() string {
 	if file != nil {
 		return file.relpath
@@ -33,6 +39,7 @@ func (file *File) Relpath() string {
 	return ""
 }
 
+// OpenReader 打开文件reader
 func (file *File) OpenReader(do func(reader io.Reader)) error {
 	if file == nil || file.abspath == "" {
 		return nil
@@ -46,30 +53,38 @@ func (file *File) OpenReader(do func(reader io.Reader)) error {
 	return nil
 }
 
+// ReadLine 按行读取文件内容
 func (file File) ReadLine(do func(line string)) {
 	file.OpenReader(func(reader io.Reader) {
 		ReadLine(reader, do)
 	})
 }
 
+// ReadLineNoComment 按行读取文件内容 忽略注释
 func (file File) ReadLineNoComment(t *CommentType, do func(line string)) {
 	file.OpenReader(func(reader io.Reader) {
 		ReadLineNoComment(reader, t, do)
 	})
 }
 
+// 注释类型
 type CommentType struct {
+	// 单行注释标记
 	Simple string
-	Begin  string
-	End    string
+	// 多行注释起始标记
+	Begin string
+	// 多行注释终止标记
+	End string
 }
 
 var (
+	// C语言注释类型
 	CTypeComment = &CommentType{
 		Simple: "//",
 		Begin:  "/*",
 		End:    "*/",
 	}
+	// Python语言注释类型
 	PythonTypeComment = &CommentType{
 		Simple: "#",
 		Begin:  "'''",
@@ -77,6 +92,7 @@ var (
 	}
 )
 
+// ReadLine 按行读取内容
 func ReadLine(reader io.Reader, do func(line string)) {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
@@ -84,6 +100,7 @@ func ReadLine(reader io.Reader, do func(line string)) {
 	}
 }
 
+// ReadLineNoComment 按行读取内容 忽略注释
 func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 
 	if t == nil {
@@ -108,7 +125,7 @@ func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 		// 多行注释
 		if t.Begin != "" && t.End != "" {
 			i := strings.Index(line, t.Begin)
-			if i != -1 {
+			if !comment && i != -1 {
 				comment = true
 				do(line[:i])
 				return
@@ -129,4 +146,7 @@ func ReadLineNoComment(reader io.Reader, t *CommentType, do func(line string)) {
 
 }
 
+// ResCallback 检测结果回调函数
+// file: 检出组件的文件信息
+// root: 组件依赖图根节点列表
 type ResCallback func(file *File, root ...*DepGraph)
