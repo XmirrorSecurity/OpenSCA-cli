@@ -260,7 +260,7 @@ For v1.0.10 and below, if the time is abnormally long and error information abou
 After setting, save `config.json` to the same folder of opensca-cli.exe and execute the command. Eg:
 
 ```shell
-opensca-cli -url https://opensca.xmirror.cn -token {token} -path {path} -out output.html -config config.json
+opensca-cli -token {token} -path {path} -out output.html -config config.json
 ```
 
 Users of v1.0.5 and below may have to modify the source code. We recommend an upgrade to higher versions.

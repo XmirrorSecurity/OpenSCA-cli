@@ -262,7 +262,7 @@ v1.0.10及更低版本使用时如遇检测速度异常慢、日志文件中有m
 设置完毕后，确保配置文件和opensca-cli在同一目录下，执行opensca-cli检测命令加上-config congif.json即可，示例：
 
 ```shell
-opensca-cli -url https://opensca.xmirror.cn -token {token} -path {path} -out output.html -config config.json
+opensca-cli -token {token} -path {path} -out output.html -config config.json
 ```
 
 v1.0.5及更低版本需要自行修改源码配置镜像库地址，建议升级到更高版本。
