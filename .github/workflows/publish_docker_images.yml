@@ -51,8 +51,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Convert to lowercase
         run: |
-          echo "ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
-          echo "ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+          echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+          echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
       - name: Build and push to GitHub Packages
         uses: docker/build-push-action@v5
         with:
@@ -62,4 +62,4 @@ jobs:
           push: true
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: ghcr.io/${{ github.repository }}/opensca-cli:latest, ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}
+          tags: ${{ env.DOCKER_IMAGE_TAG_LATEST }}, ${{ env.DOCKER_IMAGE_TAG_VERSION }}
