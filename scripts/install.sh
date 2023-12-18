@@ -6,6 +6,14 @@ UPDATE=0
 get_system_info() {
     SYSARCH="$(uname -m)"
     SYSTYPE="$(uname -s)"
+    case "$SYSARCH" in
+        x86_64)
+            SYSARCH="amd64"
+            ;;
+        i386)
+            SYSARCH="386"
+            ;;
+    esac
     case "$SYSTYPE" in
         Linux)
             SYSTYPE="linux"
@@ -79,7 +87,6 @@ main() {
         "gitee")
             latest_version=$(curl --silent "https://gitee.com/api/v5/repos/XmirrorSecurity/OpenSCA-cli/releases/latest" | sed -n 's/.*"tag_name":"\([^"]*\)".*/\1/p')
             download_url="https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases/download/$latest_version/opensca-cli-$latest_version-$SYSTYPE-$SYSARCH.tar.gz"
-            md5=$(curl --silent "https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases/download/$latest_version/opensca-cli-$latest_version-$SYSTYPE-$SYSARCH.tar.gz.md5")          
             ;;
         "github")
             latest_version=$(curl --silent "https://api.github.com/repos/XmirrorSecurity/OpenSCA-cli/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
