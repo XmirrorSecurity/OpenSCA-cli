@@ -4,6 +4,9 @@ go 1.20
 
 require github.com/xmirrorsecurity/opensca-cli/v3 v3.0.1
 
+// debug
+replace github.com/xmirrorsecurity/opensca-cli/v3 => ../
+
 require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.7.2 // indirect
