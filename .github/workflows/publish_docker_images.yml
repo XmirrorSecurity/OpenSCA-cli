@@ -62,4 +62,4 @@ jobs:
           push: true
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: ${{ env.DOCKER_IMAGE_TAG_LATEST }}, ${{ env.DOCKER_IMAGE_TAG_VERSION }}
+          tags: ${{ env.LATEST_TAG }}, ${{ env.VERSION_TAG }}
