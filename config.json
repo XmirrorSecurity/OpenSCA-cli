@@ -86,8 +86,8 @@
     "url": "https://opensca.xmirror.cn",
     // opensca web service token
     "token": "",
-    // opensca saas uid, not required
-    // "uid": "",
+    // opensca saas project id, not required
+    // "proj": "",
 
     // json dbfile
     "json": "",
