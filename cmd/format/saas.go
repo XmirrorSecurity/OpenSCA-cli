@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
@@ -31,8 +31,13 @@ func Saas(report Report) error {
 	w.WriteField("projectUid", *proj)
 	w.WriteField("detectOrigin", strconv.Itoa(5))
 
+	uid, err := uuid.NewV6()
+	if err != nil {
+		return err
+	}
+
 	// dsdxFile
-	dsdxFile, err := w.CreateFormFile("dsdxFile", uuid.NewV4().String()+".dsdx")
+	dsdxFile, err := w.CreateFormFile("dsdxFile", uid.String()+".dsdx")
 	if err != nil {
 		return err
 	}
@@ -48,7 +53,7 @@ func Saas(report Report) error {
 	io.Copy(dsdxFile, dsdx)
 
 	// jsonFile
-	jsonFile, err := w.CreateFormFile("jsonFile", uuid.NewV4().String()+".json")
+	jsonFile, err := w.CreateFormFile("jsonFile", uid.String()+".json")
 	if err != nil {
 		return err
 	}
