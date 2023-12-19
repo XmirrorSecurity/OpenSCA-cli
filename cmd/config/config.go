@@ -26,7 +26,7 @@ type BaseConfig struct {
 type OriginConfig struct {
 	Url    string    `json:"url"`
 	Token  string    `json:"token"`
-	Uid    *string   `json:"uid"`
+	Proj   *string   `json:"proj"`
 	Json   string    `json:"json"`
 	Mysql  SqlOrigin `json:"mysql"`
 	Sqlite SqlOrigin `json:"sqlite"`

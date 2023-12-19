@@ -100,6 +100,7 @@ func args() {
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
 	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
 	flag.StringVar(&cfg.Origin.Token, "token", "", "web token, example: -token xxxx")
+	cfg.Origin.Proj = flag.String("proj", "", "saas project id, example: -proj xxxx")
 	flag.Parse()
 
 	if v {
