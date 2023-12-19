@@ -25,54 +25,57 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 	gosum := map[string]*model.File{}
 	pkglock := map[string]*model.File{}
 	pkgtoml := map[string]*model.File{}
-	path2dir := func(s string) string { return filepath.Dir(s) }
 
 	// 记录相关文件
 	for _, f := range files {
+		dir := filepath.Dir(f.Relpath())
 		if filter.GoPkgToml(f.Relpath()) {
-			pkgtoml[path2dir(f.Relpath())] = f
+			pkgtoml[dir] = f
 		}
 		if filter.GoPkgLock(f.Relpath()) {
-			pkglock[path2dir(f.Relpath())] = f
+			pkglock[dir] = f
 		}
 		if filter.GoMod(f.Relpath()) {
-			gomod[path2dir(f.Relpath())] = f
+			gomod[dir] = f
 		}
 		if filter.GoSum(f.Relpath()) {
-			gosum[path2dir(f.Relpath())] = f
+			gosum[dir] = f
 		}
 	}
 
 	// 尝试调用 go mod graph
-	if len(gomod) > 0 {
-		for k, f := range gomod {
-			root := GoModGraph(ctx, f)
-			if root != nil && len(root.Children) > 0 {
-				call(f, root)
-				delete(gomod, k)
-			}
+	for dir, f := range gomod {
+		graph := GoModGraph(ctx, f)
+		if graph != nil && len(graph.Children) > 0 {
+			call(f, graph)
+			delete(gomod, dir)
+			delete(gosum, dir)
 		}
 	}
 
+	// 静态解析go.sum
+	for dir, f := range gosum {
+		sum := ParseGosum(f)
+		call(f, sum)
+		delete(gomod, dir)
+	}
+
+	// 静态解析go.mod
 	for _, f := range gomod {
 		mod := ParseGomod(f)
-		if sumf, ok := gosum[path2dir(f.Relpath())]; ok {
-			sum := ParseGosum(sumf)
-			if len(sum.Children) >= len(mod.Children) {
-				mod = sum
-			}
-		}
 		call(f, mod)
 	}
 
+	// 静态解析gopkg.lock
+	for dir, f := range pkglock {
+		lock := ParseGopkgLock(f)
+		call(f, lock)
+		delete(pkgtoml, dir)
+	}
+
+	// 静态解析gopkg.toml
 	for _, f := range pkgtoml {
 		pkg := ParseGopkgToml(f)
-		if lockf, ok := pkglock[path2dir(f.Relpath())]; ok {
-			lock := ParseGopkgLock(lockf)
-			if len(lock.Children) >= len(pkg.Children) {
-				pkg = lock
-			}
-		}
 		call(f, pkg)
 	}
 
