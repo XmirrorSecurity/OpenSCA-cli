@@ -91,7 +91,8 @@ func args() {
 
 	v := false
 	login := false
-	var cfgf string
+	cfgf := ""
+	proj := "x"
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
 	flag.BoolVar(&login, "login", false, "login to cloud server. example: -login")
@@ -100,7 +101,7 @@ func args() {
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
 	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
 	flag.StringVar(&cfg.Origin.Token, "token", "", "web token, example: -token xxxx")
-	cfg.Origin.Proj = flag.String("proj", "", "saas project id, example: -proj xxxx")
+	flag.StringVar(&proj, "proj", proj, "saas project id, example: -proj xxxx")
 	flag.Parse()
 
 	if v {
@@ -115,6 +116,10 @@ func args() {
 
 	config.LoadConfig(cfgf)
 	flag.Parse()
+
+	if proj != "x" {
+		cfg.Origin.Proj = &proj
+	}
 
 	logs.CreateLog(config.Conf().LogFile)
 
