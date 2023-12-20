@@ -24,14 +24,14 @@ func Login() error {
 
 	fmt.Print("Enter username or email: ")
 	username, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	username = strings.TrimSpace(username)
+	username = strings.TrimRight(username, "\r\n")
 	if err != nil {
 		return err
 	}
 
 	fmt.Print("Enter password: ")
 	password, err := term.ReadPassword(int(os.Stdin.Fd()))
-	password = bytes.TrimSpace(password)
+	password = bytes.TrimRight(password, "\r\n")
 	if err != nil {
 		return err
 	}
