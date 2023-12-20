@@ -10,6 +10,9 @@ get_system_info() {
         x86_64)
             SYSARCH="amd64"
             ;;
+        aarch64)
+            SYSARCH="arm64"
+            ;;
         i386)
             SYSARCH="386"
             ;;
