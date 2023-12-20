@@ -116,7 +116,7 @@ func args() {
 		os.Exit(0)
 	}
 
-	config.LoadConfig(cfgf)
+	cfgf = config.LoadConfig(cfgf)
 	flag.Parse()
 
 	if proj != "x" {
@@ -124,6 +124,9 @@ func args() {
 	}
 
 	logs.CreateLog(config.Conf().LogFile)
+
+	logs.Infof("opensca-cli version: %s", version)
+	logs.Infof("use config: %s", cfgf)
 
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
 	javascript.RegisterNpmRepo(config.Conf().Repo.Npm...)
