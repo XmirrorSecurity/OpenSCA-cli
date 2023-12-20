@@ -54,7 +54,9 @@ func main() {
 		logs.Error(result.Error)
 	}
 	for _, dep := range result.Deps {
-		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+		if dep.Name != "" || len(dep.Children) > 0 {
+			logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+		}
 	}
 
 	// 生成报告

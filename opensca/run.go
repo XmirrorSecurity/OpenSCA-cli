@@ -3,6 +3,7 @@ package opensca
 import (
 	"context"
 	"path/filepath"
+	"reflect"
 	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
@@ -96,7 +97,22 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 	}, func(parent *model.File, files []*model.File) {
 
 		for _, sca := range arg.Sca {
-			sca.Sca(ctx, parent, files, func(file *model.File, root ...*model.DepGraph) {
+
+			fs := []*model.File{}
+			for _, f := range files {
+				if sca.Filter(f.Relpath()) {
+					fs = append(fs, f)
+				}
+			}
+
+			if len(fs) == 0 {
+				continue
+			}
+
+			scaType := reflect.TypeOf(sca).String()
+			logs.Debugf("start sca:%s file:%s files:%v", scaType, parent, fs)
+
+			sca.Sca(ctx, parent, fs, func(file *model.File, root ...*model.DepGraph) {
 				for _, dep := range root {
 					if dep == nil {
 						continue
@@ -111,6 +127,8 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 					}
 				}
 			})
+
+			logs.Debugf("end sca:%s file:%s", scaType, parent)
 		}
 
 	})
