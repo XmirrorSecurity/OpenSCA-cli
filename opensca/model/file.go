@@ -39,6 +39,10 @@ func (file *File) Relpath() string {
 	return ""
 }
 
+func (file *File) String() string {
+	return file.Relpath()
+}
+
 // OpenReader 打开文件reader
 func (file *File) OpenReader(do func(reader io.Reader)) error {
 	if file == nil || file.abspath == "" {

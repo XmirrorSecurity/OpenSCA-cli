@@ -2,6 +2,8 @@ package format
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -36,8 +38,8 @@ func Saas(report Report) error {
 		return err
 	}
 
-	// dsdxFile
-	dsdxFile, err := w.CreateFormFile("dsdxFile", uid.String()+".dsdx")
+	// dsdx
+	dsdxWriter, err := w.CreateFormFile("dsdxFile", uid.String()+".dsdx")
 	if err != nil {
 		return err
 	}
@@ -45,15 +47,15 @@ func Saas(report Report) error {
 	f.Close()
 	defer os.Remove(f.Name())
 	Dsdx(report, f.Name())
-	dsdx, err := os.Open(f.Name())
+	dsdxFile, err := os.Open(f.Name())
 	if err != nil {
 		return err
 	}
-	defer dsdx.Close()
-	io.Copy(dsdxFile, dsdx)
+	defer dsdxFile.Close()
+	io.Copy(dsdxWriter, dsdxFile)
 
-	// jsonFile
-	jsonFile, err := w.CreateFormFile("jsonFile", uid.String()+".json")
+	// json
+	jsonWriter, err := w.CreateFormFile("jsonFile", uid.String()+".json")
 	if err != nil {
 		return err
 	}
@@ -61,12 +63,12 @@ func Saas(report Report) error {
 	f.Close()
 	defer os.Remove(f.Name())
 	Json(report, f.Name())
-	json, err := os.Open(f.Name())
+	jsonFile, err := os.Open(f.Name())
 	if err != nil {
 		return err
 	}
-	defer json.Close()
-	io.Copy(jsonFile, json)
+	defer jsonFile.Close()
+	io.Copy(jsonWriter, jsonFile)
 
 	w.Close()
 
@@ -86,6 +88,16 @@ func Saas(report Report) error {
 		return err
 	}
 	logs.Debugf("saas resp: %s", string(data))
+	saasResp := struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    string `json:"data"`
+	}{}
+	json.Unmarshal(data, &saasResp)
+	if saasResp.Code == 0 && saasResp.Message == "success" {
+		logs.Infof("saas url: %s/%s", url, saasResp.Data)
+		fmt.Printf("saas url: %s/%s\n", url, saasResp.Data)
+	}
 
 	return nil
 }
