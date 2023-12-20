@@ -1,0 +1,12 @@
+c text scope:
+text-c1 // comment-c1
+text-c2 /* comment-c2
+comment-c3 */ text-c3
+text-c4-1 /* comment-c4 */ text-c4-2
+text-c5-1 /* comment-c5-1 */ text-c5-2 /* comment-c5-2 */ text-c5-3
+python text scope:
+text-py1  # comment-py1
+text-py2 ''' comment-py2
+comment-py3 ''' text-py3
+text-py4-1 ''' comment-py4 ''' text-py4-2
+text-py5-1 ''' comment-py5-1 ''' text-py5-2 ''' comment-py5-2 ''' text-py5-3

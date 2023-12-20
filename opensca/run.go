@@ -3,12 +3,14 @@ package opensca
 import (
 	"context"
 	"path/filepath"
+	"reflect"
 	"time"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/walk"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/walk"
 )
 
 // 任务检测参数
@@ -95,11 +97,29 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 	}, func(parent *model.File, files []*model.File) {
 
 		for _, sca := range arg.Sca {
-			sca.Sca(ctx, parent, files, func(file *model.File, root ...*model.DepGraph) {
+
+			fs := []*model.File{}
+			for _, f := range files {
+				if sca.Filter(f.Relpath()) {
+					fs = append(fs, f)
+				}
+			}
+
+			if len(fs) == 0 {
+				continue
+			}
+
+			scaType := reflect.TypeOf(sca).String()
+			logs.Debugf("start sca:%s file:%s files:%v", scaType, parent, fs)
+
+			sca.Sca(ctx, parent, fs, func(file *model.File, root ...*model.DepGraph) {
 				for _, dep := range root {
 					if dep == nil {
 						continue
 					}
+					count := 0
+					dep.ForEachNode(func(p, n *model.DepGraph) bool { count++; return true })
+					logs.Infof("file:%s deps:%d language:%s", file.Relpath(), count, sca.Language())
 					dep.Build(false, sca.Language())
 					result.Deps = append(result.Deps, dep)
 					if arg.ResCallFunc != nil {
@@ -107,6 +127,8 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 					}
 				}
 			})
+
+			logs.Debugf("end sca:%s file:%s", scaType, parent)
 		}
 
 	})

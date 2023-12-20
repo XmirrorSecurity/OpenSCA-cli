@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/titanous/json5"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 type Config struct {
@@ -26,7 +26,7 @@ type BaseConfig struct {
 type OriginConfig struct {
 	Url    string    `json:"url"`
 	Token  string    `json:"token"`
-	Uid    string    `json:"uid"`
+	Proj   *string   `json:"proj"`
 	Json   string    `json:"json"`
 	Mysql  SqlOrigin `json:"mysql"`
 	Sqlite SqlOrigin `json:"sqlite"`
@@ -66,8 +66,8 @@ func WriteConfig(write func(config *Config)) {
 	}
 }
 
-// loadDefaultConfig 加载默认配置
-func loadDefaultConfig() bool {
+// loadDefaultConfig 加载默认配置 返回使用的配置文件
+func loadDefaultConfig() string {
 
 	defaultConfigPaths := []string{}
 
@@ -91,21 +91,20 @@ func loadDefaultConfig() bool {
 			err := json5.Unmarshal(data, &_config)
 			if err == nil {
 				logs.Debugf("load config %s", config)
-				return true
+				return config
 			}
 		}
 	}
 
-	return false
+	return ""
 }
 
-// LoadConfig 加载配置文件
-func LoadConfig(filepath string) {
+// LoadConfig 加载配置文件 返回使用的配置文件
+func LoadConfig(filepath string) string {
 
 	if filepath == "" {
 		logs.Debug("use default config")
-		loadDefaultConfig()
-		return
+		return loadDefaultConfig()
 	}
 
 	if _, err := os.Stat(filepath); err != nil {
@@ -122,6 +121,8 @@ func LoadConfig(filepath string) {
 	if err != nil {
 		logs.Warnf("unmarshal file %s error: %v", filepath, err)
 	}
+
+	return filepath
 }
 
 var defalutConfigJson []byte

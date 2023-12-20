@@ -10,13 +10,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/java"
 )
 
 // ParseGradle 解析gradle脚本
-func ParseGradle(files []*model.File) []*model.DepGraph {
+func ParseGradle(ctx context.Context, files []*model.File) []*model.DepGraph {
 
 	v := Variable{}
 	gradle := []*model.File{}
@@ -75,6 +76,17 @@ func ParseGradle(files []*model.File) []*model.DepGraph {
 		})
 
 		roots = append(roots, root)
+	}
+
+	// 借助java模块解析间接依赖
+	for i, root := range roots {
+		virPom := &java.Pom{File: model.NewFile(root.Path, root.Path)}
+		for _, dep := range root.Children {
+			virPom.Dependencies = append(virPom.Dependencies, &java.PomDependency{GroupId: dep.Vendor, ArtifactId: dep.Name, Version: dep.Version})
+		}
+		java.ParsePoms(ctx, []*java.Pom{virPom}, nil, func(pom *java.Pom, pomResult *model.DepGraph) {
+			roots[i] = pomResult
+		})
 	}
 
 	return roots

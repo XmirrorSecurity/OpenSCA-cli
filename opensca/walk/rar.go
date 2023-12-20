@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 
 	"github.com/nwaples/rardecode"
 )
@@ -38,7 +38,7 @@ func xrar(ctx context.Context, filter ExtractFileFilter, input, output string) b
 		}
 		if err != nil {
 			logs.Warn(err)
-			continue
+			break
 		}
 
 		fp := filepath.Join(output, fh.Name)

@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/jlaffaye/ftp"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 // isHttp 是否为http/https协议
@@ -35,6 +36,9 @@ func isFile(url string) bool {
 // output: 文件下载路径
 // delete: 是否需要删除文件
 func download(origin string) (delete bool, output string, err error) {
+	defer func() {
+		output = filepath.FromSlash(output)
+	}()
 	if isHttp(origin) {
 		delete = true
 		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
@@ -82,8 +86,9 @@ func downloadFromHttp(url, output string) error {
 			return err
 		} else {
 			defer r.Body.Close()
-			io.Copy(f, r.Body)
-			return nil
+			size, err := io.Copy(f, r.Body)
+			logs.Infof("download %s size:%d", url, size)
+			return err
 		}
 	}
 
@@ -111,7 +116,11 @@ func downloadFromHttp(url, output string) error {
 			return err
 		}
 		defer resp.Body.Close()
-		io.Copy(f, resp.Body)
+		_, err = io.Copy(f, resp.Body)
+		if err != nil {
+			return err
+		}
+		logs.Infof("download %s range:%d-%d", url, offset, next)
 		offset = next + 1
 	}
 	return nil

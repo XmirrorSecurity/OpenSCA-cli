@@ -3,8 +3,8 @@ package groovy
 import (
 	"context"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
 )
 
 type Sca struct{}
@@ -21,7 +21,7 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 
 	roots := GradleTree(ctx, parent)
 	if len(roots) == 0 {
-		roots = ParseGradle(files)
+		roots = ParseGradle(ctx, files)
 	}
 	if len(roots) > 0 {
 		call(parent, roots...)

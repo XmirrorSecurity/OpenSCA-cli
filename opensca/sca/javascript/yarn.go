@@ -3,8 +3,8 @@ package javascript
 import (
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 type YarnLock struct {
@@ -54,7 +54,6 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			line = strings.TrimSpace(line)
 			i := strings.Index(line, " ")
 			if i == -1 {
-				logs.Warnf("parse file %s line: %s fail", file.Relpath(), line)
 				return
 			}
 			name := strings.Trim(line[:i], `"`)

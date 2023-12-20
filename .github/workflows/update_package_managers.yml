@@ -1,0 +1,21 @@
+name: Update Package Managers
+
+on:
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+    inputs:
+      tag-name:
+        description: 'The version to upgrade'
+        required: true
+
+jobs:
+  homebrew:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: opensca-cli
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}

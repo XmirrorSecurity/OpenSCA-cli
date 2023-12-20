@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 
 	"github.com/veraison/swid"
 )

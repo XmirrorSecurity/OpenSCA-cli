@@ -6,14 +6,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 // groovy 变量表
 type Variable map[string]string
 
 var (
-	refReg = regexp.MustCompile(`((\w+)\[['"](\w+)['"]\])|(\$\{[^{}]*\})`)
+	refReg = regexp.MustCompile(`((\w+)\[['"](\w+)['"]\])|(\$\{?[^{}"']*\}?)`)
 )
 
 // Replace 使用当前变量表中的变量替换文本中的变量值
@@ -25,11 +25,14 @@ func (v Variable) Replace(text string) string {
 
 	for exist := map[string]bool{}; !exist[text]; {
 		exist[text] = true
+		check := func(k, v string) bool {
+			return len(v) > 0 && !strings.Contains(v, k)
+		}
 		text = refReg.ReplaceAllStringFunc(text, func(s string) string {
 			if strings.HasPrefix(s, "$") {
-				k := s[2 : len(s)-1]
+				k := strings.Trim(s[1:], "{}")
 				if value, ok := v[k]; ok {
-					if len(value) > 0 {
+					if check(s, value) {
 						s = value
 					}
 				}
@@ -37,7 +40,7 @@ func (v Variable) Replace(text string) string {
 				l := strings.Index(s, "[")
 				if l > 0 {
 					if value, ok := v[fmt.Sprintf("%s.%s", s[:l], s[l+2:len(s)-2])]; ok {
-						if len(value) > 0 {
+						if check(s, value) {
 							s = value
 						}
 					}

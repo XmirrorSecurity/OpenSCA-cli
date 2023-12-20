@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
 
 var tempdir = ".temp"
@@ -12,7 +12,7 @@ var tempdir = ".temp"
 func init() {
 	excpath, _ := os.Executable()
 	tempdir = filepath.Join(filepath.Dir(excpath), tempdir)
-	os.RemoveAll(tempdir)
+	// os.RemoveAll(tempdir)
 	os.MkdirAll(tempdir, 0755)
 }
 

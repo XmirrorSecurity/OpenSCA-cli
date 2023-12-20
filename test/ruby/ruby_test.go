@@ -3,8 +3,8 @@ package ruby
 import (
 	"testing"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/ruby"
-	"github.com/xmirrorsecurity/opensca-cli/test/tool"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/ruby"
+	"github.com/xmirrorsecurity/opensca-cli/v3/test/tool"
 )
 
 func Test_Ruby(t *testing.T) {

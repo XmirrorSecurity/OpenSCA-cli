@@ -5,21 +5,22 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "embed"
 
-	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/detail"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/format"
-	"github.com/xmirrorsecurity/opensca-cli/cmd/ui"
-	"github.com/xmirrorsecurity/opensca-cli/opensca"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/java"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/javascript"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/php"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/format"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/ui"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/java"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/javascript"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/php"
 )
 
 var version string
@@ -54,7 +55,9 @@ func main() {
 		logs.Error(result.Error)
 	}
 	for _, dep := range result.Deps {
-		logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+		if dep.Name != "" || len(dep.Children) > 0 {
+			logs.Debugf("dependency tree:\n%s", dep.Tree(false, false))
+		}
 	}
 
 	// 生成报告
@@ -91,7 +94,8 @@ func args() {
 
 	v := false
 	login := false
-	var cfgf string
+	cfgf := ""
+	proj := "x"
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
 	flag.BoolVar(&login, "login", false, "login to cloud server. example: -login")
@@ -100,6 +104,7 @@ func args() {
 	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
 	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
 	flag.StringVar(&cfg.Origin.Token, "token", "", "web token, example: -token xxxx")
+	flag.StringVar(&proj, "proj", proj, "saas project id, example: -proj xxxx")
 	flag.Parse()
 
 	if v {
@@ -107,15 +112,26 @@ func args() {
 		os.Exit(0)
 	}
 
-	if login {
-		detail.Login()
-		os.Exit(0)
-	}
-
-	config.LoadConfig(cfgf)
+	cfgf = config.LoadConfig(cfgf)
 	flag.Parse()
 
+	cfg.Origin.Url = strings.TrimRight(cfg.Origin.Url, "/")
+	if proj != "x" {
+		cfg.Origin.Proj = &proj
+	}
+
 	logs.CreateLog(config.Conf().LogFile)
+
+	if login {
+		if err := detail.Login(); err != nil {
+			fmt.Printf("login failure: %s\n", err)
+		} else {
+			fmt.Println("login success")
+		}
+	}
+
+	logs.Infof("opensca-cli version: %s", version)
+	logs.Infof("use config: %s", cfgf)
 
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
 	javascript.RegisterNpmRepo(config.Conf().Repo.Npm...)
@@ -209,6 +225,9 @@ func taskReport(r opensca.TaskResult) format.Report {
 			}
 			return true
 		})
+		for _, d := range deps {
+			d.Children = nil
+		}
 		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
 	}
 

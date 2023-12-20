@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 func ParseDsdx(f *model.File) *model.DepGraph {

@@ -96,6 +96,7 @@
 | `out`    | `string` | 根据后缀生成报告 | `-out out.json,out.html` |
 | `log`    | `string` | 指定日志文件路径 | `-log my_log.txt`        |
 | `token`  | `string` | 云端服务`token`  | `-token xxx`             |
+| `proj`   | `string` | saas项目`token`  | `-proj xxx`              |
 
 完整的检测参数需在配置文件中配置
 （*v3.0.0开始url参数不再通过命令行指定，默认为OpenSCA云漏洞库服务`https://opensca.xmirror.cn/`，也可通过配置文件指定其他数据格式相符的云漏洞库；使用过往版本可在命令行或配置文件指定url参数。）
@@ -148,12 +149,12 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_h
 
 如需在`docker`容器中使用配置文件，将`config.json`放到`src`挂载目录即可。也可以使用`-config`指定其他容器内路径。
 不同终端挂载当前目录的写法不同，常见的几种终端写法如下：
-|terminal|pwd|
-|-|-|
-|`bash`|`$(pwd)`|
-|`zsh`|`${PWD}`|
-|`cmd`|`%cd%`|
-|`powershell`|`(Get-Location).Path`|
+| terminal     | pwd                   |
+| ------------ | --------------------- |
+| `bash`       | `$(pwd)`              |
+| `zsh`        | `${PWD}`              |
+| `cmd`        | `%cd%`                |
+| `powershell` | `(Get-Location).Path` |
 
 更多信息请参考 [Docker Hub 主页](https://hub.docker.com/r/opensca/opensca-cli)
 
@@ -262,7 +263,7 @@ v1.0.10及更低版本使用时如遇检测速度异常慢、日志文件中有m
 设置完毕后，确保配置文件和opensca-cli在同一目录下，执行opensca-cli检测命令加上-config congif.json即可，示例：
 
 ```shell
-opensca-cli -url https://opensca.xmirror.cn -token {token} -path {path} -out output.html -config config.json
+opensca-cli -token {token} -path {path} -out output.html -config config.json
 ```
 
 v1.0.5及更低版本需要自行修改源码配置镜像库地址，建议升级到更高版本。

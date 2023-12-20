@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xmirrorsecurity/opensca-cli/cmd/config"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

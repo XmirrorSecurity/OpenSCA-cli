@@ -8,14 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xmirrorsecurity/opensca-cli/opensca/common"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/logs"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/model"
-	"github.com/xmirrorsecurity/opensca-cli/opensca/sca/filter"
-)
-
-var (
-	wg = sync.WaitGroup{}
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
 )
 
 type ExtractFileFilter func(relpath string) bool
@@ -29,18 +25,21 @@ type WalkFileFunc func(parent *model.File, files []*model.File)
 // size: 检测文件大小
 func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
 
-	defer wg.Wait()
-
-	delete, filepath, err := download(origin)
+	delete, file, err := download(origin)
 	if err != nil {
 		return
 	}
 
+	logs.Debugf("walk %s", file)
+
 	if delete {
-		defer os.RemoveAll(filepath)
+		defer func() {
+			logs.Debugf("remove %s", filepath.Dir(file))
+			os.RemoveAll(filepath.Dir(file))
+		}()
 	}
 
-	if f, xerr := os.Stat(filepath); xerr == nil {
+	if f, xerr := os.Stat(file); xerr == nil {
 		if !f.IsDir() {
 			size = f.Size()
 		}
@@ -50,12 +49,14 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 		return
 	}
 
-	parent := model.NewFile(filepath, name)
-	err = walk(ctx, parent, filter, do)
+	parent := model.NewFile(file, name)
+	wg := &sync.WaitGroup{}
+	err = walk(ctx, wg, parent, filter, do)
+	wg.Wait()
 	return
 }
 
-func walk(ctx context.Context, parent *model.File, filterFunc ExtractFileFilter, walkFunc WalkFileFunc) error {
+func walk(ctx context.Context, wg *sync.WaitGroup, parent *model.File, filterFunc ExtractFileFilter, walkFunc WalkFileFunc) error {
 
 	var files []*model.File
 
@@ -96,7 +97,7 @@ func walk(ctx context.Context, parent *model.File, filterFunc ExtractFileFilter,
 				defer wg.Done()
 				defer os.RemoveAll(dir)
 				parent := model.NewFile(dir, rel)
-				if err := walk(ctx, parent, filterFunc, walkFunc); err != nil {
+				if err := walk(ctx, wg, parent, filterFunc, walkFunc); err != nil {
 					logs.Warn(err)
 				}
 			}()
@@ -109,7 +110,7 @@ func walk(ctx context.Context, parent *model.File, filterFunc ExtractFileFilter,
 	return err
 }
 
-// decompress 解压到指定位置
+// decompress 解压压缩包
 // input: 压缩包绝对路径
 // do: 对解压后目录的操作
 // do.tmpdir: 临时解压目录绝对路径 需要手动删除目录
