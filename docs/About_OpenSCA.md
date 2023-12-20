@@ -1,3 +1,5 @@
+[Go Back](/docs/README.md) | [中文](./About_OpenSCA-zh_CN.md)
+
 # About 
 > Manage Open Source Risks Through an Open Source Solution
 
