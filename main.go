@@ -122,6 +122,9 @@ func args() {
 
 	logs.CreateLog(config.Conf().LogFile)
 
+	logs.Infof("opensca-cli version: %s", version)
+	logs.Infof("use config: %s", cfgf)
+
 	if login {
 		if err := detail.Login(); err != nil {
 			fmt.Printf("login failure: %s\n", err)
@@ -129,9 +132,6 @@ func args() {
 			fmt.Println("login success")
 		}
 	}
-
-	logs.Infof("opensca-cli version: %s", version)
-	logs.Infof("use config: %s", cfgf)
 
 	java.RegisterMavenRepo(config.Conf().Repo.Maven...)
 	javascript.RegisterNpmRepo(config.Conf().Repo.Npm...)
