@@ -1,5 +1,0 @@
-version: "1"
-rules:
-  - base: master
-    upstream: XmirrorSecurity:master    # change `wei` to the owner of upstream repo
-    mergeMethod: hardreset
