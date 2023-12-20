@@ -36,6 +36,9 @@ func isFile(url string) bool {
 // output: 文件下载路径
 // delete: 是否需要删除文件
 func download(origin string) (delete bool, output string, err error) {
+	defer func() {
+		output = filepath.FromSlash(output)
+	}()
 	if isHttp(origin) {
 		delete = true
 		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
