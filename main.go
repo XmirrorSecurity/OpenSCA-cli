@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "embed"
@@ -111,19 +112,23 @@ func args() {
 		os.Exit(0)
 	}
 
-	if login {
-		detail.Login()
-		os.Exit(0)
-	}
-
 	cfgf = config.LoadConfig(cfgf)
 	flag.Parse()
 
+	cfg.Origin.Url = strings.TrimRight(cfg.Origin.Url, "/")
 	if proj != "x" {
 		cfg.Origin.Proj = &proj
 	}
 
 	logs.CreateLog(config.Conf().LogFile)
+
+	if login {
+		if err := detail.Login(); err != nil {
+			fmt.Printf("login failure: %s\n", err)
+		} else {
+			fmt.Println("login success")
+		}
+	}
 
 	logs.Infof("opensca-cli version: %s", version)
 	logs.Infof("use config: %s", cfgf)
