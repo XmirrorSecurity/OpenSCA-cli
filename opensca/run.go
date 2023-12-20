@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
@@ -100,6 +101,9 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 					if dep == nil {
 						continue
 					}
+					count := 0
+					dep.ForEachNode(func(p, n *model.DepGraph) bool { count++; return true })
+					logs.Infof("file:%s deps:%d language:%s", file.Relpath(), count, sca.Language())
 					dep.Build(false, sca.Language())
 					result.Deps = append(result.Deps, dep)
 					if arg.ResCallFunc != nil {
