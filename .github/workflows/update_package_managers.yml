@@ -1,12 +1,14 @@
+name: Update Package Managers
+
 on:
-    push:
-      tags:
-        - v*.*.*
-    workflow_dispatch:
-      inputs:
-        tag-name:
-          description: 'The version to upgrade'
-          required: true
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+    inputs:
+      tag-name:
+        description: 'The version to upgrade'
+        required: true
 
 jobs:
   homebrew:
