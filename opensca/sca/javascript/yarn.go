@@ -54,7 +54,6 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 			line = strings.TrimSpace(line)
 			i := strings.Index(line, " ")
 			if i == -1 {
-				logs.Warnf("parse file %s line: %s fail", file.Relpath(), line)
 				return
 			}
 			name := strings.Trim(line[:i], `"`)
