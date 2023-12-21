@@ -26,10 +26,17 @@ date: 2023-11-30T11:01:15+08:00
     # 如果在下载中遇到网络问题，可尝试使用以下命令
     curl -sSL https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.sh | sh -s -- gitee
     ```
-- 方式二：Mac/Linux 用户可通过 `Homebrew` 下载安装
-  ```shell
-  brew install opensca-cli
-  ```
+- 方式二：通过包管理器安装
+
+  - Windows 用户可通过 [Winget](https://github.com/microsoft/winget-cli) 安装
+    ```shell
+    winget install opensca-cli
+    ```
+  - Mac/Linux 用户可通过 [Homebrew](https://brew.sh/) 安装
+    ```shell
+    brew install opensca-cli
+    ```
+
 - 方式三：从 [GitHub](https://github.com/XmirrorSecurity/OpenSCA-cli/releases/latest) 或 [Gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases/latest) 下载对应系统架构的可执行程序压缩包，并解压到本地任意目录下
 
 ### 开始检测
