@@ -34,18 +34,20 @@ func isFile(url string) bool {
 // download 下载数据
 // origin: 数据源
 // output: 文件下载路径
-// delete: 是否需要删除文件
-func download(origin string) (delete bool, output string, err error) {
+// delete: 需要删除的临时文件或目录路径 为空代表不需要删除
+func download(origin string) (delete string, output string, err error) {
 	defer func() {
 		output = filepath.FromSlash(output)
 	}()
 	if isHttp(origin) {
-		delete = true
-		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
+		tempDir := common.MkdirTemp("download")
+		delete = tempDir
+		output = filepath.Join(tempDir, filepath.Base(origin))
 		err = downloadFromHttp(origin, output)
 	} else if isFtp(origin) {
-		delete = true
-		output = filepath.Join(common.MkdirTemp("download"), filepath.Base(origin))
+		tempDir := common.MkdirTemp("download")
+		delete = tempDir
+		output = filepath.Join(tempDir, filepath.Base(origin))
 		err = downloadFromFtp(origin, output)
 	} else if isFile(origin) {
 		output = strings.TrimPrefix(origin, "file:///")
