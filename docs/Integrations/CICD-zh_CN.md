@@ -47,7 +47,7 @@ pipeline {
                 // install opensca-cli
                 sh "curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh"
                 // run opensca scan and generate reports(replace {put_your_token_here} with your token)
-                sh "/var/jenkins_home/.config/opensca-cli/opensca-cli -path $WORKSPACE -token 641dd9b7-25c8-4d5f-b4e6-117e35962a44 -out $WORKSPACE/results/result.html,$WORKSPACE/results/result.dsdx.json"
+                sh "/var/jenkins_home/.config/opensca-cli/opensca-cli -path $WORKSPACE -token {put_your_token_here} -out $WORKSPACE/results/result.html,$WORKSPACE/results/result.dsdx.json"
             }
         }
     }
