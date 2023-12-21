@@ -32,12 +32,13 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 
 	logs.Debugf("walk %s", file)
 
-	if delete {
-		defer func() {
-			logs.Debugf("remove %s", filepath.Dir(file))
-			os.RemoveAll(filepath.Dir(file))
-		}()
-	}
+	defer func() {
+		if delete == "" {
+			return
+		}
+		logs.Debugf("remove %s", delete)
+		os.RemoveAll(delete)
+	}()
 
 	if f, xerr := os.Stat(file); xerr == nil {
 		if !f.IsDir() {
