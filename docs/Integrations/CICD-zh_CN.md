@@ -21,7 +21,7 @@ data: 2023-12-20T17:17:00+08:00
 curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
 # export opensca-cli to PATH
 export PATH=/var/jenkins_home/.config/opensca-cli:$PATH
-# run opensca scan and generate reports（replace {put_your_token_here} with your token）
+# run opensca scan and generate reports(replace {put_your_token_here} with your token)
 opensca-cli -path $WORKSPACE -token {put_your_token_here} -out $WORKSPACE/results/result.html,$WORKSPACE/results/result.dsdx.json
 ```
 
@@ -30,7 +30,35 @@ opensca-cli -path $WORKSPACE -token {put_your_token_here} -out $WORKSPACE/result
 对于流水线项目，可以通过在流水线脚本中添加 `sh` 或 `bat` 来执行 OpenSCA-cli。
 
 ```groovy
-// TODO
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                // build it, test it, and archive the binaries.
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                // install opensca-cli
+                sh "curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh"
+                // run opensca scan and generate reports(replace {put_your_token_here} with your token)
+                sh "/var/jenkins_home/.config/opensca-cli/opensca-cli -path $WORKSPACE -token 641dd9b7-25c8-4d5f-b4e6-117e35962a44 -out $WORKSPACE/results/result.html,$WORKSPACE/results/result.dsdx.json"
+            }
+        }
+    }
+
+    post {
+        always {
+            // do something post build
+        }
+    }
+}
+
 ```
 
 ## (Optional) Post-build Actions
@@ -59,6 +87,31 @@ System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox allow-sc
 成功构建后，在 Jenkins Job 的 Dashboard 中，即可看到 OpenSCA-cli 生成的 HTML 报告
 
 ![html_report](/resources/jenkins-view-html-report.gif)
+
+<details>
+<summary>Pipeline Script 示例</summary>
+
+```groovy
+post {
+    always {
+        // do something post build
+        publishHTML(
+            [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'results',
+                reportFiles: 'result.html',
+                reportName: 'OpenSCA Report',
+                reportTitles: 'OpenSCA Report',
+                useWrapperFileDirectly: true
+            ]
+        )
+    }
+}
+```
+
+</details>
 
 
 # GitLab CI
