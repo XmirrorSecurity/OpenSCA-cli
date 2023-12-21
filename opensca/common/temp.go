@@ -3,6 +3,7 @@ package common
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
@@ -10,10 +11,25 @@ import (
 var tempdir = ".temp"
 
 func init() {
+	// 在opensca-cli所在目录下创建临时目录
 	excpath, _ := os.Executable()
 	tempdir = filepath.Join(filepath.Dir(excpath), tempdir)
-	// os.RemoveAll(tempdir)
 	os.MkdirAll(tempdir, 0755)
+	// 删除24小时前的临时文件(一般是进程意外中断时未被删除的临时文件)
+	old := time.Now().Add(-24 * time.Hour)
+	entries, err := os.ReadDir(tempdir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if info.ModTime().Before(old) {
+			os.RemoveAll(filepath.Join(tempdir, entry.Name()))
+		}
+	}
 }
 
 func MkdirTemp(pattern string) string {
