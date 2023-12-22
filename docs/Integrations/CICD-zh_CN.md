@@ -6,6 +6,13 @@ data: 2023-12-20T17:17:00+08:00
 
 [返回目录](/docs/README-zh-CN.md) | [English](./CICD.md)
 
+- [Jenkins](#jenkins)
+  - [Freestyle Project](#freestyle-project)
+  - [Pipeline Project](#pipeline-project)
+  - [(Optional) Post-build Actions](#optional-post-build-actions)
+- [GitLab CI](#gitlab-ci)
+- [GitHub Actions](#github-actions)
+
 # Jenkins
 
 在 Jenkins 中集成 OpenSCA，需要在 Jenkins 构建机器中安装 [OpenSCA-cli](https://github.com/XmirrorSecurity/OpenSCA-cli)。 OpenSCA-cli 支持主流的操作系统，包括 Windows、Linux、MacOS，亦可通过 Docker 镜像运行。
@@ -62,5 +69,74 @@ System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "sandbox allow-sc
 
 
 # GitLab CI
+
+在 GitLab CI 中集成 OpenSCA，需要在 GitLab Runner 中安装 [OpenSCA-cli](https://github.com/XmirrorSecurity/OpenSCA-cli)。 OpenSCA-cli 支持主流的操作系统，包括 Windows、Linux、MacOS，亦可通过 Docker 镜像运行。
+
+```yaml
+security-test-job:
+    stage: test
+    script:
+        - echo "do opensca scan..."
+        - curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
+        - /root/.config/opensca-cli/opensca-cli -path $CI_PROJECT_DIR -token {put_your_token_here} -out $CI_PROJECT_DIR/results/result.html,$CI_PROJECT_DIR/results/result.dsdx.json
+    artifacts:
+      paths:
+        - results/
+      untracked: false
+      when: on_success
+      expire_in: 30 days
+```
+
+<details>
+<summary>完整示例</summary>
+
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - echo "Compiling the code..."
+    - echo "Compile complete."
+
+unit-test-job:
+  stage: test
+  script:
+    - echo "do unit test..."
+    - sleep 10
+    - echo "Code coverage is 90%"
+
+lint-test-job:
+  stage: test
+  script:
+    - echo "do lint test..."
+    - sleep 10
+    - echo "No lint issues found."
+
+security-test-job:
+    stage: test
+    script:
+        - echo "do opensca scan..."
+        - curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
+        - /root/.config/opensca-cli/opensca-cli -path $CI_PROJECT_DIR -token {put_your_token_here} -out $CI_PROJECT_DIR/results/result.html,$CI_PROJECT_DIR/results/result.dsdx.json
+    artifacts:
+      paths:
+        - results/
+      untracked: false
+      when: on_success
+      expire_in: 30 days
+
+deploy-job:
+  stage: deploy
+  environment: production
+  script:
+    - echo "Deploying application..."
+    - echo "Application successfully deployed."
+```
+
+</details>
 
 # GitHub Actions
