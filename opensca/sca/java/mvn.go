@@ -131,22 +131,17 @@ func inheritModules(poms []*Pom) {
 		// 从每个根pom开始遍历
 		v.ForEachPath(func(p, n *model.DepGraph) bool {
 
-			// 判断parent是否有expand来判断是否已经继承过属性
-			expand := false
-			for _, p := range n.Parents {
-				if p.Expand != nil {
-					expand = true
-					return true
-				}
-			}
-
-			// 至少一个parent尚未继承属性则暂不处理当前节点
-			if expand {
-				return true
-			}
-
+			// Expand为空代表当前节点已传递属性
 			if n.Expand == nil {
 				return true
+			}
+
+			// 判断parent.Expand是否为空来判断parent是否已经传递过属性
+			for _, p := range n.Parents {
+				if p.Expand != nil {
+					// 至少一个parent尚未传递属性则不处理当前节点
+					return true
+				}
 			}
 
 			// 获取当前pom
@@ -155,7 +150,7 @@ func inheritModules(poms []*Pom) {
 				return true
 			}
 
-			// 删除expand标识已继承属性
+			// 置空Expand标记该节点已传递属性
 			n.Expand = nil
 
 			// 将属性传递给需要继承的pom

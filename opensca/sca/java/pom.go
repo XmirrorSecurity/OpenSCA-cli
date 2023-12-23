@@ -11,6 +11,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/java/xml"
 )
 
+// Pom pom信息
 type Pom struct {
 	PomDependency
 	Parent               PomDependency    `xml:"parent"`
@@ -22,9 +23,11 @@ type Pom struct {
 	Mirrors              []string         `xml:"mirrors>mirror>url"`
 	Licenses             []string         `xml:"licenses>license>name"`
 	Profiles             []Pom            `xml:"profiles>profile"`
-	File                 *model.File      `xml:"-" json:"-"`
+	// 当前pom对应的文件信息
+	File *model.File `xml:"-" json:"-"`
 }
 
+// PomDependency pom依赖
 type PomDependency struct {
 	ArtifactId   string           `xml:"artifactId"`
 	GroupId      string           `xml:"groupId"`
@@ -35,20 +38,31 @@ type PomDependency struct {
 	RelativePath string           `xml:"relativePath"`
 	Optional     bool             `xml:"optional"`
 	Exclusions   []*PomDependency `xml:"exclusions>exclusion"`
-	Define       *Pom             `xml:"-"`
-	RefProperty  *Property        `xml:"-"`
-	Start        int              `xml:",start"`
-	End          int              `xml:",end"`
+	// 定义当前依赖的pom
+	Define *Pom `xml:"-"`
+	// 当前依赖引用的属性
+	RefProperty *Property `xml:"-"`
+	// 定义当前依赖标签位置起始行号
+	Start int `xml:",start"`
+	// 定义当前依赖标签位置结束行号
+	End int `xml:",end"`
 }
 
+// Property pom属性
 type Property struct {
-	Key    string
-	Value  string
+	// 属性名
+	Key string
+	// 属性值
+	Value string
+	// 定义当前属性的pom
 	Define *Pom
-	Start  int `xml:",start"`
-	End    int `xml:",end"`
+	// 定义当前属性标签位置起始行号
+	Start int
+	// 定义当前属性标签位置结束行号
+	End int
 }
 
+// PomProperties pom属性集合
 type PomProperties map[string]*Property
 
 func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error {
@@ -76,6 +90,7 @@ func (pp *PomProperties) UnmarshalXML(d *xml.Decoder, s xml.StartElement) error 
 	return nil
 }
 
+// NeedExclusion 判断是否是当前依赖需要排除的子依赖
 func (pd PomDependency) NeedExclusion(dep PomDependency) bool {
 	check := func(s1, s2 string) bool {
 		return s1 == "" || s1 == "*" || s1 == s2
@@ -113,6 +128,7 @@ func (pd PomDependency) Index4() string {
 	return fmt.Sprintf("%s:%s", pd.Index3(), pd.Scope)
 }
 
+// ReadPom 读取pom信息
 func ReadPom(reader io.Reader) *Pom {
 
 	data, err := io.ReadAll(reader)
@@ -207,6 +223,7 @@ func ReadPom(reader io.Reader) *Pom {
 	return p
 }
 
+// Update 使用pom信息更新当前依赖中使用的属性
 func (p *Pom) Update(dep *PomDependency) {
 	var ref *Property
 	dep.GroupId, ref = p.update(dep.GroupId)
@@ -221,6 +238,9 @@ func (p *Pom) Update(dep *PomDependency) {
 
 var propertyReg = regexp.MustCompile(`\$\{[^{}]*\}`)
 
+// update 使用pom信息更新字符串中使用的属性
+// val: 更新后的字符串
+// ref: 更新后最终应用的属性信息
 func (p *Pom) update(value string) (val string, ref *Property) {
 	val = propertyReg.ReplaceAllStringFunc(value,
 		func(s string) string {
@@ -248,6 +268,7 @@ func (p *Pom) update(value string) (val string, ref *Property) {
 
 var reg = regexp.MustCompile(`\s`)
 
+// trimSpace 清除空白字符
 func trimSpace(p *PomDependency) {
 	if p == nil {
 		return
@@ -263,6 +284,7 @@ func trimSpace(p *PomDependency) {
 	p.Type = trim(p.Type)
 }
 
+// Check 检查是否是合法maven依赖
 func (dep PomDependency) Check() bool {
 	return !(dep.ArtifactId == "" || dep.GroupId == "" || dep.Version == "" || strings.Contains(dep.GAV(), "$"))
 }
