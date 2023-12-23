@@ -2,7 +2,7 @@ module opensca-example
 
 go 1.20
 
-require github.com/xmirrorsecurity/opensca-cli/v3 v3.0.1
+require github.com/xmirrorsecurity/opensca-cli/v3 v3.0.2
 
 // debug
 replace github.com/xmirrorsecurity/opensca-cli/v3 => ../
@@ -19,7 +19,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.6.0 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
-	github.com/google/uuid v1.4.0 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -35,7 +35,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/tview v0.0.0-20231126152417-33a1d271f2b6 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/titanous/json5 v1.0.0 // indirect
 	github.com/veraison/swid v1.1.0 // indirect
