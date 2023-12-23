@@ -92,7 +92,7 @@ func ParseDsdxJson(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		json.NewDecoder(reader).Decode(doc)
 	})
-	return parseDsdxDoc(doc)
+	return parseDsdxDoc(f, doc)
 }
 
 func ParseDsdxXml(f *model.File) *model.DepGraph {
@@ -100,10 +100,10 @@ func ParseDsdxXml(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		xml.NewDecoder(reader).Decode(doc)
 	})
-	return parseDsdxDoc(doc)
+	return parseDsdxDoc(f, doc)
 }
 
-func parseDsdxDoc(doc *model.DsdxDocument) *model.DepGraph {
+func parseDsdxDoc(f *model.File, doc *model.DsdxDocument) *model.DepGraph {
 
 	if doc == nil || doc.DSDXVersion == "" {
 		return nil
@@ -137,7 +137,7 @@ func parseDsdxDoc(doc *model.DsdxDocument) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{}
+	root := &model.DepGraph{Path: f.Relpath()}
 	for _, dep := range depIdMap {
 		if len(dep.Parents) == 0 {
 			root.AppendChild(dep)

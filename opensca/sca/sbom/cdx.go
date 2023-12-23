@@ -14,7 +14,7 @@ func ParseCdxJson(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		json.NewDecoder(reader).Decode(&bom)
 	})
-	return parseCdxBom(bom)
+	return parseCdxBom(f, bom)
 }
 
 func ParseCdxXml(f *model.File) *model.DepGraph {
@@ -22,10 +22,10 @@ func ParseCdxXml(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		xml.NewDecoder(reader).Decode(&bom)
 	})
-	return parseCdxBom(bom)
+	return parseCdxBom(f, bom)
 }
 
-func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
+func parseCdxBom(f *model.File, bom *cyclonedx.BOM) *model.DepGraph {
 
 	if bom == nil {
 		return nil
@@ -77,7 +77,7 @@ func parseCdxBom(bom *cyclonedx.BOM) *model.DepGraph {
 		}
 	}
 
-	root := &model.DepGraph{}
+	root := &model.DepGraph{Path: f.Relpath()}
 	for _, dep := range depRefMap {
 		if len(dep.Parents) == 0 {
 			root.AppendChild(dep)

@@ -108,7 +108,7 @@ func ParseSpdxJson(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		json.NewDecoder(reader).Decode(&doc)
 	})
-	return parseSpdxDoc(doc)
+	return parseSpdxDoc(f, doc)
 }
 
 func ParseSpdxXml(f *model.File) *model.DepGraph {
@@ -116,10 +116,10 @@ func ParseSpdxXml(f *model.File) *model.DepGraph {
 	f.OpenReader(func(reader io.Reader) {
 		xml.NewDecoder(reader).Decode(&doc)
 	})
-	return parseSpdxDoc(doc)
+	return parseSpdxDoc(f, doc)
 }
 
-func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
+func parseSpdxDoc(f *model.File, doc *model.SpdxDocument) *model.DepGraph {
 
 	if doc == nil || doc.SPDXVersion == "" {
 		return nil
@@ -156,7 +156,7 @@ func parseSpdxDoc(doc *model.SpdxDocument) *model.DepGraph {
 		depIdMap[relation.SPDXElementID].AppendChild(depIdMap[relation.RelatedSPDXElement])
 	}
 
-	root := &model.DepGraph{Path: doc.DocumentName}
+	root := &model.DepGraph{Path: f.Relpath()}
 	for _, dep := range depIdMap {
 		if len(dep.Parents) == 0 {
 			root.AppendChild(dep)
