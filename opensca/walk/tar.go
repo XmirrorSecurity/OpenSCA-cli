@@ -94,6 +94,7 @@ func xgz(input, output string) bool {
 	defer fr.Close()
 
 	fp := filepath.Join(output, strings.TrimSuffix(filepath.Base(input), filepath.Ext(input)))
+	os.MkdirAll(filepath.Dir(fp), 0777)
 	fw, err := os.Create(fp)
 	if err != nil {
 		logs.Warn(err)

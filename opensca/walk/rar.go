@@ -51,6 +51,7 @@ func xrar(ctx context.Context, filter ExtractFileFilter, input, output string) b
 			continue
 		}
 
+		os.MkdirAll(filepath.Dir(fp), 0777)
 		fw, err := os.Create(fp)
 		if err != nil {
 			logs.Warn(err)
