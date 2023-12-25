@@ -48,6 +48,7 @@ func Save(report Report, output string) {
 			} else if strings.HasSuffix(out, ".swid.json") {
 				SwidJson(report, out)
 			} else {
+				report.TaskInfo.AppName = filepath.Base(filepath.Clean(report.TaskInfo.AppName))
 				Json(report, out)
 			}
 		case ".dsdx":
