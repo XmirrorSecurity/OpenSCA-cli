@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -178,7 +179,8 @@ func taskReport(r opensca.TaskResult) format.Report {
 
 	report := format.Report{}
 	report.TaskInfo.ToolVersion = version
-	report.TaskInfo.AppName = path
+	// make app name as file or dir name
+	report.TaskInfo.AppName = filepath.Base(filepath.Clean(path))
 	report.TaskInfo.Size = r.Size
 
 	if r.Error != nil {
