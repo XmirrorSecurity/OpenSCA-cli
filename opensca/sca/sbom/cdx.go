@@ -67,13 +67,15 @@ func parseCdxBom(f *model.File, bom *cyclonedx.BOM) *model.DepGraph {
 		}
 	}
 
-	for _, d := range *bom.Dependencies {
-		dep, ok := depRefMap[d.Ref]
-		if !ok || d.Dependencies == nil {
-			continue
-		}
-		for _, subRef := range *d.Dependencies {
-			dep.AppendChild(depRefMap[subRef])
+	if bom.Dependencies != nil {
+		for _, d := range *bom.Dependencies {
+			dep, ok := depRefMap[d.Ref]
+			if !ok || d.Dependencies == nil {
+				continue
+			}
+			for _, subRef := range *d.Dependencies {
+				dep.AppendChild(depRefMap[subRef])
+			}
 		}
 	}
 
