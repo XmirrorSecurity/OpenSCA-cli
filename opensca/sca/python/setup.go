@@ -39,8 +39,14 @@ func ParseSetup(file *model.File) *model.DepGraph {
 		model.ReadLineNoComment(strings.NewReader(requires[1]), model.PythonTypeComment, func(line string) {
 			line = strings.Trim(strings.TrimSpace(line), `'",`)
 			words := strings.Fields(line)
+			if len(words) == 0 {
+				return
+			}
 			name := words[0]
-			version := strings.Join(words[1:], "")
+			var version string
+			if len(words) > 1 {
+				version = strings.Join(words[1:], "")
+			}
 			root.AppendChild(&model.DepGraph{
 				Name:    name,
 				Version: version,
