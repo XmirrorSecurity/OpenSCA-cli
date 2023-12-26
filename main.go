@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -45,7 +46,9 @@ func main() {
 	}
 
 	// 初始化 HttpClient
-	common.InitHttpClient(config.Conf().Optional.Insecure)
+	common.SetHttpDownloadClient(func(c *http.Client) {
+		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
+	})
 
 	// 运行检测任务
 	result := opensca.RunTask(context.Background(), arg)

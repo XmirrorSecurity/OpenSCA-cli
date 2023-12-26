@@ -65,7 +65,7 @@ func downloadFromHttp(url, output string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := common.HttpClient.Do(req)
+	resp, err := common.HttpDownloadClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func downloadFromHttp(url, output string) error {
 			next = size - 1
 		}
 		r.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", offset, next))
-		resp, err := common.HttpClient.Do(r)
+		resp, err := common.HttpDownloadClient.Do(r)
 		if err != nil {
 			return err
 		}
