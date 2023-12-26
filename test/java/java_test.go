@@ -164,9 +164,6 @@ var cases = []tool.TaskCase{
 }
 
 func Test_JavaWithStatic(t *testing.T) {
-	//init http client
-	common.InitHttpClient(false)
-
 	java.RegisterMavenRepo(common.RepoConfig{Url: "https://maven.aliyun.com/repository/public"})
 	tool.RunTaskCase(t, java.Sca{NotUseMvn: true})(cases)
 }

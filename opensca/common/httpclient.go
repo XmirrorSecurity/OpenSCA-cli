@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var HttpClient = &http.Client{
+var HttpDownloadClient = &http.Client{
 	Transport: &http.Transport{
 		MaxIdleConns:        50,
 		MaxConnsPerHost:     50,
@@ -16,9 +16,10 @@ var HttpClient = &http.Client{
 			InsecureSkipVerify: false,
 		},
 	},
-	Timeout: 60 * time.Second,
 }
 
-func InitHttpClient(insecure bool) {
-	HttpClient.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = insecure
+func SetHttpDownloadClient(do func(c *http.Client)) {
+	if do != nil {
+		do(HttpDownloadClient)
+	}
 }

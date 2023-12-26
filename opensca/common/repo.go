@@ -50,7 +50,7 @@ func DownloadUrlFromRepos(route string, do func(repo RepoConfig, r io.Reader), r
 			req.SetBasicAuth(repo.Username, repo.Password)
 		}
 
-		resp, err := HttpClient.Do(req)
+		resp, err := HttpDownloadClient.Do(req)
 		if err != nil {
 			logs.Warn(err)
 			return false
