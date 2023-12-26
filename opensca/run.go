@@ -112,6 +112,12 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 			scaType := reflect.TypeOf(sca).String()
 			logs.Debugf("start sca:%s file:%s files:%v", scaType, parent, fs)
 
+			defer func() {
+				if err := recover(); err != nil {
+					logs.Errorf("sca:%s file:%s err:%v", scaType, parent, err)
+				}
+			}()
+
 			sca.Sca(ctx, parent, fs, func(file *model.File, root ...*model.DepGraph) {
 				for _, dep := range root {
 					if dep == nil {
