@@ -1,0 +1,20 @@
+name: env test
+
+on:
+    workflow_dispatch:
+        log_level:
+            description: Log level
+            required: false
+            default: 'debug'
+
+jobs:
+    name: env test
+    runs-on: ubuntu-latest
+    - name: Convert to lowercase
+      run: |
+        echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" >> ${GITHUB_ENV}
+        echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" >> ${GITHUB_ENV}
+    - name: Print env variables
+      run: |
+        echo "LATEST_TAG=${{ env.LATEST_TAG }}"
+        echo "VERSION_TAG=${{ env.VERSION_TAG }}"
