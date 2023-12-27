@@ -1,15 +1,22 @@
 name: env test
 
 on:
-    workflow_dispatch:
-        log_level:
-            description: Log level
-            required: false
-            default: 'debug'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        required: true
+        default: "1.0.0"
+      log_level:
+        description: Log level
+        required: false
+        default: "debug"
 
 jobs:
+  env_test:
     name: env test
     runs-on: ubuntu-latest
+    steps:
     - name: Convert to lowercase
       run: |
         echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" >> ${GITHUB_ENV}
