@@ -53,7 +53,7 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.COMMITTER_TOKEN }}
     - name: Convert to lowercase
       run: |
         echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
