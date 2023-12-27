@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version
+        description: version
         required: true
         default: "1.0.0"
       log_level:
@@ -20,7 +20,7 @@ jobs:
     - name: Convert to lowercase
       run: |
         echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" >> ${GITHUB_ENV}
-        echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" >> ${GITHUB_ENV}
+        echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.version }}" >> ${GITHUB_ENV}
     - name: Print env variables
       run: |
         echo "LATEST_TAG=${{ env.LATEST_TAG }}"
