@@ -16,8 +16,8 @@ on:
 
 
 jobs:
-  publish-docker-images:
-    name: Publish Docker Images
+  publish-to-dockerhub:
+    name: Publish to DockerHub
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,24 +42,33 @@ jobs:
           push: true
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: opensca/opensca-cli:latest, opensca/opensca-cli:${{ env.VERSION }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Convert to lowercase
-        run: |
-          echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
-          echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
-      - name: Build and push to GitHub Packages
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          build-args: |
-            VERSION=${{ env.VERSION }}
-          tags: ${{ env.LATEST_TAG }}, ${{ env.VERSION_TAG }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/opensca-cli:latest, ${{ secrets.DOCKERHUB_USERNAME }}/opensca-cli:${{ env.VERSION }}
+
+  publish-to-github:
+    name: Publish to GitHub
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Convert to lowercase
+      run: |
+        echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+        echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+    - name: Print env variables
+      run: |
+        echo "LATEST_TAG=${{ env.LATEST_TAG }}"
+        echo "VERSION_TAG=${{ env.VERSION_TAG }}"
+    - name: Build and push to GitHub Packages
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        build-args: |
+          VERSION=${{ env.VERSION }}
+        tags: ${{ env.LATEST_TAG }}, ${{ env.VERSION_TAG }}
