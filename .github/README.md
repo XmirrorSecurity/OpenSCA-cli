@@ -214,7 +214,7 @@ For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/o
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
 | `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
 
-*There are several pre-set values to the "language" field, including java, js, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
+*There are several pre-set values to the "language" field, including java, javascript, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
 
 #### Sample of Setting the Vulnerability Database
 
