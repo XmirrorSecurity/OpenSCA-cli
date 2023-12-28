@@ -156,24 +156,24 @@ type Vuln struct {
 	ExploitLevelId  int    `json:"exploit_level_id" gorm:"column:exploit_level_id"`
 }
 
-func vulnLanguageKey(language model.Language) string {
+func vulnLanguageKey(language model.Language) []string {
 	switch language {
 	case model.Lan_Java:
-		return "java"
+		return []string{"java"}
 	case model.Lan_JavaScript:
-		return "js"
+		return []string{"js", "javascript"}
 	case model.Lan_Php:
-		return "php"
+		return []string{"php"}
 	case model.Lan_Python:
-		return "python"
+		return []string{"python"}
 	case model.Lan_Golang:
-		return "golang"
+		return []string{"golang"}
 	case model.Lan_Ruby:
-		return "ruby"
+		return []string{"ruby"}
 	case model.Lan_Rust:
-		return "rust"
+		return []string{"rust"}
 	default:
-		return ""
+		return []string{}
 	}
 }
 
@@ -331,15 +331,16 @@ func (o *BaseOrigin) SearchVuln(deps []Dep) (vulns [][]*Vuln) {
 	vulns = make([][]*Vuln, len(deps))
 	for i, dep := range deps {
 		vulns[i] = []*Vuln{}
-		lanKey := vulnLanguageKey(model.Language(dep.Language))
-		if vs, ok := o.data[lanKey][strings.ToLower(dep.Name)]; ok {
-			curVer := newVersion(dep.Version)
-			for _, v := range vs {
-				if strings.EqualFold(lanKey, "java") && !strings.EqualFold(v.Vendor, dep.Vendor) {
-					continue
-				}
-				if inRangeInterval(curVer, v.Version) {
-					vulns[i] = append(vulns[i], v.Vuln)
+		for _, lanKey := range vulnLanguageKey(model.Language(dep.Language)) {
+			if vs, ok := o.data[lanKey][strings.ToLower(dep.Name)]; ok {
+				curVer := newVersion(dep.Version)
+				for _, v := range vs {
+					if strings.EqualFold(lanKey, "java") && !strings.EqualFold(v.Vendor, dep.Vendor) {
+						continue
+					}
+					if inRangeInterval(curVer, v.Version) {
+						vulns[i] = append(vulns[i], v.Vuln)
+					}
 				}
 			}
 		}
