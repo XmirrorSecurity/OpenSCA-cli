@@ -1,8 +1,6 @@
 <div style="display: flex; align-items: flex-end;">
-  <h3 style="margin-bottom: 0;"><img src="/resources/logo.svg" alt="OpenSCA logo" style="margin-bottom: 0; margin-right: 15px;" >Manage Open Source Risks via Open Source Solution</h3>
+  <h3 style="margin-bottom: 0;"><img src="/resources/logo.svg" alt="OpenSCA logo" style="margin-bottom: 0;" >        Manage Open Source Risks via Open Source Solution</h3>
 </div>
-
----
 
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
