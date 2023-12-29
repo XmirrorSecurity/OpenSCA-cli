@@ -1,15 +1,12 @@
+<h1><img src="/resources/logo.svg" align="left" style="margin-right: 15px;" alt="OpenSCA logo">用开源的方式做开源风险治理</h1>
+
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
 [![Jetbrains Plugin](https://img.shields.io/jetbrains/plugin/v/18246)](https://plugins.jetbrains.com/plugin/18246-opensca-xcheck)
-[![VSCode Plugin](https://vsmarketplacebadges.dev/version-short/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+[![VSCode Plugin](https://vsmarketplacebadges.dev/version/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
 [![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
-![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)
-
-
-<div align="center">
-	<img alt="logo" src="/resources/logo.svg">
-</div>
+[![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)](/go.mod)
 
 中文 | [English](./.github/README.md)
 
