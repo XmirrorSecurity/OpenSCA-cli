@@ -208,7 +208,7 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_h
 | `security_level_id` | 漏洞风险评级(1~4 风险程度递减)    | 否       |
 | `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用) | 否       |
 
-本地漏洞库中`language`字段设定值包含`java、js、golang、rust、php、ruby、python`
+本地漏洞库中`language`字段设定值包含`java、javascript、golang、rust、php、ruby、python`
 
 ### 漏洞库配置示例
 
