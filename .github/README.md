@@ -1,5 +1,5 @@
 <h2 style="display: flex; align-items: center; justify-content: space-between;">
-  <img src="/resources/logo.svg" alt="OpenSCA logo" align="left" style="margin-left: 15px;">
+  <img src="/resources/logo.svg" alt="OpenSCA logo" style="margin-left: 15px;">
   <span>Manage Open Source Risks Through an Open Source Solution</span>
 </h2>
 
