@@ -1,16 +1,17 @@
+<div align="center">
+	<img alt="logo" src="/resources/logo.svg">
+</div>
+
+---
+
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
 [![Jetbrains Plugin](https://img.shields.io/jetbrains/plugin/v/18246)](https://plugins.jetbrains.com/plugin/18246-opensca-xcheck)
 [![VSCode Plugin](https://vsmarketplacebadges.dev/version/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
 [![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
-<!--
 [![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)](/go.mod)
--->
-
-<div align="center">
-	<img alt="logo" src="/resources/logo.svg">
-</div>
+[![Packaging status](https://repology.org/badge/vertical-allrepos/opensca-cli.svg)](https://repology.org/project/opensca-cli/versions)
 
 English|[中文](../README.md)
 
@@ -94,11 +95,14 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 | `path`     | `string` | Set the path of the target file or directory                                                                                                                                                                                                                               | `-path ./foo`                                                                                                                                                                                                                                                   |                                                                                                            
 | `out`      | `string` | Save the result to the specified file whose format is defined by the suffix | `-out out.json, out.html`  |
 | `log`    | `string`   | Specify the path of log file                                                                                                                                                                                                                                                  | `-log my_log.txt`                                                                                                                                                                                                                                                        |
-| `token`    | `string` | Cloud service verification coming from our offical website                                                                                                                                                   | `-token xxx`                                                                                                                                                                                                                                                |
+| `token`    | `string` | Cloud service verification from our offical website                                                                                                                                                   | `-token xxx`                                                                                                                                                                                                                                                |
+| `proj`    | `string` | SaaS project `token` to sync report with [OpenSCA SaaS](https://opensca.xmirror.cn/console)                                                                                                                                              | `-proj xxx`                                                                                                                                                                                                                                                |
 
 From v3.0.0, apart from these parameters available for CMD/CRT, there are also others for different requirements which have to be set in the configuration file. 
 
 Full introduction about each parameters can be found in `config.json`
+
+v3.0.2 and above allows OpenSCA-cli to snyc reports with OpenSCA SaaS (via `proj`), so that all reports of multiple projects can be managed together.
 
 If the configuration parameter conflicts with the command-line input parameter, the latter will be taken.
 
@@ -150,10 +154,16 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli
 docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_here}
 ```
 
-You can also use the configuration file for advanced settings. Save `config.json` to the mounted directory of `src` or set other paths within the container through `-config`.
+You can also use the configuration file for advanced settings. Save `config.json` to the mounted directory of `src` or set other paths within the container through `-config`. The writing method for mounting the current directory on different terminals varies, we list common ones here FYI:
+
+| terminal     | pwd                   |
+| ------------ | --------------------- |
+| `bash`       | `$(pwd)`              |
+| `zsh`        | `${PWD}`              |
+| `cmd`        | `%cd%`                |
+| `powershell` | `(Get-Location).Path` |
 
 For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/opensca-cli)
-
 
 ### Local Vulnerability Database
 
@@ -205,7 +215,7 @@ For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/o
 | `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
 | `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
 
-*There are several pre-set values to the "language" field, including java, js, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
+*There are several pre-set values to the "language" field, including java, javascript, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
 
 #### Sample of Setting the Vulnerability Database
 
