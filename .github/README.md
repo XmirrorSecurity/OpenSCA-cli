@@ -1,4 +1,7 @@
-<h3><img src="/resources/logo.svg" align="left" style="margin-right: 15px;" alt="OpenSCA logo">Manage Open Source Risks via Open Source Solution</h3>
+<div style="display: flex; align-items: flex-end;">
+  <h3 style="margin-right: 15px;"><img src="/resources/logo.svg" alt="OpenSCA logo" style="margin-bottom: 0;"></h3>
+  <h3 style="margin-bottom: 0;">Manage Open Source Risks via Open Source Solution</h3>
+</div>
 
 ---
 
