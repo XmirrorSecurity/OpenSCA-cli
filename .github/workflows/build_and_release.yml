@@ -56,7 +56,7 @@ jobs:
       - name: Create VERSION file
         run: echo ${{ env.RELEASE_VERSION }} > VERSION
       - name: Build And Release
-        uses: wangyoucao577/go-release-action@v1.39
+        uses: wangyoucao577/go-release-action@v1
         env:
           CGO_ENABLED: 0
         with:
@@ -65,5 +65,6 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: "./"
           binary_name: opensca-cli
+          sha256sum: true
           extra_files: README.md config.json db-demo.json VERSION
           ldflags: "-s -w -X 'main.version=${{ env.RELEASE_VERSION }}' "
