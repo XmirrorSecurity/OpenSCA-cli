@@ -44,10 +44,10 @@ jobs:
             goos: darwin
           - goarch: 386
             goos: windows
-          - goarch: loong64
-            goos: windows
-          - goarch: loong64
-            goos: darwin
+          # - goarch: loong64
+          #   goos: windows
+          # - goarch: loong64
+          #   goos: darwin
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -56,8 +56,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Convert to lowercase
       run: |
-        echo "LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
-        echo "VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }}" | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+        echo LATEST_TAG=ghcr.io/${{ github.repository }}/opensca-cli:latest | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
+        echo VERSION_TAG=ghcr.io/${{ github.repository }}/opensca-cli:${{ env.VERSION }} | tr '[:upper:]' '[:lower:]' >> ${GITHUB_ENV}
     - name: Print env variables
       run: |
         echo "LATEST_TAG=${{ env.LATEST_TAG }}"
