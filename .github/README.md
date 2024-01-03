@@ -1,15 +1,19 @@
-<h2 style="display: flex; align-items: center; justify-content: space-between;">
-  <img src="/resources/logo.svg" alt="OpenSCA logo" style="margin-left: 15px;">
-  <span>Manage Open Source Risks Through an Open Source Solution</span>
-</h2>
+<div align="center">
+	<img alt="logo" src="/resources/logo.svg">
+  <h2>Manage Open Source Risks via Open Source Solution</h2>
+</div>
 
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
+[![Jetbrains Plugin](https://img.shields.io/jetbrains/plugin/v/18246?label=Jetbrains%20Plugin)](https://plugins.jetbrains.com/plugin/18246-opensca-xcheck)
+[![VSCode Plugin](https://img.shields.io/visual-studio-marketplace/v/xmirror.opensca?label=VSCode%20Plugin)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+[![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
 [![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![Docker Pulls](https://img.shields.io/docker/pulls/opensca/opensca-cli)](https://hub.docker.com/r/opensca/opensca-cli)
-[![Jetbrains Plugin](https://img.shields.io/jetbrains/plugin/v/18246)](https://plugins.jetbrains.com/plugin/18246-opensca-xcheck)
-[![VSCode Plugin](https://vsmarketplacebadges.dev/version/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
-[![LICENSE](https://img.shields.io/github/license/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/blob/master/LICENSE)
+
+<!--
 [![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)](/go.mod)
+[![VSCode Plugin](https://vsmarketplacebadges.dev/version/xmirror.opensca.svg)](https://marketplace.visualstudio.com/items?itemName=xmirror.opensca)
+-->
 
 English|[中文](../README.md)
 
