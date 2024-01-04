@@ -10,81 +10,7 @@ import (
 )
 
 func ParseDsdx(f *model.File) *model.DepGraph {
-
-	depIdMap := map[string]*model.DepGraph{}
-	_dep := model.NewDepGraphMap(func(s ...string) string {
-		return s[0]
-	}, func(s ...string) *model.DepGraph {
-		return &model.DepGraph{
-			Vendor:   s[1],
-			Name:     s[2],
-			Version:  s[3],
-			Language: model.Language(s[4]),
-		}
-	}).LoadOrStore
-
-	// 记录dsdx中的tag信息
-	tags := map[string]string{}
-	checkAndSet := func(k, v string) {
-		if _, ok := tags[k]; ok {
-			depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"], tags["language"])
-			tags = map[string]string{}
-		}
-		tags[k] = strings.TrimSpace(v)
-	}
-	// 记录依赖关系
-	dependencies := map[string][]string{}
-
-	f.ReadLine(func(line string) {
-		i := strings.Index(line, ":")
-		if strings.HasPrefix(line, "#") || i == -1 {
-			return
-		}
-		k := strings.TrimSpace(line[:i])
-		v := strings.TrimSpace(line[i+1:])
-		switch k {
-		case "ComponentID":
-			checkAndSet("id", v)
-		case "ComponentName":
-			checkAndSet("name", v)
-		case "ComponentGroup":
-			checkAndSet("group", v)
-		case "ComponentVersion":
-			checkAndSet("version", v)
-		case "ComponentLanguage":
-			checkAndSet("language", v)
-		case "Dependencies":
-			json.Unmarshal([]byte(v), &dependencies)
-		}
-	})
-	depIdMap[tags["id"]] = _dep(tags["id"], tags["group"], tags["name"], tags["version"], tags["language"])
-
-	if len(depIdMap) == 0 {
-		return nil
-	}
-
-	for parent, children := range dependencies {
-		for _, child := range children {
-			depIdMap[parent].AppendChild(depIdMap[child])
-		}
-	}
-
-	var roots []*model.DepGraph
-	for _, dep := range depIdMap {
-		if len(dep.Parents) == 0 && dep.Name != "" {
-			roots = append(roots, dep)
-		}
-	}
-
-	if len(roots) == 1 {
-		return roots[0]
-	}
-
-	root := &model.DepGraph{Path: f.Relpath()}
-	for _, r := range roots {
-		root.AppendChild(r)
-	}
-	return root
+	return parseDsdxDoc(f, ReadDsdx(f))
 }
 
 func ParseDsdxJson(f *model.File) *model.DepGraph {
@@ -145,4 +71,59 @@ func parseDsdxDoc(f *model.File, doc *model.DsdxDocument) *model.DepGraph {
 	}
 
 	return root
+}
+
+// ReadDsdx 读取dsdx文件
+func ReadDsdx(f *model.File) *model.DsdxDocument {
+
+	dsdx := &model.DsdxDocument{}
+
+	// 记录依赖关系
+	dependencies := map[string][]string{}
+	// 记录dsdx中的tag信息
+	tags := map[string]string{}
+
+	checkAndSet := func(k, v string) {
+		if _, ok := tags[k]; ok {
+			dsdx.Components = append(dsdx.Components, model.DsdxComponent{
+				ID:       tags["id"],
+				Group:    tags["group"],
+				Name:     tags["name"],
+				Version:  tags["version"],
+				Language: tags["language"],
+			})
+			tags = map[string]string{}
+		}
+		tags[k] = strings.TrimSpace(v)
+	}
+
+	f.ReadLine(func(line string) {
+		i := strings.Index(line, ":")
+		if strings.HasPrefix(line, "#") || i == -1 {
+			return
+		}
+		k := strings.TrimSpace(line[:i])
+		v := strings.TrimSpace(line[i+1:])
+		switch k {
+		case "ComponentID":
+			checkAndSet("id", v)
+		case "ComponentName":
+			checkAndSet("name", v)
+		case "ComponentGroup":
+			checkAndSet("group", v)
+		case "ComponentVersion":
+			checkAndSet("version", v)
+		case "ComponentLanguage":
+			checkAndSet("language", v)
+		case "Dependencies":
+			json.Unmarshal([]byte(v), &dependencies)
+		}
+	})
+	checkAndSet("id", "")
+
+	for parent, children := range dependencies {
+		dsdx.Dependencies[parent] = children
+	}
+
+	return dsdx
 }

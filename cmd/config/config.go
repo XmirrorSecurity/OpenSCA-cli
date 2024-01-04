@@ -27,6 +27,7 @@ type OriginConfig struct {
 	Url    string    `json:"url"`
 	Token  string    `json:"token"`
 	Proj   *string   `json:"proj"`
+	Proxy  string    `json:"proxy"`
 	Json   string    `json:"json"`
 	Mysql  SqlOrigin `json:"mysql"`
 	Sqlite SqlOrigin `json:"sqlite"`
