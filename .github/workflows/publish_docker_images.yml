@@ -15,8 +15,8 @@ on:
         default: "info"
 
 jobs:
-  publish-to-dockerhub:
-    name: Publish to DockerHub
+  publish-images:
+    name: Publish Images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,5 +54,4 @@ jobs:
           tags: |
             ${{ env.docker_hub_tag }}:latest
             ${{ env.docker_hub_tag }}:${{ env.VERSION }}
-            ${{ env.github_package_tag }}:latest
             ${{ env.github_package_tag }}:${{ env.VERSION }}
