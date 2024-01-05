@@ -71,6 +71,8 @@ func Save(report Report, output string) {
 			Csv(report, out)
 		case ".sqlite", ".db":
 			Sqlite(report, out)
+		case ".sarif":
+			Sarif(report, out)
 		default:
 			Json(report, out)
 		}

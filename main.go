@@ -104,7 +104,7 @@ func args() {
 	flag.BoolVar(&login, "login", false, "login to cloud server. example: -login")
 	flag.StringVar(&cfgf, "config", "", "config path. example: -config config.json")
 	flag.StringVar(&cfg.Path, "path", cfg.Path, "project path. example: -path project_path")
-	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
+	flag.StringVar(&cfg.Output, "out", cfg.Output, "report path, support html/json/xml/csv/sarif/sqlite/cdx/spdx/swid/dsdx. example: -out out.json,out.html")
 	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
 	flag.StringVar(&cfg.Origin.Token, "token", "", "web token, example: -token xxxx")
 	flag.StringVar(&proj, "proj", proj, "saas project id, example: -proj xxxx")

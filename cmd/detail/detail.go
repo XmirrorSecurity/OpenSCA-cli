@@ -156,6 +156,20 @@ type Vuln struct {
 	ExploitLevelId  int    `json:"exploit_level_id" gorm:"column:exploit_level_id"`
 }
 
+func (v *Vuln) SecurityLevel() string {
+	switch v.SecurityLevelId {
+	case 1:
+		return "C"
+	case 2:
+		return "H"
+	case 3:
+		return "M"
+	case 4:
+		return "L"
+	}
+	return "U"
+}
+
 func vulnLanguageKey(language model.Language) []string {
 	switch language {
 	case model.Lan_Java:

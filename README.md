@@ -121,6 +121,7 @@
 |          | `html`   | `.html`                          |
 |          | `sqlite` | `.sqlite`                        |
 |          | `csv`    | `.csv`                           |
+|          | `sarif`  | `.sarif`                         |
 | SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` |
 |          | `cdx`    | `.cdx.json` `.cdx.xml`           |
 |          | `swid`   | `.swid.json` `.swid.xml`         |
