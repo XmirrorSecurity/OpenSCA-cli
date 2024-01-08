@@ -10,6 +10,10 @@
   // suport ext: html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx
   "out": "output.json,output.html",
 
+  // 检测日志路径
+  // log path
+  "log": "opensca.log",
+
   // opensca 配置项
   // opensca optional
   "optional": {
