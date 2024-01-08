@@ -17,6 +17,7 @@ import (
 	"regexp"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 
 	"github.com/pkg/errors"
@@ -124,7 +125,7 @@ func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Detect-Type", dtype)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := common.HttpDownloadClient.Do(req)
 	if err != nil {
 		return repbody, err
 	}

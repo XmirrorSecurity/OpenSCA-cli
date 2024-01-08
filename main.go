@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -45,10 +46,19 @@ func main() {
 		stopProgress = startProgressBar(arg)
 	}
 
-	// 初始化 HttpClient
-	common.SetHttpDownloadClient(func(c *http.Client) {
-		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
-	})
+	if config.Conf().Origin.Proxy != "" {
+		proxyUrl := config.Conf().Origin.Proxy
+		proxy, _ := url.Parse(proxyUrl)
+		common.SetHttpDownloadClient(func(c *http.Client) {
+			c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
+			c.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
+		})
+	} else {
+		// 初始化 HttpClient
+		common.SetHttpDownloadClient(func(c *http.Client) {
+			c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
+		})
+	}
 
 	// 运行检测任务
 	result := opensca.RunTask(context.Background(), arg)
@@ -99,6 +109,7 @@ func args() {
 	login := false
 	cfgf := ""
 	proj := "x"
+	proxy := "http://127.0.0.1:7890"
 	cfg := config.Conf()
 	flag.BoolVar(&v, "version", false, "-version")
 	flag.BoolVar(&login, "login", false, "login to cloud server. example: -login")
@@ -108,6 +119,7 @@ func args() {
 	flag.StringVar(&cfg.LogFile, "log", cfg.LogFile, "-log ./my_opensca_log.txt")
 	flag.StringVar(&cfg.Origin.Token, "token", "", "web token, example: -token xxxx")
 	flag.StringVar(&proj, "proj", proj, "saas project id, example: -proj xxxx")
+	flag.StringVar(&proxy, "proxy", proxy, "set global proxy for http requests, eg: http://127.0.0.1:7890")
 	flag.Parse()
 
 	if v {
@@ -121,6 +133,10 @@ func args() {
 	cfg.Origin.Url = strings.TrimRight(cfg.Origin.Url, "/")
 	if proj != "x" {
 		cfg.Origin.Proj = &proj
+	}
+
+	if proxy != "" {
+		cfg.Origin.Proxy = proxy
 	}
 
 	logs.CreateLog(config.Conf().LogFile)
