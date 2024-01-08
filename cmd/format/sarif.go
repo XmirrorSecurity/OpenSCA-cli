@@ -32,6 +32,7 @@ type sarifRun struct {
 type sarifRule struct {
 	Id               string                    `json:"id"`
 	ShortDescription sarifRuleShortDescription `json:"shortDescription"`
+	FullDescription  sarifRuleFullDescription  `json:"fullDescription"`
 	Help             sarifRuleHelp             `json:"help"`
 	Properties       sarifRuleProperties       `json:"properties"`
 }
