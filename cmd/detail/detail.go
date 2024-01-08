@@ -159,15 +159,15 @@ type Vuln struct {
 func (v *Vuln) SecurityLevel() string {
 	switch v.SecurityLevelId {
 	case 1:
-		return "C"
+		return "Critical"
 	case 2:
-		return "H"
+		return "High"
 	case 3:
-		return "M"
+		return "Medium"
 	case 4:
-		return "L"
+		return "Low"
 	}
-	return "U"
+	return "Unknown"
 }
 
 func vulnLanguageKey(language model.Language) []string {
