@@ -142,11 +142,19 @@ func args() {
 }
 
 func initHttpClient() {
+
+	// tls
+	tlsConfig := func(c *http.Client) {
+		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
+	}
+	common.SetHttpDownloadClient(tlsConfig)
+	common.SetSaasClient(tlsConfig)
+
+	// proxy
 	if config.Conf().Optional.Proxy != "" {
 		proxyUrl := config.Conf().Optional.Proxy
 		if proxy, err := url.Parse(proxyUrl); err == nil {
 			proxyConfig := func(c *http.Client) {
-				c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
 				c.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
 			}
 			common.SetHttpDownloadClient(proxyConfig)
@@ -155,12 +163,6 @@ func initHttpClient() {
 		} else {
 			logs.Warnf("parse proxy %s error: %s", proxyUrl, err)
 		}
-	} else {
-		tlsConfig := func(c *http.Client) {
-			c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
-		}
-		common.SetHttpDownloadClient(tlsConfig)
-		common.SetSaasClient(tlsConfig)
 	}
 }
 
