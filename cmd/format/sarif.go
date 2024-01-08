@@ -99,9 +99,6 @@ func Sarif(report Report, out string) {
 				FullDescription: sarifRuleFullDescription{
 					Text: fmt.Sprintf("%s - %s", vuln.Id, n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")]),
 				},
-				FullDescription: sarifRuleFullDescription{
-					Text: fmt.Sprintf("%s - %s", vuln.Id, n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")]),
-				},
 				Help: sarifRuleHelp{
 					Markdown: formatDesc(vuln),
 				},
