@@ -27,20 +27,20 @@ type OriginConfig struct {
 	Url    string    `json:"url"`
 	Token  string    `json:"token"`
 	Proj   *string   `json:"proj"`
-	Proxy  string    `json:"proxy"`
 	Json   string    `json:"json"`
 	Mysql  SqlOrigin `json:"mysql"`
 	Sqlite SqlOrigin `json:"sqlite"`
 }
 
 type OptionalConfig struct {
-	UI          bool `json:"ui"`
-	Dedup       bool `json:"dedup"`
-	DirOnly     bool `json:"dir"`
-	VulnOnly    bool `json:"vuln"`
-	SaveDev     bool `json:"dev"`
-	ProgressBar bool `json:"progress"`
-	Insecure    bool `json:"insecure"`
+	UI          bool   `json:"ui"`
+	Dedup       bool   `json:"dedup"`
+	DirOnly     bool   `json:"dir"`
+	VulnOnly    bool   `json:"vuln"`
+	SaveDev     bool   `json:"dev"`
+	ProgressBar bool   `json:"progress"`
+	Insecure    bool   `json:"insecure"`
+	Proxy       string `json:"proxy"`
 }
 
 type RepoConfig struct {

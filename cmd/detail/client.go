@@ -125,7 +125,7 @@ func Detect(dtype string, reqbody []byte) (repbody []byte, err error) {
 	req, err := http.NewRequest("POST", url, bytes.NewReader(data))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Detect-Type", dtype)
-	resp, err := common.HttpDownloadClient.Do(req)
+	resp, err := common.HttpSaasClient.Do(req)
 	if err != nil {
 		return repbody, err
 	}
