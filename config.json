@@ -40,7 +40,11 @@
 
     // 跳过 TLS 验证
     // skip tls verify, default: false
-    "insecure": false
+    "insecure": false,
+
+    // 全局http代理
+    // global proxy for http requests, eg: http://127.0.0.1:7890
+    "proxy": ""
 
   },
 
