@@ -151,6 +151,7 @@ func initHttpClient() {
 			}
 			common.SetHttpDownloadClient(proxyConfig)
 			common.SetSaasClient(proxyConfig)
+			logs.Infof("use proxy %s", proxyUrl)
 		} else {
 			logs.Warnf("parse proxy %s error: %s", proxyUrl, err)
 		}
