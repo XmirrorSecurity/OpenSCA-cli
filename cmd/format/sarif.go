@@ -95,6 +95,9 @@ func Sarif(report Report, out string) {
 				ShortDescription: sarifRuleShortDescription{
 					Text: fmt.Sprintf("[%s] 组件 %s 中存在 %s", vuln.SecurityLevel(), n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")], vuln.Name),
 				},
+				FullDescription: sarifRuleFullDescription{
+					Text: fmt.Sprintf("%s - %s", vuln.Id, n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")]),
+				},
 				Help: sarifRuleHelp{
 					Markdown: formatDesc(vuln),
 				},
