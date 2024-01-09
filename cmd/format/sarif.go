@@ -140,25 +140,28 @@ func Sarif(report Report, out string) {
 }
 
 func formatDesc(v *detail.VulnInfo) string {
-	text := fmt.Sprintf("| id | %s |", v.Id)
-	text = fmt.Sprintf("%s\n| --- | --- |", text)
-	if v.Cve != "" {
-		text = fmt.Sprintf("%s\n| cve | %s |", text, v.Cve)
+	table := []struct {
+		fmt string
+		val string
+	}{
+		{"| id | %s |", v.Id},
+		{"| --- | --- |", ""},
+		{"| cve | %s |", v.Cve},
+		{"| cnnvd | %s |", v.Cnnvd},
+		{"| cnvd | %s |", v.Cnvd},
+		{"| cwe | %s |", v.Cwe},
+		{"| level | %s |", v.SecurityLevel()},
+		{"| desc | %s |", v.Description},
+		{"| suggestion | %s |", v.Suggestion},
 	}
-	if v.Cnnvd != "" {
-		text = fmt.Sprintf("%s\n| cnnvd | %s |", text, v.Cnnvd)
+	var lines []string
+	for _, line := range table {
+		if strings.Contains(line.fmt, "%s") && line.val == "" {
+			continue
+		}
+		lines = append(lines, fmt.Sprintf(line.fmt, line.val))
 	}
-	if v.Cnvd != "" {
-		text = fmt.Sprintf("%s\n| cnvd | %s |", text, v.Cnvd)
-	}
-	if v.Cwe != "" {
-		text = fmt.Sprintf("%s\n| cwe | %s |", text, v.Cwe)
-	}
-	text = fmt.Sprintf("%s\n| level | %s |", text, v.SecurityLevel())
-	text = fmt.Sprintf("%s\n| desc | %s |", text, v.Description)
-	text = fmt.Sprintf("%s\n| suggestion | %s |", text, v.Suggestion)
-
-	return text
+	return strings.Join(lines, "\n")
 }
 
 func formatTags(v *detail.VulnInfo) []string {
