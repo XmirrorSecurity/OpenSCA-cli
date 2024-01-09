@@ -162,7 +162,11 @@ func formatDesc(v *detail.VulnInfo) string {
 		if strings.Contains(line.fmt, "%s") && line.val == "" {
 			continue
 		}
-		lines = append(lines, fmt.Sprintf(line.fmt, line.val))
+		if line.val == "" {
+			lines = append(lines, line.fmt)
+		} else {
+			lines = append(lines, fmt.Sprintf(line.fmt, line.val))
+		}
 	}
 	return html.EscapeString(strings.Join(lines, "\n"))
 }
