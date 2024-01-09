@@ -68,10 +68,12 @@ type sarifLocation struct {
 			Uri   string `json:"uri"`
 			Index int    `json:"index,omitempty"`
 		} `json:"artifactLocation"`
-		// Region struct {
-		// 	StartLine   int `json:"startLine"`
-		// 	StartColumn int `json:"startColumn"`
-		// } `json:"region"`
+		Region struct {
+			StartColumn int `json:"startColumn"`
+			EndColumn   int `json:"endColumn"`
+			StartLine   int `json:"startLine"`
+			EndLine     int `json:"endLine"`
+		} `json:"region"`
 	} `json:"physicalLocation"`
 }
 
@@ -107,8 +109,10 @@ func Sarif(report Report, out string) {
 				location := sarifLocation{}
 				location.PhysicalLocation.ArtifactLocation.Uri = path
 				location.PhysicalLocation.ArtifactLocation.Index = i
-				// location.PhysicalLocation.Region.StartColumn = 1
-				// location.PhysicalLocation.Region.StartLine = 1
+				location.PhysicalLocation.Region.StartColumn = 1
+				location.PhysicalLocation.Region.EndColumn = 1
+				location.PhysicalLocation.Region.StartLine = 1
+				location.PhysicalLocation.Region.EndLine = 1
 				result.Locations = append(result.Locations, location)
 			}
 
