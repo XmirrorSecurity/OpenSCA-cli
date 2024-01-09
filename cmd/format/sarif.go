@@ -3,10 +3,10 @@ package format
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"io"
-	"path/filepath"
 	"strings"
+
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
 )
@@ -31,6 +31,7 @@ type sarifRun struct {
 
 type sarifRule struct {
 	Id               string                    `json:"id"`
+	Name             string                    `json:"name"`
 	ShortDescription sarifRuleShortDescription `json:"shortDescription"`
 	FullDescription  sarifRuleFullDescription  `json:"fullDescription"`
 	Help             sarifRuleHelp             `json:"help"`
@@ -88,48 +89,46 @@ func Sarif(report Report, out string) {
 	run.Tool.Driver.Version = strings.TrimLeft(report.TaskInfo.ToolVersion, "vV")
 	run.Tool.Driver.InformationUri = "https://opensca.xmirror.cn"
 
+	vulnInfos := map[string]*detail.VulnInfo{}
+
 	report.ForEach(func(n *detail.DepDetailGraph) bool {
 		for _, vuln := range n.Vulnerabilities {
-			run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, sarifRule{
-				Id: vuln.Id,
-				ShortDescription: sarifRuleShortDescription{
-					Text: fmt.Sprintf("[%s] 组件 %s 中存在 %s", vuln.SecurityLevel(), n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")], vuln.Name),
-				},
-				FullDescription: sarifRuleFullDescription{
-					Text: fmt.Sprintf("%s - %s", vuln.Id, n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")]),
-				},
-				Help: sarifRuleHelp{
-					Markdown: formatDesc(vuln),
-				},
-				Properties: sarifRuleProperties{
-					Tags: formatTags(n),
-				},
-			},
-			)
 
 			if vuln.Id == "" {
 				continue
 			}
+
+			vulnInfos[vuln.Id] = &detail.VulnInfo{Vuln: vuln, Language: n.Language}
+
 			result := sarifResult{
-				RuleId: "XM1001",
+				RuleId: vuln.Id,
 				Level:  "warning",
 			}
 			result.Message.Text = fmt.Sprintf("引入的组件 %s 中存在 %s", n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")], vuln.Name)
 			for i, path := range n.Paths {
 				location := sarifLocation{}
-				if truncIndex := strings.Index(path, "["); truncIndex > 0 {
-					path = path[:truncIndex]
-					path = strings.TrimPrefix(path, filepath.Base(report.TaskInfo.AppName))
-					path = strings.Trim(path, `\/`)
-				}
 				location.PhysicalLocation.ArtifactLocation.Uri = path
 				location.PhysicalLocation.ArtifactLocation.Index = i
+				// location.PhysicalLocation.Region.StartColumn = 1
+				// location.PhysicalLocation.Region.StartLine = 1
 				result.Locations = append(result.Locations, location)
 			}
+
 			run.Results = append(run.Results, result)
 		}
 		return true
 	})
+
+	for _, vuln := range vulnInfos {
+		run.Tool.Driver.Rules = append(run.Tool.Driver.Rules, sarifRule{
+			Id:               vuln.Id,
+			Name:             vuln.Name,
+			ShortDescription: sarifRuleShortDescription{Text: vuln.Name},
+			FullDescription:  sarifRuleFullDescription{Text: vuln.Description},
+			Help:             sarifRuleHelp{Markdown: formatDesc(vuln)},
+			Properties:       sarifRuleProperties{Tags: formatTags(vuln)},
+		})
+	}
 
 	s.Runs = []sarifRun{run}
 	outWrite(out, func(w io.Writer) {
@@ -140,7 +139,7 @@ func Sarif(report Report, out string) {
 	})
 }
 
-func formatDesc(v *detail.Vuln) string {
+func formatDesc(v *detail.VulnInfo) string {
 	text := fmt.Sprintf("| id | %s |", v.Id)
 	text = fmt.Sprintf("%s\n| --- | --- |", text)
 	if v.Cve != "" {
@@ -162,23 +161,13 @@ func formatDesc(v *detail.Vuln) string {
 	return text
 }
 
-func formatTags(dg *detail.DepDetailGraph) []string {
-	tags := []string{}
-	exists := make(map[string]bool)
-	tags = append(tags, "security")
-	tags = append(tags, "Use-Vulnerable-and-Outdated-Components")
-	if dg.Dep.Language != "" {
-		tags = append(tags, dg.Dep.Language)
-		exists[dg.Dep.Language] = true
-	}
-	for _, v := range dg.Vulnerabilities {
-		if v.Cve != "" && !exists[v.Cve] {
-			tags = append(tags, v.Cve)
-			exists[v.Cve] = true
-		}
-		if v.AttackType != "" && !exists[v.AttackType] {
-			tags = append(tags, v.AttackType)
-			exists[v.AttackType] = true
+func formatTags(v *detail.VulnInfo) []string {
+	tags := []string{"security", "Use-Vulnerable-and-Outdated-Components", v.Cve, v.Cwe, v.AttackType, v.Language}
+	for i := 0; i < len(tags); {
+		if tags[i] == "" {
+			tags = append(tags[:i], tags[i+1:]...)
+		} else {
+			i++
 		}
 	}
 	return tags
