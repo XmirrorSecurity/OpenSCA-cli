@@ -145,7 +145,7 @@ func initHttpClient() {
 
 	// tls
 	tlsConfig := func(c *http.Client) {
-		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = config.Conf().Optional.Insecure
+		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = !config.Conf().Optional.TLSVerify
 	}
 	common.SetHttpDownloadClient(tlsConfig)
 	common.SetSaasClient(tlsConfig)
