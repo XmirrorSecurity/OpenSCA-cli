@@ -56,9 +56,6 @@ func (o *BaseOrigin) LoadDataOrigin(data ...VulnInfo) {
 			continue
 		}
 		o.idSet[info.Id] = true
-		if info.Description != "" {
-			info.DescriptionEn = ""
-		}
 		name := strings.ToLower(info.Product)
 		language := strings.ToLower(info.Language)
 		if _, ok := o.data[language]; !ok {

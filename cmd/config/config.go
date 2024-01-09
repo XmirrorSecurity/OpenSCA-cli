@@ -39,7 +39,7 @@ type OptionalConfig struct {
 	VulnOnly    bool   `json:"vuln"`
 	SaveDev     bool   `json:"dev"`
 	ProgressBar bool   `json:"progress"`
-	Insecure    bool   `json:"insecure"`
+	TLSVerify   bool   `json:"tls"`
 	Proxy       string `json:"proxy"`
 }
 

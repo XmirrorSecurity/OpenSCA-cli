@@ -10,6 +10,10 @@
   // suport ext: html/json/xml/csv/sqlite/cdx/spdx/swid/dsdx
   "out": "output.json,output.html",
 
+  // 检测日志路径
+  // log path
+  "log": "opensca.log",
+
   // opensca 配置项
   // opensca optional
   "optional": {
@@ -38,9 +42,9 @@
     // save develop components
     "dev": true,
 
-    // 跳过 TLS 验证
-    // skip tls verify, default: false
-    "insecure": false,
+    // 开启 TLS 验证
+    // use tls verify, default: false
+    "tls": false,
 
     // 全局http代理
     // global proxy for http requests, eg: http://127.0.0.1:7890
