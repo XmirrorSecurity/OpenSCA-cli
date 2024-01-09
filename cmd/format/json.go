@@ -6,9 +6,9 @@ import (
 )
 
 func Json(report Report, out string) {
-	outWrite(out, func(w io.Writer) {
+	outWrite(out, func(w io.Writer) error {
 		encoder := json.NewEncoder(w)
 		encoder.SetIndent("", "  ")
-		encoder.Encode(report)
+		return encoder.Encode(report)
 	})
 }

@@ -6,8 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
-
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
 )
 
@@ -131,11 +129,8 @@ func Sarif(report Report, out string) {
 	}
 
 	s.Runs = []sarifRun{run}
-	outWrite(out, func(w io.Writer) {
-		err := json.NewEncoder(w).Encode(s)
-		if err != nil {
-			logs.Error(err)
-		}
+	outWrite(out, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(s)
 	})
 }
 

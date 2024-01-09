@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"path/filepath"
 	"strings"
@@ -14,11 +15,13 @@ import (
 	"github.com/veraison/swid"
 )
 
-func swidZip(out string, report Report, writeFunc func(tag *swid.SoftwareIdentity, w io.Writer)) {
-	outWrite(out+".zip", func(writer io.Writer) {
+func swidZip(out string, report Report, writeFunc func(tag *swid.SoftwareIdentity, w io.Writer) error) {
+	outWrite(out+".zip", func(writer io.Writer) error {
 
 		zf := zip.NewWriter(writer)
 		defer zf.Close()
+
+		var werr error
 
 		report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 
@@ -63,21 +66,23 @@ func swidZip(out string, report Report, writeFunc func(tag *swid.SoftwareIdentit
 				return true
 			}
 
-			writeFunc(tag, w)
+			werr = errors.Join(werr, writeFunc(tag, w))
+
 			return true
 		})
 
+		return werr
 	})
 }
 
 func SwidJson(report Report, out string) {
-	swidZip(out, report, func(tag *swid.SoftwareIdentity, w io.Writer) {
-		json.NewEncoder(w).Encode(tag)
+	swidZip(out, report, func(tag *swid.SoftwareIdentity, w io.Writer) error {
+		return json.NewEncoder(w).Encode(tag)
 	})
 }
 
 func SwidXml(report Report, out string) {
-	swidZip(out, report, func(tag *swid.SoftwareIdentity, w io.Writer) {
-		xml.NewEncoder(w).Encode(tag)
+	swidZip(out, report, func(tag *swid.SoftwareIdentity, w io.Writer) error {
+		return xml.NewEncoder(w).Encode(tag)
 	})
 }

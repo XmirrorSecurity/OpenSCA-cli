@@ -6,7 +6,7 @@ import (
 )
 
 func Xml(report Report, out string) {
-	outWrite(out, func(w io.Writer) {
-		xml.NewEncoder(w).Encode(report)
+	outWrite(out, func(w io.Writer) error {
+		return xml.NewEncoder(w).Encode(report)
 	})
 }
