@@ -106,6 +106,9 @@ func Sarif(report Report, out string) {
 			}
 			result.Message.Text = fmt.Sprintf("引入的组件 %s 中存在 %s", n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")], vuln.Name)
 			for i, path := range n.Paths {
+				if truncIndex := strings.Index(path, "["); truncIndex > 0 {
+					path = strings.Trim(path[:truncIndex], `\/`)
+				}
 				location := sarifLocation{}
 				location.PhysicalLocation.ArtifactLocation.Uri = path
 				location.PhysicalLocation.ArtifactLocation.Index = i
