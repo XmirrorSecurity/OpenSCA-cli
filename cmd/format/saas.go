@@ -77,7 +77,7 @@ func Saas(report Report) error {
 		return err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := common.HttpSaasClient.Do(req)
 	if err != nil {
 		return err
 	}
