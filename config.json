@@ -42,9 +42,9 @@
     // save develop components
     "dev": true,
 
-    // 跳过 TLS 验证
-    // skip tls verify, default: false
-    "insecure": false,
+    // 开启 TLS 验证
+    // use tls verify, default: false
+    "tls": false,
 
     // 全局http代理
     // global proxy for http requests, eg: http://127.0.0.1:7890
