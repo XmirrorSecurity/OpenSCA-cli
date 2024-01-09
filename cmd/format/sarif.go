@@ -3,6 +3,7 @@ package format
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"strings"
 
@@ -163,7 +164,7 @@ func formatDesc(v *detail.VulnInfo) string {
 		}
 		lines = append(lines, fmt.Sprintf(line.fmt, line.val))
 	}
-	return strings.Join(lines, "\n")
+	return html.EscapeString(strings.Join(lines, "\n"))
 }
 
 func formatTags(v *detail.VulnInfo) []string {
