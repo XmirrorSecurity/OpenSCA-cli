@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
@@ -154,8 +155,8 @@ func formatDesc(v *detail.VulnInfo) string {
 		{"| cnvd | %s |", v.Cnvd},
 		{"| cwe | %s |", v.Cwe},
 		{"| level | %s |", v.SecurityLevel()},
-		{"| desc | %s |", v.Description},
-		{"| suggestion | %s |", v.Suggestion},
+		{"| desc | %s |", sanitizeString(v.Description)},
+		{"| suggestion | %s |", sanitizeString(v.Suggestion)},
 	}
 	var lines []string
 	for _, line := range table {
@@ -168,7 +169,18 @@ func formatDesc(v *detail.VulnInfo) string {
 			lines = append(lines, fmt.Sprintf(line.fmt, line.val))
 		}
 	}
+
 	return html.EscapeString(strings.Join(lines, "\n"))
+}
+
+func sanitizeString(s string) string {
+	re := regexp.MustCompile("<[^>]*>")
+	s = re.ReplaceAllString(s, "")
+
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\n", "")
+
+	return s
 }
 
 func formatTags(v *detail.VulnInfo) []string {
