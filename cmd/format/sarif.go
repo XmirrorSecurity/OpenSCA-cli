@@ -3,7 +3,6 @@ package format
 import (
 	"encoding/json"
 	"fmt"
-	"html"
 	"io"
 	"regexp"
 	"strings"
@@ -170,7 +169,7 @@ func formatDesc(v *detail.VulnInfo) string {
 		}
 	}
 
-	return html.EscapeString(strings.Join(lines, "\n"))
+	return strings.Join(lines, "\n")
 }
 
 func sanitizeString(s string) string {
