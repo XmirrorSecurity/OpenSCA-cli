@@ -36,41 +36,41 @@ download() {
     curl --silent -L "$download_url" -o opensca-cli.tar.gz
 }
 
-check_md5() {
-    echo "* Checking md5sum"
-    md5="$(curl --silent -L $download_url.md5)"
-    case "SYSTYPE" in 
-        Linux)
-        if [ "$(md5sum opensca-cli.tar.gz | awk '{print $1}')" != "$md5" ]; then
-            printf "  md5sum check failed, please try again.\n"
-            rm opensca-cli.tar.gz
-            exit 1
-        fi
-        ;;
-        Darwin)
-        if [ "$(md5 opensca-cli.tar.gz | awk '{print $4}')" != "$md5" ]; then
-            printf "  md5sum check failed, please try again.\n"
-            rm opensca-cli.tar.gz
-            exit 1
-        fi
-        ;;
+checksum() {
+    echo "* Checking sha256sum"
+    sha256="$(curl --silent -L "$download_url".sha256)"
+    case "$SYSTYPE" in
+        linux)
+            if [ "$(sha256sum opensca-cli.tar.gz | awk '{print $1}')" != "$sha256" ]; then
+              printf "  sha256sum check failed, please try again.\n"
+              rm opensca-cli.tar.gz
+              exit 1
+            fi
+            ;;
+        darwin)
+            if [ "$(shasum -a 256 opensca-cli.tar.gz | awk '{print $1}')" != "$sha256" ]; then
+                printf "  sha256sum check failed, please try again.\n"
+                rm opensca-cli.tar.gz
+                exit 1
+            fi
+            ;;
     esac
 }
 
 install() {
     printf "* Installing OpenSCA-cli\n"
-    mkdir -p $HOME/.config/opensca-cli
-    tar -xzf opensca-cli.tar.gz -C $HOME/.config/opensca-cli
+    mkdir -p "$HOME"/.config/opensca-cli
+    tar -xzf opensca-cli.tar.gz -C "$HOME"/.config/opensca-cli
     if [ $UPDATE -eq 0 ]; then
-        current_shell=$(echo $SHELL | awk -F '/' '{print $NF}')
+        current_shell=$(echo "$SHELL" | awk -F '/' '{print $NF}')
         printf "  Adding OpenSCA-cli to PATH: "
         case "$current_shell" in
             "bash")
-                printf "'export PATH=$HOME/.config/opensca-cli:\$PATH >> ~/.bashrc'\n"
+                printf "'export PATH=%S/.config/opensca-cli:\$PATH >> ~/.bashrc'\n" "$HOME"
                 echo "export PATH=$HOME/.config/opensca-cli:\$PATH" >> ~/.bashrc
                 ;;
             "zsh")
-                printf "'export PATH=$HOME/.config/opensca-cli:\$PATH >> ~/.zshrc'\n"
+                printf "'export PATH=%s/.config/opensca-cli:\$PATH >> ~/.zshrc'\n" "$HOME"
                 echo "export PATH=$HOME/.config/opensca-cli:\$PATH" >> ~/.zshrc
                 ;;
             *)
@@ -80,7 +80,7 @@ install() {
         export PATH=$HOME/.config/opensca-cli:$PATH
     fi
     rm opensca-cli.tar.gz
-    printf "* Successfully installed OpenSCA-cli to $HOME/.config/opensca-cli. You can start using it by running 'opensca-cli' in your terminal. Enjoy!\n"
+    printf "* Successfully installed OpenSCA-cli to %s/.config/opensca-cli. You can start using it by running 'opensca-cli' in your terminal. Enjoy!\n" "$HOME"
 }
 
 main() {
@@ -98,7 +98,7 @@ main() {
     esac
     printf "* The latest version of OpenSCA-cli is: %s\n" "$latest_version"
     download
-    check_md5
+    checksum
     install
 }
 
