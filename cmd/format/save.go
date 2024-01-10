@@ -71,13 +71,15 @@ func Save(report Report, output string) {
 			Csv(report, out)
 		case ".sqlite", ".db":
 			Sqlite(report, out)
+		case ".sarif":
+			Sarif(report, out)
 		default:
 			Json(report, out)
 		}
 	}
 }
 
-func outWrite(out string, do func(io.Writer)) {
+func outWrite(out string, do func(io.Writer) error) {
 
 	if out == "" {
 		do(os.Stdout)
@@ -95,7 +97,9 @@ func outWrite(out string, do func(io.Writer)) {
 		logs.Warn(err)
 	} else {
 		defer w.Close()
-		do(w)
+		if err = do(w); err != nil {
+			logs.Warn(err)
+		}
 	}
 }
 

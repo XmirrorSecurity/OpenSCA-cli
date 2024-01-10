@@ -131,6 +131,7 @@ Files supported by the `out` parameter are listed below：
 |        | `html` | `.html`                          | `v1.0.6` and above |
 |        | `sqlite` | `.sqlite`                      | `v1.0.13` and above|
 |        | `csv` | `.csv`                            | `v1.0.13` and above|
+|        | `sarif`| `.sarif`                         |                    |
 | SBOM   | `spdx` | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above |
 |        | `cdx`  | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above |
 |        | `swid` | `.swid.json` `.swid.xml`         | `v1.0.11`and above |

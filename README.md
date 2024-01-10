@@ -126,6 +126,7 @@ v3.0.2开始，OpenSCA-cli可以通过proj参数向OpenSCA SaaS同步检出结�
 |          | `html`   | `.html`                          |
 |          | `sqlite` | `.sqlite`                        |
 |          | `csv`    | `.csv`                           |
+|          | `sarif`  | `.sarif`                         |
 | SBOM清单 | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` |
 |          | `cdx`    | `.cdx.json` `.cdx.xml`           |
 |          | `swid`   | `.swid.json` `.swid.xml`         |

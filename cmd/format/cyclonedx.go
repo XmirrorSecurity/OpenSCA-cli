@@ -58,14 +58,14 @@ func cyclonedxbom(dep *detail.DepDetailGraph) *cyclonedx.BOM {
 
 func CycloneDXJson(report Report, out string) {
 	bom := cyclonedxbom(report.DepDetailGraph)
-	outWrite(out, func(w io.Writer) {
-		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatJSON).SetPretty(true).Encode(bom)
+	outWrite(out, func(w io.Writer) error {
+		return cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatJSON).SetPretty(true).Encode(bom)
 	})
 }
 
 func CycloneDXXml(report Report, out string) {
 	bom := cyclonedxbom(report.DepDetailGraph)
-	outWrite(out, func(w io.Writer) {
-		cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatXML).SetPretty(true).Encode(bom)
+	outWrite(out, func(w io.Writer) error {
+		return cyclonedx.NewBOMEncoder(w, cyclonedx.BOMFileFormatXML).SetPretty(true).Encode(bom)
 	})
 }

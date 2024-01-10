@@ -6,28 +6,24 @@ import (
 	"io"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
-	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
 func Dsdx(report Report, out string) {
-	outWrite(out, func(w io.Writer) {
-		err := dsdxDoc(report).WriteDsdx(w)
-		if err != nil {
-			logs.Warn(err)
-		}
+	outWrite(out, func(w io.Writer) error {
+		return dsdxDoc(report).WriteDsdx(w)
 	})
 }
 
 func DsdxJson(report Report, out string) {
-	outWrite(out, func(w io.Writer) {
-		json.NewEncoder(w).Encode(dsdxDoc(report))
+	outWrite(out, func(w io.Writer) error {
+		return json.NewEncoder(w).Encode(dsdxDoc(report))
 	})
 }
 
 func DsdxXml(report Report, out string) {
-	outWrite(out, func(w io.Writer) {
-		xml.NewEncoder(w).Encode(dsdxDoc(report))
+	outWrite(out, func(w io.Writer) error {
+		return xml.NewEncoder(w).Encode(dsdxDoc(report))
 	})
 }
 

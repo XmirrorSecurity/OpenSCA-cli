@@ -86,8 +86,9 @@ func Html(report Report, out string) {
 	}); err != nil {
 		logs.Warn(err)
 	} else {
-		outWrite(out, func(w io.Writer) {
-			w.Write(bytes.Replace(index, []byte(`"此处填充json数据"`), data, 1))
+		outWrite(out, func(w io.Writer) error {
+			_, err := w.Write(bytes.Replace(index, []byte(`"此处填充json数据"`), data, 1))
+			return err
 		})
 		return
 	}

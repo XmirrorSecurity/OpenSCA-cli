@@ -25,8 +25,9 @@ func Csv(report Report, out string) {
 		return true
 	})
 
-	outWrite(out, func(w io.Writer) {
-		w.Write([]byte(table))
+	outWrite(out, func(w io.Writer) error {
+		_, err := w.Write([]byte(table))
+		return err
 	})
 
 }
