@@ -1,4 +1,6 @@
-<h1><img src="/resources/logo.svg" align="left" style="margin-right: 15px;" alt="OpenSCA logo">用开源的方式做开源风险治理</h1>
+<div align="center">
+	<img alt="logo" src="/resources/logo.svg">
+  <h2>用开源的方式做开源风险治理</h2>
 
 [![Release](https://img.shields.io/github/v/release/XmirrorSecurity/OpenSCA-cli)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/XmirrorSecurity/OpenSCA-cli/total)](https://github.com/XmirrorSecurity/OpenSCA-cli/releases)
@@ -9,6 +11,7 @@
 [![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/xmirrorsecurity/opensca-cli)](/go.mod)
 
 中文 | [English](./.github/README.md)
+</div>
 
 <!-- TOC -->
 - [项目介绍](#项目介绍)
@@ -99,6 +102,8 @@
 （*v3.0.0开始url参数不再通过命令行指定，默认为OpenSCA云漏洞库服务`https://opensca.xmirror.cn/`，也可通过配置文件指定其他数据格式相符的云漏洞库；使用过往版本可在命令行或配置文件指定url参数。）
 
 配置字段及说明详见[`config.json`](./config.json)
+
+v3.0.2开始，OpenSCA-cli可以通过proj参数向OpenSCA SaaS同步检出结果，方便资产及风险的全局管理。
 
 配置文件与命令行参数冲突时优先使用命令行输入参数
 
