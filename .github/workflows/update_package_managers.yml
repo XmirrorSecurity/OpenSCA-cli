@@ -24,6 +24,6 @@ jobs:
     steps:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
-          identifier: XmirrorSecurity/OpenSCA-cli
+          identifier: XmirrorSecurity.OpenSCA-cli
           token: ${{ secrets.COMMITTER_TOKEN }}
 
