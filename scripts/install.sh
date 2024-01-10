@@ -60,8 +60,11 @@ checksum() {
 install() {
     printf "* Installing OpenSCA-cli\n"
     mkdir -p "$HOME"/.config/opensca-cli
-    tar -xzf opensca-cli.tar.gz -C "$HOME"/.config/opensca-cli
-    $? || exit 1
+    if ! tar -xzf opensca-cli.tar.gz -C "$HOME"/.config/opensca-cli; then
+      printf "  Failed to install OpenSCA-cli, please try again.\n"
+      rm opensca-cli.tar.gz
+      exit 1
+    fi
     if [ $UPDATE -eq 0 ]; then
         current_shell=$(echo "$SHELL" | awk -F '/' '{print $NF}')
         printf "  Adding OpenSCA-cli to PATH: "
