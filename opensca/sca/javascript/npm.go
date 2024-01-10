@@ -19,7 +19,8 @@ type PackageJson struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	// License              string            `json:"license"`
-	Develop              bool              `json:"dev"` // lock v3
+	Develop bool `json:"dev"` // lock v3
+	// TODO 只有依赖冲突时才会使用
 	Resolutions          map[string]string `json:"resolutions"`
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
@@ -206,13 +207,18 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 
 			dep := _dep(n.name, n.Version)
 
+			dup := map[string]bool{}
 			for name, sub := range n.Dependencies {
+				dup[name] = true
 				sub.name = name
 				q = append(q, sub)
 				dep.AppendChild(_dep(name, sub.Version))
 			}
 
 			for name := range n.Requires {
+				if dup[name] {
+					continue
+				}
 				dep.AppendChild(depNameMap[name])
 			}
 
