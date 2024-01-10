@@ -206,13 +206,18 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 
 			dep := _dep(n.name, n.Version)
 
+			dup := map[string]bool{}
 			for name, sub := range n.Dependencies {
+				dup[name] = true
 				sub.name = name
 				q = append(q, sub)
 				dep.AppendChild(_dep(name, sub.Version))
 			}
 
 			for name := range n.Requires {
+				if dup[name] {
+					continue
+				}
 				dep.AppendChild(depNameMap[name])
 			}
 
