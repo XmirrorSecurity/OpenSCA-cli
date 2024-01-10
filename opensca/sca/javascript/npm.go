@@ -19,7 +19,8 @@ type PackageJson struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	// License              string            `json:"license"`
-	Develop              bool              `json:"dev"` // lock v3
+	Develop bool `json:"dev"` // lock v3
+	// TODO 只有依赖冲突时才会使用
 	Resolutions          map[string]string `json:"resolutions"`
 	Dependencies         map[string]string `json:"dependencies"`
 	DevDependencies      map[string]string `json:"devDependencies"`
