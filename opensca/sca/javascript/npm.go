@@ -47,6 +47,7 @@ type PackageLock struct {
 type PackageLockDep struct {
 	name         string
 	Version      string                     `json:"version"`
+	Develop      bool                       `json:"dev"`
 	Requires     map[string]string          `json:"requires"`
 	Dependencies map[string]*PackageLockDep `json:"dependencies"`
 }
@@ -189,12 +190,16 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 
 	// map[key]
 	depNameMap := map[string]*model.DepGraph{}
+	devDepNameMap := map[string]*model.DepGraph{}
 	_dep := _depSet().LoadOrStore
 
 	// 记录依赖
 	for name, lockDep := range pkglock.Dependencies {
-		dep := _dep(name, lockDep.Version)
-		depNameMap[name] = dep
+		if lockDep.Develop {
+			devDepNameMap[name] = _dep(name, lockDep.Version, "dev")
+		} else {
+			depNameMap[name] = _dep(name, lockDep.Version)
+		}
 	}
 
 	// 构建依赖关系
@@ -205,21 +210,34 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 			n := q[0]
 			q = q[1:]
 
-			dep := _dep(n.name, n.Version)
+			var dep *model.DepGraph
+			if n.Develop {
+				dep = _dep(n.name, n.Version, "dev")
+			} else {
+				dep = _dep(n.name, n.Version)
+			}
 
 			dup := map[string]bool{}
 			for name, sub := range n.Dependencies {
 				dup[name] = true
 				sub.name = name
 				q = append(q, sub)
-				dep.AppendChild(_dep(name, sub.Version))
+				if sub.Develop || n.Develop {
+					dep.AppendChild(_dep(name, sub.Version, "dev"))
+				} else {
+					dep.AppendChild(_dep(name, sub.Version))
+				}
 			}
 
 			for name := range n.Requires {
 				if dup[name] {
 					continue
 				}
-				dep.AppendChild(depNameMap[name])
+				if n.Develop {
+					dep.AppendChild(devDepNameMap[name])
+				} else {
+					dep.AppendChild(depNameMap[name])
+				}
 			}
 
 		}
@@ -233,14 +251,7 @@ func ParsePackageJsonWithLock(pkgjson *PackageJson, pkglock *PackageLock) *model
 	}
 
 	for name := range pkgjson.DevDependencies {
-		dep := depNameMap[name]
-		if dep != nil {
-			devdep := _dep(dep.Name, dep.Version, "dev")
-			for _, c := range dep.Children {
-				devdep.AppendChild(c)
-			}
-			root.AppendChild(devdep)
-		}
+		root.AppendChild(devDepNameMap[name])
 	}
 
 	return root
