@@ -13,5 +13,6 @@ FROM scratch
 LABEL authors="OpenSCA Team <opensca@anpro-tech.com>"
 
 COPY --from=builder /app/opensca-cli /app/opensca-cli
+WORKDIR /src
 ENTRYPOINT [ "/app/opensca-cli"]
 CMD ["-path", "/src", "-config", "/src/config.json"]
