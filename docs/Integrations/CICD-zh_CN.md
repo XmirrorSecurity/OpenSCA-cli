@@ -193,3 +193,30 @@ deploy-job:
 </details>
 
 # GitHub Actions
+
+可以通过 [OpenSCA Scan Action](https://github.com/marketplace/actions/opensca-scan-action) 在 GitHub Actions 中集成 OpenSCA。
+
+```yaml
+name: OpenSCA Scan
+
+on: 
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: 
+      - master
+
+jobs:
+  opensca_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: OpenSCA Scan
+        uses: XmirrorSecurity/opensca-scan-action@v1.0.0
+        with:
+          token: ${{ secrets.OPENSCA_TOKEN }}
+```
+
+更多信息请参考 [OpenSCA Scan Action](https://github.com/XmirrorSecurity/opensca-scan-action)
