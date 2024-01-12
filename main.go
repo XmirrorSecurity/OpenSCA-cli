@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -204,9 +205,12 @@ func taskReport(r opensca.TaskResult) format.Report {
 	path := config.Conf().Path
 	optional := config.Conf().Optional
 
+	absPath, _ := filepath.Abs(path)
+	appName := filepath.Base(absPath)
+
 	report := format.Report{}
 	report.TaskInfo.ToolVersion = version
-	report.TaskInfo.AppName = path
+	report.TaskInfo.AppName = appName
 	report.TaskInfo.Size = r.Size
 
 	if r.Error != nil {
