@@ -1,7 +1,7 @@
 
 param(
     [Parameter(Mandatory=$false)]
-    [string]$arg
+    [string]$args
 )
 
 $scriptVersion = "0.1.0"
