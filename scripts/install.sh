@@ -84,7 +84,7 @@ install() {
         export PATH=$HOME/.config/opensca-cli:$PATH
     fi
     rm opensca-cli.tar.gz
-    printf " \n" "$HOME"
+    printf "* Successfully installed OpenSCA-cli in %s/.config/opensca-cli. You can start using it by running 'opensca-cli' in your terminal. Enjoy!\n" "$HOME"
 }
 
 main() {
