@@ -37,7 +37,7 @@ download() {
 }
 
 checksum() {
-    echo "* Checking sha256sum"
+    echo "* Verifying checksum..."
     sha256="$(curl --silent -L "$download_url".sha256)"
     case "$SYSTYPE" in
         linux)
@@ -84,7 +84,7 @@ install() {
         export PATH=$HOME/.config/opensca-cli:$PATH
     fi
     rm opensca-cli.tar.gz
-    printf "* Successfully installed OpenSCA-cli to %s/.config/opensca-cli. You can start using it by running 'opensca-cli' in your terminal. Enjoy!\n" "$HOME"
+    printf " \n" "$HOME"
 }
 
 main() {
@@ -142,7 +142,7 @@ usage() {
     printf "Usage: install.sh [options]\n"
     printf "Options:\n"
     printf "  -h, --help        Show this help message and exit\n"
-    printf "  -v, --version     Show version info and exit\n"
+    printf "  -v, --version     Show script version info and exit\n"
     printf "  gitee | github    Download from gitee/github, default: github\n"
     printf "  update            Force update OpenSCA-cli(will not update \$PATH)\n"
 }
