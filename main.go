@@ -149,7 +149,7 @@ func initHttpClient() {
 		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = !config.Conf().Optional.TLSVerify
 	}
 	common.SetHttpDownloadClient(tlsConfig)
-	common.SetSaasClient(tlsConfig)
+	common.SetHttpSaasClient(tlsConfig)
 
 	// proxy
 	if config.Conf().Optional.Proxy != "" {
@@ -159,7 +159,7 @@ func initHttpClient() {
 				c.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
 			}
 			common.SetHttpDownloadClient(proxyConfig)
-			common.SetSaasClient(proxyConfig)
+			common.SetHttpSaasClient(proxyConfig)
 			logs.Infof("use proxy %s", proxyUrl)
 		} else {
 			logs.Warnf("parse proxy %s error: %s", proxyUrl, err)
