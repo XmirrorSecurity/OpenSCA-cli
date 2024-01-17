@@ -6,7 +6,7 @@ param(
 
 $scriptVersion = "0.1.0"
 
-switch ($arg) {
+switch ($args) {
     "" {
         $source = "github"
     }
