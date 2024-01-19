@@ -272,24 +272,20 @@ func (v *Version) Ok() bool {
 	return !strings.Contains(v.Org, "$") && len(v.Nums) > 0
 }
 
-// inRangeInterval 判断一个版本是否在一个版本区间内
+// inRangeInterval 判断一个版本是否在一个版本范围内
 func inRangeInterval(ver *Version, interval string) bool {
-	// 当前版本
-	if len(interval) < 2 {
-		return false
-	}
-	// 集合形式
-	if interval[0] == '{' && interval[len(interval)-1] == '}' {
-		for _, v := range strings.Split(strings.Trim(interval, "{}"), ",") {
-			if newVersion(v).Equal(ver) {
-				return true
-			}
-		}
-	}
-	// 遍历所有区间
+	// 遍历所有范围
 	for _, interval := range strings.Split(interval, "||") {
 		if len(interval) < 2 {
 			continue
+		}
+		// 集合形式
+		if interval[0] == '{' && interval[len(interval)-1] == '}' {
+			for _, v := range strings.Split(strings.Trim(interval, "{}"), ",") {
+				if newVersion(v).Equal(ver) {
+					return true
+				}
+			}
 		}
 		// 判断左边界是否为闭
 		left := interval[0] == '['
