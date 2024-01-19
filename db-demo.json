@@ -112,5 +112,15 @@
     "release_date": "2021-12-28",
     "security_level_id": 3,
     "exploit_level_id": 0
+  },
+  {
+    "product": "tensrflwo",
+    "version": "{2.5.1,2.7,2.7.1,2.8,2.9}",
+    "language": "python",
+    "id": "XMIRROR-MAL45-777DD586",
+    "name": "tensorflwo 供应链投毒",
+    "description": "恶意Python组件包投毒，仿冒tensorflow。",
+    "suggestion": "使用官方tensorflow组件",
+    "release_date": "2024-01-15"
   }
 ]
