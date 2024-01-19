@@ -222,7 +222,7 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_h
 | `[a,b)`       | `a<=x<b`                         |
 | `(a,b]`       | `a<x<=b`                         |
 | `(0,b)`       | `x<b`                            |
-| `(a,)`        | `x>b`                            |
+| `(a,)`        | `x>a`                            |
 | `{a,b,c,...}` | `x=a` 或 `x=b` 或 `x=c` 或 `...` |
 
 同时位于多个范围需要用`||`连接，例如：
