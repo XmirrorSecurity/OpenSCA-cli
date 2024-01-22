@@ -18,6 +18,19 @@ func ParseGomod(file *model.File) *model.DepGraph {
 	root := &model.DepGraph{Path: file.Relpath()}
 
 	var require bool
+	var replace bool
+
+	parseDepLine := func(line string) (name, version string) {
+		line = strings.TrimSpace(line)
+		words := strings.Fields(line)
+		if len(words) >= 2 {
+			name = strings.Trim(words[0], `'"`)
+			version = strings.TrimSuffix(words[1], "+incompatible")
+		}
+		return
+	}
+
+	deps := map[string]string{}
 
 	file.ReadLineNoComment(&model.CommentType{
 		Simple: "//",
@@ -30,29 +43,57 @@ func ParseGomod(file *model.File) *model.DepGraph {
 
 		if strings.HasPrefix(line, "require") {
 			require = true
-			return
+			line = strings.TrimPrefix(line, "require")
+			if strings.TrimSpace(line) == "" {
+				return
+			}
+		}
+
+		if strings.HasPrefix(line, "replace") {
+			replace = true
+			line = strings.TrimPrefix(line, "replace")
+			if strings.TrimSpace(line) == "" {
+				return
+			}
 		}
 
 		if strings.HasPrefix(line, ")") {
 			require = false
+			replace = false
 			return
 		}
 
-		// 不处理require之外的模块
-		if !require {
+		if require {
+			name, version := parseDepLine(line)
+			if name != "" {
+				deps[name] = version
+			}
 			return
 		}
 
-		line = strings.TrimSpace(line)
-		words := strings.Fields(line)
-		if len(words) >= 2 {
-			root.AppendChild(&model.DepGraph{
-				Name:    strings.Trim(words[0], `'"`),
-				Version: strings.TrimSuffix(words[1], "+incompatible"),
-			})
+		if replace {
+			line = strings.TrimSpace(line)
+			i := strings.Index(line, "=>")
+			if i == -1 {
+				return
+			}
+			old := strings.TrimSpace(line[:i])
+			delete(deps, old)
+			name, version := parseDepLine(line[i+2:])
+			if name != "" {
+				deps[name] = version
+			}
+			return
 		}
 
 	})
+
+	for name, version := range deps {
+		root.AppendChild(&model.DepGraph{
+			Name:    name,
+			Version: version,
+		})
+	}
 
 	return root
 }
