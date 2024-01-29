@@ -2,6 +2,7 @@
 
 - [命令行参数](#命令行参数)
 - [配置文件说明](#配置文件说明)
+- [漏洞数据库配置示例](#漏洞数据库配置示例)
 - [漏洞数据库字段说明](#漏洞数据库字段说明)
 
 
@@ -59,24 +60,64 @@
     - `dsn`: `String` 数据库连接字符串
     - `table`: `String` 数据表名
 
+# 漏洞数据库配置示例
+
+```json
+{
+  // ...
+  "origin": {
+    // json 文件
+    "json": "vuln-db.json",
+    // MySQL
+    "mysql": {
+      // user:password@tcp(ip:port)/dbname
+      "dns": "opensca:opensca@tcp(3306:127.0.0.1)/opensca",
+      "table": "vuln"
+    }
+    "sqlite": {
+      "dns": "vuln.db",
+      "table": "vuln"
+    }
+  }
+
+}
+```
+
 # 漏洞数据库字段说明
 
-| 字段                | 描述                                                  | 是否必填 |
-| :------------------ | :---------------------------------------------------- | :------- |
-| `vendor`            | 组件厂商                                              | 否       |
-| `product`           | 组件名                                                | 是       |
-| `version`           | 漏洞影响版本                                          | 是       |
-| `language`          | 组件语言(java/javascript/golang/rust/php/ruby/python) | 是       |
-| `name`              | 漏洞名                                                | 否       |
-| `id`                | 自定义编号                                            | 是       |
-| `cve_id`            | cve 编号                                              | 否       |
-| `cnnvd_id`          | cnnvd 编号                                            | 否       |
-| `cnvd_id`           | cnvd 编号                                             | 否       |
-| `cwe_id`            | cwe 编号                                              | 否       |
-| `description`       | 漏洞描述                                              | 否       |
-| `description_en`    | 漏洞英文描述                                          | 否       |
-| `suggestion`        | 漏洞修复建议                                          | 否       |
-| `attack_type`       | 攻击方式                                              | 否       |
-| `release_date`      | 漏洞发布日期                                          | 否       |
-| `security_level_id` | 漏洞风险评级(1~4 风险程度递减)                        | 否       |
-| `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用)                     | 否       |
+| 字段                | 描述                              | 是否必填 |
+| :------------------ | :-------------------------------- | :------- |
+| `vendor`            | 组件厂商                          | 否       |
+| `product`           | 组件名                            | 是       |
+| `version`           | 漏洞影响版本                      | 是       |
+| `language`          | 组件语言                          | 是       |
+| `name`              | 漏洞名                            | 否       |
+| `id`                | 自定义编号                        | 是       |
+| `cve_id`            | cve 编号                          | 否       |
+| `cnnvd_id`          | cnnvd 编号                        | 否       |
+| `cnvd_id`           | cnvd 编号                         | 否       |
+| `cwe_id`            | cwe 编号                          | 否       |
+| `description`       | 漏洞描述                          | 否       |
+| `description_en`    | 漏洞英文描述                      | 否       |
+| `suggestion`        | 漏洞修复建议                      | 否       |
+| `attack_type`       | 攻击方式                          | 否       |
+| `release_date`      | 漏洞发布日期                      | 否       |
+| `security_level_id` | 漏洞风险评级   | 否       |
+| `exploit_level_id`  | 漏洞利用评级 | 否       |
+
+- `language` 可选值: `java` `javascript` `golang` `rust` `php` `ruby` `python`
+- `version` 描述可使用以下格式:
+  | 符号          | 描述 (`x`为检出的组件版本)        |
+  | ------------- | -------------------------------- |
+  | `[a,b]`       | `a<=x<=b`                        |
+  | `(a,b)`       | `a<x<b`                          |
+  | `[a,b)`       | `a<=x<b`                         |
+  | `(a,b]`       | `a<x<=b`                         |
+  | `(0,b)`       | `x<b`                            |
+  | `(a,)`        | `x>a`                            |
+  | `{a,b,c,...}` | `x=a` 或 `x=b` 或 `x=c` 或 `...` |
+  > 同时位于多个范围需要用`||`连接，例如: `[a,b)||(b,c]`代表`a<=x<b`或`b<x<=c`，即`a<=x<=c`且`x!=b`
+  > 
+  > 也可以区间和集合混用: `(0,b)||{c,d}||[e,)`代表`x<b`或`x=c`或`x=d`或`x>=e`
+- `security_level_id` 可选值: `1` `2` `3` `4`, 分别对应严重、高危、中危、低危
+- `exploit_level_id` 可选值 `0`:不可利用 `1`:可利用
