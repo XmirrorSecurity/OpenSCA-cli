@@ -20,7 +20,7 @@ type DsdxDocument struct {
 	// dsdx文档标识 自动生成 DSDX-${Name}-${Version}-${CreateTime}
 	DSDXID string `json:"dsdx_id" xml:"dsdx_id"`
 	// 项目名称
-	ProjectName string `json:"project_naem" xml:"project_naem"`
+	ProjectName string `json:"project_name" xml:"project_name"`
 	// 组件列表
 	Components []DsdxComponent `json:"components" xml:"components"`
 	// 依赖关系
