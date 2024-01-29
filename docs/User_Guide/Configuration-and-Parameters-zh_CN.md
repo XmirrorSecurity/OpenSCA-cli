@@ -1,5 +1,10 @@
 [返回目录](/docs/README-zh-CN.md) | [English](./Configuration-and-Parameters.md)
 
+- [命令行参数](#命令行参数)
+- [配置文件说明](#配置文件说明)
+- [漏洞数据库字段说明](#漏洞数据库字段说明)
+
+
 # 命令行参数
 
 | 参数      | 描述                                         | 使用示例                 |
@@ -53,3 +58,25 @@
   - `sqlite`: `Object` SQLite 数据库漏洞数据源配置
     - `dsn`: `String` 数据库连接字符串
     - `table`: `String` 数据表名
+
+# 漏洞数据库字段说明
+
+| 字段                | 描述                                                  | 是否必填 |
+| :------------------ | :---------------------------------------------------- | :------- |
+| `vendor`            | 组件厂商                                              | 否       |
+| `product`           | 组件名                                                | 是       |
+| `version`           | 漏洞影响版本                                          | 是       |
+| `language`          | 组件语言(java/javascript/golang/rust/php/ruby/python) | 是       |
+| `name`              | 漏洞名                                                | 否       |
+| `id`                | 自定义编号                                            | 是       |
+| `cve_id`            | cve 编号                                              | 否       |
+| `cnnvd_id`          | cnnvd 编号                                            | 否       |
+| `cnvd_id`           | cnvd 编号                                             | 否       |
+| `cwe_id`            | cwe 编号                                              | 否       |
+| `description`       | 漏洞描述                                              | 否       |
+| `description_en`    | 漏洞英文描述                                          | 否       |
+| `suggestion`        | 漏洞修复建议                                          | 否       |
+| `attack_type`       | 攻击方式                                              | 否       |
+| `release_date`      | 漏洞发布日期                                          | 否       |
+| `security_level_id` | 漏洞风险评级(1~4 风险程度递减)                        | 否       |
+| `exploit_level_id`  | 漏洞利用评级(0:不可利用,1:可利用)                     | 否       |
