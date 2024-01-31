@@ -31,8 +31,8 @@ class OpenscaGitlabScanner:
             return
         # TODO download repo to dir
 
-    def scan(self, path: str, out: str):
-        os.system(f"{self.cli} -path {path} -out {out}")
+    def scan(self, path: str, out: str, log: str = "opensca.log"):
+        os.system(f"{self.cli} -path {path} -out {out} -log {log}")
 
 
 if __name__ == "__main__":
@@ -49,14 +49,15 @@ if __name__ == "__main__":
         for branch in branches:
             pid = str(repo.get_id())
             bid = str(branch.get_id())
-            repo_dir = os.path.join(download_dir, pid, bid)
-            report_dir = os.path.join(repo_dir, pid)
-            report_files = [os.path.join(report_dir, bid + ext) for ext in report_ext]
-            os.makedirs(repo_dir)
-            os.makedirs(report_dir)
+            project_dir = os.path.join(download_dir, pid, bid)
+            output_dir = os.path.join(report_dir, pid)
+            output_files = [os.path.join(output_dir, bid + ext) for ext in report_ext]
+            output_log = os.path.join(output_dir, bid + ".opensca.log")
+            os.makedirs(project_dir)
+            os.makedirs(output_dir)
             # download repo branch
-            s.download(repo, branch, repo_dir)
+            s.download(repo, branch, project_dir)
             # scan repo
-            s.scan(repo_dir, ",".join(report_files))
-            # delete download_dir
-            shutil.rmtree(repo_dir)
+            s.scan(project_dir, ",".join(output_files), output_log)
+            # delete download data
+            shutil.rmtree(project_dir)
