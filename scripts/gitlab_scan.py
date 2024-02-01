@@ -26,10 +26,21 @@ class OpenscaGitlabScanner:
         return projects
 
     def download(self, project: Project, branch: ProjectBranch, dir: str):
-        ref = branch.get_id()
-        if ref is None:
-            return
-        # TODO download repo to dir
+        ref = str(branch.get_id())
+        files = project.repository_tree(path="/", ref=ref)
+        for file in files:
+            if file["type"] != "blob":
+                continue
+            filepath = file["path"]
+            wfilepath = os.path.join(dir, filepath)
+            os.makedirs(os.path.dirname(wfilepath))
+            with open(wfilepath, "wb") as wf:
+                project.files.raw(
+                    file_path=filepath,
+                    ref=ref,
+                    streamed=True,
+                    action=wf.write,
+                )
 
     def scan(self, path: str, out: str, log: str = "opensca.log"):
         os.system(f"{self.cli} -path {path} -out {out} -log {log}")
