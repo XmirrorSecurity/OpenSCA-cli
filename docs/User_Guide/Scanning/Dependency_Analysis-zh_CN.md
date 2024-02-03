@@ -88,3 +88,40 @@ opensca-cli -path ~/workspace/myproject/package.json -out ~/workspace/myproject/
 <table>
 <tr>
 <th align="center">分析 ftp 目录</th>
+<th align="center">分析 ftp 特征文件</th>
+<th align="center">分析 http(s) 目录</th>
+<th align="center">分析 http(s) 特征文件</th>
+</tr>
+<tr>
+<td>
+
+```shell
+opensca-cli -path ftp://example.com/project
+```
+
+</td>
+<td>
+
+```shell
+opensca-cli -path ftp://example.com/project/package.json
+```
+
+</td>
+<td>
+
+```shell
+opensca-cli -path https://example.com/project
+```
+
+</td>
+<td>
+
+```shell
+opensca-cli -path https://example.com/project/package.json
+```
+
+</td>
+</tr>
+</table>
+
+
