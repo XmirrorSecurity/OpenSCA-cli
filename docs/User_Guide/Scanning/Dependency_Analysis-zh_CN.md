@@ -12,34 +12,79 @@ OpenSCA 通过扫描项目依赖特征文件(动态 + 静态)，生成项目依�
 
 ## 分析本地项目目录
 
-**基本命令**
+### 基本命令
 
  ```shell
  opensca-cli -path {项目路径}
  ```
 
-**示例**
+### 示例
 
 <table>
 <tr>
-<th align="center">分析 `~/workspace/myproject`</th>
-<th align="center">分析 `~/workspace/myproject` 并生成报告</th>
+<th align="center">分析 `~/workspace/myproject` 目录</th>
+<th align="center">分析 `~/workspace/myproject` 目录并生成报告</th>
 </tr>
 <tr>
 <td>
+
 ```shell
 opensca-cli -path ~/workspace/myproject
 ```
 </td>
 <td>
+
 ```shell
 opensca-cli -path ~/workspace/myproject -out ~/workspace/myproject/report.html
 ```
+
 </td>
 </tr>
 </table>
 
- **分析依赖特征文件**
+ ## 分析依赖特征文件
+
+### 基本命令
 
  ```shell
- opensca-cli -path
+ opensca-cli -path {依赖特征文件路径}
+ ```
+
+### 示例
+
+<table>
+<tr>
+<th align="center">分析 `~/workspace/myproject/package.json` 文件</th>
+<th align="center">分析 `~/workspace/myproject/package.json` 文件并生成报告</th>
+</tr>
+<tr>
+<td>
+
+```shell
+opensca-cli -path ~/workspace/myproject/package.json
+```
+
+</td>
+<td>
+
+```shell
+opensca-cli -path ~/workspace/myproject/package.json -out ~/workspace/myproject/report.html
+```
+
+</td>
+</tr>
+</table>
+
+## 分析远程项目
+
+### 基本命令
+
+ ```shell
+ opensca-cli -path {项目地址}
+ ```
+
+### 示例
+
+<table>
+<tr>
+<th align="center">分析 ftp 目录</th>
