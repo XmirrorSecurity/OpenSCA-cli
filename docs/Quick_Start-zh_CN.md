@@ -26,11 +26,24 @@ date: 2023-11-30T11:01:15+08:00
     # 如果在下载中遇到网络问题，可尝试使用以下命令
     curl -sSL https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.sh | sh -s -- gitee
     ```
+  - Windows 用户可通过以下命令下载并安装(Powershell)
+    ```powershell
+    iex "&{$(irm https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.ps1)}"
+
+    # 如果在下载中遇到网络问题，可尝试使用以下命令
+    iex "&{$(irm https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.ps1)} gitee"
+    ```
+
 - 方式二：通过包管理器安装
 
-  - Windows 用户可通过 [Winget](https://github.com/microsoft/winget-cli) 安装
+  - Windows [Winget](https://github.com/microsoft/winget-cli) 安装
     ```shell
     winget install opensca-cli
+    ```
+  - Windows [Scoop](https://scoop.sh/) 安装
+    ```shell
+    scoop bucket add extras
+    scoop install extras/opensca-cli
     ```
   - Mac/Linux 用户可通过 [Homebrew](https://brew.sh/) 安装
     ```shell

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -148,7 +149,7 @@ func initHttpClient() {
 		c.Transport.(*http.Transport).TLSClientConfig.InsecureSkipVerify = !config.Conf().Optional.TLSVerify
 	}
 	common.SetHttpDownloadClient(tlsConfig)
-	common.SetSaasClient(tlsConfig)
+	common.SetHttpSaasClient(tlsConfig)
 
 	// proxy
 	if config.Conf().Optional.Proxy != "" {
@@ -158,7 +159,7 @@ func initHttpClient() {
 				c.Transport.(*http.Transport).Proxy = http.ProxyURL(proxy)
 			}
 			common.SetHttpDownloadClient(proxyConfig)
-			common.SetSaasClient(proxyConfig)
+			common.SetHttpSaasClient(proxyConfig)
 			logs.Infof("use proxy %s", proxyUrl)
 		} else {
 			logs.Warnf("parse proxy %s error: %s", proxyUrl, err)
@@ -204,9 +205,12 @@ func taskReport(r opensca.TaskResult) format.Report {
 	path := config.Conf().Path
 	optional := config.Conf().Optional
 
+	absPath, _ := filepath.Abs(path)
+	appName := filepath.Base(absPath)
+
 	report := format.Report{}
 	report.TaskInfo.ToolVersion = version
-	report.TaskInfo.AppName = path
+	report.TaskInfo.AppName = appName
 	report.TaskInfo.Size = r.Size
 
 	if r.Error != nil {

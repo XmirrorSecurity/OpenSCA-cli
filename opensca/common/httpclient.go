@@ -36,8 +36,8 @@ var HttpSaasClient = &http.Client{
 	},
 }
 
-func SetSaasClient(do func(c *http.Client)) {
+func SetHttpSaasClient(do func(c *http.Client)) {
 	if do != nil {
-		do(HttpDownloadClient)
+		do(HttpSaasClient)
 	}
 }
