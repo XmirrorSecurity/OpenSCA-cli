@@ -21,22 +21,22 @@ OpenSCA 通过扫描项目依赖特征文件(动态 + 静态)，生成项目依�
 **示例**
 
 <table>
-    <tr>
-        <th align="center">分析 `~/workspace/myproject`</th>
-        <th align="center">分析 `~/workspace/myproject` 并生成报告</th>
-    </tr>
-    <tr>
-        <td>
-        ```shell
-        opensca-cli -path ~/workspace/myproject
-        ```
-        </td>
-        <td>
-        ```shell
-        opensca-cli -path ~/workspace/myproject -out ~/workspace/myproject/report.html
-        ```
-        </td>
-    </tr>
+<tr>
+<th align="center">分析 `~/workspace/myproject`</th>
+<th align="center">分析 `~/workspace/myproject` 并生成报告</th>
+</tr>
+<tr>
+<td>
+```shell
+opensca-cli -path ~/workspace/myproject
+```
+</td>
+<td>
+```shell
+opensca-cli -path ~/workspace/myproject -out ~/workspace/myproject/report.html
+```
+</td>
+</tr>
 </table>
 
  **分析依赖特征文件**
