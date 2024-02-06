@@ -213,6 +213,23 @@ docker run -ti --rm -v ${PWD}:/src opensca/opensca-cli -token ${put_your_token_h
 
 本地漏洞库中`language`字段设定值包含`java、javascript、golang、rust、php、ruby、python`
 
+`version`范围描述：
+
+| 符号          | 描述(`x`为检出的组件版本)        |
+| ------------- | -------------------------------- |
+| `[a,b]`       | `a<=x<=b`                        |
+| `(a,b)`       | `a<x<b`                          |
+| `[a,b)`       | `a<=x<b`                         |
+| `(a,b]`       | `a<x<=b`                         |
+| `(0,b)`       | `x<b`                            |
+| `(a,)`        | `x>a`                            |
+| `{a,b,c,...}` | `x=a` 或 `x=b` 或 `x=c` 或 `...` |
+
+同时位于多个范围需要用`||`连接，例如：
+`[a,b)||(b,c]`代表`a<=x<b`或`b<x<=c`，即`a<=x<=c`且`x!=b`
+也可以区间和集合混用：
+`(0,b)||{c,d}||[e,)`代表`x<b`或`x=c`或`x=d`或`x>=e`
+
 ### 漏洞库配置示例
 
 ```json
