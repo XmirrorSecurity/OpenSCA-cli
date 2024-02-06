@@ -28,7 +28,7 @@ class OpenscaGitlabScanner:
 
     def download(self, project: Project, branch: ProjectBranch, dir: str):
         ref = str(branch.get_id())
-        files = project.repository_tree(path="/", ref=ref)
+        files = project.repository_tree(path="/", ref=ref, all=True)
         for file in files:
             if file["type"] != "blob":
                 continue
