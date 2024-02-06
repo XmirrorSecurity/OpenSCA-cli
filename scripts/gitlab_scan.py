@@ -121,7 +121,7 @@ def scan_gitlab(
     gitlab_args: gitlab client args
     """
 
-    # config gitlab auth
+    # config gitlab
     gl = gitlab.Gitlab(
         url=gitlab_url,
         private_token=gitlab_token,
@@ -132,25 +132,27 @@ def scan_gitlab(
     # foreach repo
     s = OpenscaGitlabScanner(cli, gl)
     for repo, branches in s.projects().items():
+        pid = str(repo.get_id())
+        repo_dir = os.path.join(download_dir, pid)
+        output_dir = os.path.join(report_dir, pid)
+        mkdirs(output_dir)
         # foreach repo branch
         for branch in branches:
-            pid = str(repo.get_id())
             bid = str(branch.get_id())
-            repo_dir = os.path.join(download_dir, pid)
             branch_dir = os.path.join(repo_dir, bid)
-            output_dir = os.path.join(report_dir, pid)
             output_files = [os.path.join(output_dir, bid + ext) for ext in report_ext]
             output_log = os.path.join(output_dir, bid + ".opensca.log")
             mkdirs(branch_dir)
-            mkdirs(output_dir)
             # download repo branch
             print(f"download repo:{pid} branch:{bid}")
             s.download(repo, branch, branch_dir)
             # scan repo branch
             print(f"scan repo:{pid} branch:{bid}")
             s.scan(branch_dir, ",".join(output_files), output_log)
-            # delete download repo
-            shutil.rmtree(repo_dir)
+            # delete download branch
+            shutil.rmtree(branch_dir)
+        # delete download repo
+        shutil.rmtree(repo_dir)
 
 
 if __name__ == "__main__":
