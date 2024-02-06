@@ -48,7 +48,48 @@ class OpenscaGitlabScanner:
 
     @staticmethod
     def support_file(filename: str) -> bool:
-        if filename.endswith("pom.xml"):
+        exts = [
+            # java
+            "pom.xml",
+            ".pom",
+            # javascript
+            "package-lock.json",
+            "package.json",
+            "yarn.lock",
+            # php
+            "composer.json",
+            "composer.lock",
+            # ruby
+            "Gemfile.lock",
+            # golang
+            "go.mod",
+            "go.sum",
+            "go.work.sum",
+            "Gopkg.toml",
+            "Gopkg.lock",
+            # rust
+            "Cargo.lock",
+            # erlang
+            "rebar.lock",
+            # groovy
+            ".groovy",
+            ".gradle",
+            ".gradle.kts",
+            # python
+            "setup.py",
+            "Pipfile",
+            "Pipfile.lock",
+            "requirements.in",
+        ]
+        for ext in exts:
+            if filename.endswith(ext):
+                return True
+        # python requirements
+        if (
+            filename.endswith(".txt")
+            and "requirements" in filename
+            and "test" not in filename
+        ):
             return True
         return False
 
