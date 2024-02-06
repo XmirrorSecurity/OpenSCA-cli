@@ -10,7 +10,7 @@
   iex "&{$(irm https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.ps1)} gitee"
   ```
 - Linux/MacOS
-  ```bash
+  ```shell
   curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
 
   # 如果在下载中遇到网络问题，可尝试使用以下命令
@@ -20,8 +20,6 @@
 # 使用包管理器安装
 
 - Windows 通过 [Winget](https://github.com/microsoft/winget-cli) 安装
-
-  
   ```shell
   winget install opensca-cli
   ```
