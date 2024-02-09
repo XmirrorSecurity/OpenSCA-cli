@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 )
@@ -37,7 +38,7 @@ func Save(report Report, output string) {
 		logs.Infof("result save to %s", out)
 		switch filepath.Ext(out) {
 		case ".html":
-			Html(report, out)
+			Html(genReport(report), out)
 		case ".json":
 			if strings.HasSuffix(out, ".spdx.json") {
 				SpdxJson(report, out)
@@ -48,7 +49,7 @@ func Save(report Report, output string) {
 			} else if strings.HasSuffix(out, ".swid.json") {
 				SwidJson(report, out)
 			} else {
-				Json(report, out)
+				Json(genReport(report), out)
 			}
 		case ".dsdx":
 			Dsdx(report, out)
@@ -73,9 +74,28 @@ func Save(report Report, output string) {
 		case ".sarif":
 			Sarif(report, out)
 		default:
-			Json(report, out)
+			Json(genReport(report), out)
 		}
 	}
+}
+
+func genReport(report Report) Report {
+	optional := config.Conf().Optional
+	var newReport = report
+	if optional.VulnOnly {
+		var deps []*detail.DepDetailGraph
+		report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
+			if len(n.Vulnerabilities) > 0 {
+				deps = append(deps, n)
+			}
+			return true
+		})
+		for _, d := range deps {
+			d.Children = nil
+		}
+		newReport.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
+	}
+	return newReport
 }
 
 func outWrite(out string, do func(io.Writer) error) {
