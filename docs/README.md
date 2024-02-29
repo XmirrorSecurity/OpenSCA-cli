@@ -8,7 +8,7 @@
   - [Installation](./User_Guide/Installation.md)
   - [Scanning](./User_Guide/Scanning/)
     - [Dependency Analysis](./User_Guide/Scanning/Dependency_Analysis.md)
-    - [Connecting to Vulnerability Databases](./User_Guide/Scanning/Connectiong_to_Vulnerability_Databases.md)
+    - [Connecting to Vulnerability Databases](./User_Guide/Scanning/Vulnerability_Analysis.md)
   - [Viewing Results](./User_Guide/Viewing_Results.md)
   - [Generating Reports](./User_Guide/Generating_Reports/)
     - [Software Bill of Materials (SBOM)](./User_Guide/Generating_Reports/SBOM.md)
