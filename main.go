@@ -208,6 +208,8 @@ func taskReport(r opensca.TaskResult) format.Report {
 	absPath, _ := filepath.Abs(path)
 	appName := filepath.Base(absPath)
 
+	logs.Info("prepare report")
+
 	report := format.Report{}
 	report.TaskInfo.ToolVersion = version
 	report.TaskInfo.AppName = appName
@@ -230,11 +232,13 @@ func taskReport(r opensca.TaskResult) format.Report {
 
 	// 组件去重
 	if optional.Dedup {
+		logs.Info("remove dup component")
 		report.RemoveDedup()
 	}
 
 	// 去掉dev组件
 	if !optional.SaveDev {
+		logs.Info("remove dev component")
 		report.RemoveDev()
 	}
 
@@ -250,6 +254,7 @@ func taskReport(r opensca.TaskResult) format.Report {
 
 	// 仅保留漏洞组件
 	/*if optional.VulnOnly {
+		logs.Info("remove no-vuln component")
 		var deps []*detail.DepDetailGraph
 		report.ForEach(func(n *detail.DepDetailGraph) bool {
 			if len(n.Vulnerabilities) > 0 {

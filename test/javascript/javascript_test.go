@@ -9,16 +9,19 @@ import (
 
 func Test_JavaScript(t *testing.T) {
 
+	ansi := tool.Dep("strip-ansi", "6.0.1",
+		tool.Dep("ansi-regex", "5.0.1"),
+	)
+
 	std := tool.Dep("", "",
 		tool.Dep("js-test", "1.0.1",
 			tool.Dep("cliui", "6.0.0",
 				tool.Dep("string-width", "4.2.3",
 					tool.Dep("emoji-regex", "8.0.0"),
 					tool.Dep("is-fullwidth-code-point", "3.0.0"),
+					ansi,
 				),
-				tool.Dep("strip-ansi", "6.0.1",
-					tool.Dep("ansi-regex", "5.0.1"),
-				),
+				ansi,
 				tool.Dep("wrap-ansi", "6.2.0",
 					tool.Dep("ansi-styles", "4.3.0",
 						tool.Dep("color-convert", "2.0.1",
