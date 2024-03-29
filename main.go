@@ -126,7 +126,7 @@ func args() {
 
 	logs.CreateLog(config.Conf().LogFile)
 
-	logs.Infof("opensca-cli version: %s", version)
+	logs.Infof("nsca-xcheck-cli version: %s", version)
 	logs.Infof("use config: %s", cfgf)
 
 	if login {
@@ -253,7 +253,7 @@ func taskReport(r opensca.TaskResult) format.Report {
 	}
 
 	// 仅保留漏洞组件
-	if optional.VulnOnly {
+	/*if optional.VulnOnly {
 		logs.Info("remove no-vuln component")
 		var deps []*detail.DepDetailGraph
 		report.ForEach(func(n *detail.DepDetailGraph) bool {
@@ -266,7 +266,7 @@ func taskReport(r opensca.TaskResult) format.Report {
 			d.Children = nil
 		}
 		report.DepDetailGraph = &detail.DepDetailGraph{Children: deps}
-	}
+	}*/
 
 	end := time.Now()
 	report.TaskInfo.StartTime = r.Start.Format("2006-01-02 15:04:05")
