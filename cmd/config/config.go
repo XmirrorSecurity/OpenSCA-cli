@@ -70,7 +70,7 @@ func WriteConfig(write func(config *Config)) {
 // loadDefaultConfig 加载默认配置 返回使用的配置文件
 func loadDefaultConfig() string {
 
-	defaultConfigPaths := []string{}
+	var defaultConfigPaths []string
 
 	// 读取工作目录的 config.json
 	if p, err := os.Getwd(); err == nil {
@@ -78,8 +78,8 @@ func loadDefaultConfig() string {
 	}
 
 	// 读取用户目录下的 opensca_config.json
-	if user, err := user.Current(); err == nil {
-		defaultConfigPaths = append(defaultConfigPaths, filepath.Join(user.HomeDir, "opensca_config.json"))
+	if currenUser, err := user.Current(); err == nil {
+		defaultConfigPaths = append(defaultConfigPaths, filepath.Join(currenUser.HomeDir, "opensca_config.json"))
 	}
 
 	// 读取 opensca-cli 所在目录下的 config.json
@@ -132,7 +132,10 @@ func RegisterDefaultConfig(data []byte) {
 	defalutConfigJson = data
 	if _config == nil {
 		_config = &Config{}
-		json5.Unmarshal(defalutConfigJson, &_config)
+		err := json5.Unmarshal(defalutConfigJson, &_config)
+		if err != nil {
+			logs.Warnf("unmarshal default config error: %v", err)
+		}
 	}
 }
 
