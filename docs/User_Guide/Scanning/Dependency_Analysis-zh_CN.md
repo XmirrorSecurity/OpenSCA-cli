@@ -17,7 +17,7 @@ OpenSCA 通过扫描项目依赖特征文件(动态或静态解析)，生成项�
 ### 基本命令
 
  ```shell
- opensca-cli -path {项目路径}
+ opensca-cli -path {报告名称}.cdx.json -out {报告名称}.dsdx,{报告名称}.spdx
  ```
 
 ### 示例
