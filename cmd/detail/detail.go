@@ -228,8 +228,10 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 	c := config.Conf().Origin
 	if c.Url != "" && c.Token != "" {
 		// vulnerability
+		logs.Info("get server vuln")
 		serverVulns, err = GetServerVuln(ds)
 		// license
+		logs.Info("get server license")
 		serverLicenses, _ := GetServerLicense(ds)
 		for i, lics := range serverLicenses {
 			if len(lics) > 0 {
@@ -268,6 +270,7 @@ func SearchDetail(detailRoot *DepDetailGraph) (err error) {
 	}
 
 	// 统计关联/间接漏洞
+	logs.Info("calculate indirect vuln")
 	var deps []*DepDetailGraph
 	detailRoot.ForEach(func(n *DepDetailGraph) bool {
 		deps = append(deps, n)
