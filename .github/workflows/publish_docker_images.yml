@@ -15,9 +15,109 @@ on:
         default: "info"
 
 jobs:
-  publish-images:
+  image-matrix:
     name: Publish Images
     runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          include:
+            # Baseimage
+            - base: scratch
+            # Maven: only support lts versions
+            - base: maven:latest
+              tag: -maven
+            - base: maven:3-eclipse-temurin-8
+              tag: -maven3-jdk8
+            - base: maven:3-eclipse-temurin-11
+              tag: -maven3-jdk11
+            - base: maven:3-eclipse-temurin-17
+              tag: -maven3-jdk17
+            - base: maven:3-eclipse-temurin-21
+              tag: -maven3-jdk21
+            # Gradle: only support lts versions
+            - base: gradle:latest
+              tag: -gradle
+            - base: gradle:jdk8
+              tag: -gradle-jdk8
+            - base: gradle:jdk11
+              tag: -gradle-jdk11
+            - base: gradle:jdk17
+              tag: -gradle-jdk17
+            - base: gradle:jdk21
+              tag: -gradle-jdk21
+            # Npm: only support lts versions
+            - base: node:latest
+              tag: -node
+            - base: node:14
+              tag: -node14
+            - base: node:16
+              tag: -node16
+            - base: node:18
+              tag: -node18
+            - base: node:20
+              tag: -node20
+            # php
+            - base: composer:latest
+              tag: -php
+            # Ruby
+            - base: ruby:latest
+              tag: -ruby
+            - base: ruby:3.3
+              tag: -ruby3.3
+            - base: ruby:3.2
+              tag: -ruby3.2
+            - base: ruby:3.1
+              tag: -ruby3.1
+            - base: ruby:3.0
+              tag: -ruby3.0
+            - base: ruby:2.7
+              tag: -ruby2.7
+            # Go
+            - base: golang:latest
+              tag: -go
+            - base: golang:1.12
+              tag: -go1.12
+            - base: golang:1.13
+              tag: -go1.13
+            - base: golang:1.14
+              tag: -go1.14
+            - base: golang:1.15
+              tag: -go1.15
+            - base: golang:1.16
+              tag: -go1.16
+            - base: golang:1.17
+              tag: -go1.17
+            - base: golang:1.18
+              tag: -go1.18
+            - base: golang:1.19
+              tag: -go1.19
+            - base: golang:1.20
+              tag: -go1.20
+            - base: golang:1.21
+              tag: -go1.21
+            - base: golang:1.22
+              tag: -go1.22
+            # Python: only support lts versions
+            - base: python:latest
+              tag: -python
+            - base: python:3.12
+              tag: -python3.12
+            - base: python:3.11
+              tag: -python3.11
+            - base: python:3.10
+              tag: -python3.10
+            - base: python:3.9
+              tag: -python3.9
+            - base: python:3.8
+              tag: -python3.8
+            - base: python:2.7
+              tag: -python2.7
+            # Rust
+            - base: rust:latest
+              tag: -rust
+            # Erlang
+            - base: erlang:latest
+              tag: -erlang
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,6 +150,8 @@ jobs:
           push: true
           build-args: |
             VERSION=${{ env.VERSION }}
+            TAG=${{ matrix.tag }}
+            BASEIMAGE=${{ matrix.base }}
           tags: |
             ${{ env.docker_hub_tag }}:latest
             ${{ env.docker_hub_tag }}:${{ env.VERSION }}
