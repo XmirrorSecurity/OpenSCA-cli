@@ -126,7 +126,7 @@ func args() {
 
 	logs.CreateLog(config.Conf().LogFile)
 
-	logs.Infof("nsca-xcheck-cli version: %s", version)
+	logs.Infof("opensca-cli version: %s", version)
 	logs.Infof("use config: %s", cfgf)
 
 	if login {
