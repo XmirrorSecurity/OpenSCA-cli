@@ -304,4 +304,4 @@ Mailbox: opensca@anpro-tech.com
 
 OpenSCA is an open source project, we appreciate your contribution!
 
-To contribute, please read our [Contributing Guideline](../docs/Contributing%20Guideline-en%20v1.0.md).
+To contribute, please read our [Contributing Guideline](../docs/Contributing_Guideline-v1.0.md).
