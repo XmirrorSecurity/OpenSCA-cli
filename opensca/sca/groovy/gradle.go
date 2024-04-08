@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -123,10 +124,11 @@ func GradleTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 	}
 
 	// 复制 opensca.gradle
-	if err := os.WriteFile("opensca.gradle", openscaGradle, 0777); err != nil {
+	path := filepath.Join(dir.Abspath(), "opensca.gradle")
+	if err := os.WriteFile(path, openscaGradle, 0777); err != nil {
 		logs.Warn(err)
 	}
-	defer os.Remove("opensca.gradle")
+	defer os.Remove(path)
 
 	cmd := exec.CommandContext(ctx, "gradle", "--I", "opensca.gradle", "opensca")
 	cmd.Dir = dir.Abspath()
@@ -168,7 +170,9 @@ func GradleTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 				if dep == nil {
 					continue
 				}
-				dep.Expand = c
+				if dep.Expand != nil {
+					dep.Expand = c
+				}
 				n.AppendChild(dep)
 			}
 			return true
