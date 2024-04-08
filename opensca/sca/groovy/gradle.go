@@ -170,7 +170,9 @@ func GradleTree(ctx context.Context, dir *model.File) []*model.DepGraph {
 				if dep == nil {
 					continue
 				}
-				dep.Expand = c
+				if dep.Expand == nil {
+					dep.Expand = c
+				}
 				n.AppendChild(dep)
 			}
 			return true
