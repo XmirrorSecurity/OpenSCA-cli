@@ -30,6 +30,17 @@ var version string
 
 func main() {
 
+	logo := `
+   ___                   ____   ____    _    
+  / _ \ _ __   ___ _ __ / ___| / ___|  / \   
+ | | | | '_ \ / _ \ '_ \\___ \| |     / _ \  
+ | |_| | |_) |  __/ | | |___) | |___ / ___ \ 
+  \___/| .__/ \___|_| |_|____/ \____/_/   \_\
+       |_|`
+
+	fmt.Println(logo)
+	fmt.Println("Current version: ", version)
+
 	// 处理参数
 	args()
 
