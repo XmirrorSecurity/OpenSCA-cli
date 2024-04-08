@@ -4,8 +4,12 @@ ARG BASEIMAGE
 
 FROM golang:latest AS builder
 
+ARG VERSION
+ARG TAG
+
 COPY ./ /app
 WORKDIR /app
+
 RUN CGO_ENABLED=0 GOOS=linux \
     go build -ldflags "-s -w -X 'main.version=${VERSION}-${TAG}' " \
     -o /app/opensca-cli main.go
