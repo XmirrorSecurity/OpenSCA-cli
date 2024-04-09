@@ -27,10 +27,7 @@ import (
 )
 
 var version string
-
-func main() {
-
-	logo := `
+var logo = `
    ___                   ____   ____    _    
   / _ \ _ __   ___ _ __ / ___| / ___|  / \   
  | | | | '_ \ / _ \ '_ \\___ \| |     / _ \  
@@ -38,8 +35,10 @@ func main() {
   \___/| .__/ \___|_| |_|____/ \____/_/   \_\
        |_|`
 
+func main() {
+
 	fmt.Println(logo)
-	fmt.Println("Current version: ", version)
+	fmt.Println("Current version:", version)
 
 	// 处理参数
 	args()
@@ -123,7 +122,8 @@ func args() {
 	flag.Parse()
 
 	if v {
-		fmt.Println(version)
+		fmt.Println(logo)
+		fmt.Println("Current version: ", version)
 		os.Exit(0)
 	}
 
