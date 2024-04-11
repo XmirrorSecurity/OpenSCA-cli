@@ -80,6 +80,7 @@ var (
 	CompressFile = filterFunc(strings.HasSuffix,
 		".zip",
 		".jar",
+		".war",
 		".rar",
 		".tar",
 		".gz",
