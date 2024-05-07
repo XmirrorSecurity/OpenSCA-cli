@@ -161,6 +161,19 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// 直接依赖继承parent
+	{Path: "15", Result: tool.Dep("", "",
+		tool.Dep3("my.foo", "demo", "1.0",
+			tool.Dep3("com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.17.0",
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-annotations", "2.17.0"),
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-core", "2.17.0"),
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-databind", "2.17.0",
+					tool.Dep3("net.bytebuddy", "byte-buddy", "1.14.9"),
+				),
+			),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {

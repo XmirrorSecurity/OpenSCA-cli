@@ -183,7 +183,7 @@ func inheritModules(poms []*Pom) {
 type getPomFunc func(dep PomDependency, repos ...[]string) *Pom
 
 // inheritPom 继承pom所需内容
-func inheritPom(pom *Pom, inheritDependencies bool, getpom getPomFunc) {
+func inheritPom(pom *Pom, getpom getPomFunc) {
 
 	// 记录统计过的parent 避免pom循环引用
 	parentSet := map[string]bool{}
@@ -218,9 +218,7 @@ func inheritPom(pom *Pom, inheritDependencies bool, getpom getPomFunc) {
 		pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
 
 		// 继承dependencies
-		if inheritDependencies {
-			pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
-		}
+		pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
 
 		// 继承repo&mirror
 		pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
@@ -294,7 +292,7 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 	pom.Update(&pom.PomDependency)
 
 	// 继承pom
-	inheritPom(pom, true, getpom)
+	inheritPom(pom, getpom)
 
 	// 记录在根pom的dependencyManagement中非import组件信息
 	rootPomManagement := map[string]*PomDependency{}
@@ -406,8 +404,8 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 				subpom.PomDependency = *dep
 				// 继承根pom的exclusion
 				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-				// 子依赖不继承parent的依赖项
-				inheritPom(subpom, false, getpom)
+				// 依赖继承parent
+				inheritPom(subpom, getpom)
 				sub.Expand = subpom
 			}
 
