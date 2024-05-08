@@ -174,6 +174,18 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// 依赖的pom中DependencyManagement管理范围
+	{Path: "16", Result: tool.Dep("", "",
+		tool.Dep3("org.example", "demo", "1.0",
+			tool.Dep3("com.aliyun", "alibabacloud-dkms-gcs-sdk", "0.5.2",
+				tool.DevDep3("com.aliyun", "tea", "1.2.3"),
+				tool.Dep3("com.aliyun", "tea-util", "0.2.18",
+					tool.Dep3("com.google.code.gson", "gson", "2.8.9"),
+				),
+			),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
