@@ -357,23 +357,26 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 
 			np.Update(dep)
 
-			// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
-			if np != pom {
-				if d, ok := depManagement[dep.Index2()]; ok {
-					exclusion := append(dep.Exclusions, d.Exclusions...)
+			// 使用当前pom的dependencyManagement补全
+			if d, ok := depManagement[dep.Index2()]; ok {
+				exclusion := append(dep.Exclusions, d.Exclusions...)
+				if dep.Version == "" {
 					dep = d
-					dep.Exclusions = exclusion
-					np.Update(dep)
 				}
+				dep.Exclusions = exclusion
+				np.Update(dep)
 			}
 
 			// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
 			if np != pom || dep.Version == "" {
 				d, ok := rootPomManagement[dep.Index2()]
 				if ok {
-					// exclusion 需要保留
 					exclusion := append(dep.Exclusions, d.Exclusions...)
+					originVersion := dep.Version
 					dep = d
+					if dep.Version == "" {
+						dep.Version = originVersion
+					}
 					dep.Exclusions = exclusion
 					pom.Update(dep)
 				}
