@@ -186,6 +186,14 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// TODO 未解决: import和parent继承优先级
+	{Path: "17", Result: tool.Dep("", "",
+		tool.Dep3("foo", "demo", "1.0",
+			tool.Dep3("org.apache.logging.log4j", "log4j-api", "2.17.2"),
+			tool.Dep3("org.apache.logging.log4j", "log4j-core", "2.17.2"),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
