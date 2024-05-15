@@ -269,6 +269,9 @@ func inheritPom(pom *Pom, getpom getPomFunc) {
 		}
 		ipom.PomDependency = *dep
 
+		// import引入的pom需要继承parent
+		inheritPom(ipom, getpom)
+
 		// 复制dependencyManagement内容
 		for _, idep := range ipom.DependencyManagement {
 			if depIndex2Set[idep.Index2()] {
