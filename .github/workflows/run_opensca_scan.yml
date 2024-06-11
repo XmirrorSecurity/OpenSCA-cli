@@ -18,11 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Sparse checkout
-        run: |
-          git sparse-checkout set *
-          git sparse-checkout add '!test/'
+          sparse-checkout: |
+            cmd/
+            opensca/
+            go.mod
+            main.go
       - name: Run OpenSCA Scan
         uses: XmirrorSecurity/opensca-scan-action@v1
         with:
