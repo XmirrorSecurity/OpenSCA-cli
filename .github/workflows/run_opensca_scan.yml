@@ -17,8 +17,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          filter: 'test'
+        sparse-checkout: |
+          /*
+          !/test
       - name: Run OpenSCA Scan
         uses: XmirrorSecurity/opensca-scan-action@v1
         with:
