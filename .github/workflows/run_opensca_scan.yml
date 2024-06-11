@@ -27,6 +27,6 @@ jobs:
         uses: XmirrorSecurity/opensca-scan-action@v1
         with:
           token: ${{ secrets.OPENSCA_TOKEN }}
-          project: ${{ secrets.OPENSCA_PROJECT_ID }}
+          proj: ${{ secrets.OPENSCA_PROJECT_ID }}
           need-artifact: true
           out: "outputs/results.json,outputs/result.html"
