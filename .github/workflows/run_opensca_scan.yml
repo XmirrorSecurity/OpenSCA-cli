@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - name: Sparse checkout
         run: |
-          git sparse-checkout set /*
+          git sparse-checkout set *
           git sparse-checkout add '!test/'
       - name: Run OpenSCA Scan
         uses: XmirrorSecurity/opensca-scan-action@v1
