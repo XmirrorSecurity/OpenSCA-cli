@@ -31,7 +31,7 @@ func ParseDsdxXml(f *model.File) *model.DepGraph {
 
 func parseDsdxDoc(f *model.File, doc *model.DsdxDocument) *model.DepGraph {
 
-	if doc == nil || doc.DSDXVersion == "" {
+	if doc == nil {
 		return nil
 	}
 
