@@ -186,12 +186,10 @@ def json2excel(input: str, output: str):
             vuls[vuln.id] = vuln
     writer = pd.ExcelWriter(output)
     # 保存组件
-    dep_df = pd.DataFrame([d.raw() for d in deps])
-    dep_df.columns = Dependency.col_name()
+    dep_df = pd.DataFrame([d.raw() for d in deps], columns=Dependency.col_name())
     dep_df.to_excel(writer, sheet_name="Dependencies", index=False)
     # 保存漏洞
-    vul_df = pd.DataFrame([v.raw() for v in vuls.values()])
-    vul_df.columns = Vulnerability.col_name()
+    vul_df = pd.DataFrame([v.raw() for v in vuls.values()], columns=Vulnerability.col_name())
     vul_df.to_excel(writer, sheet_name="Vulnerabilities", index=False)
     writer.close()
 
