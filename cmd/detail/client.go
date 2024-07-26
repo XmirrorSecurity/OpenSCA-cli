@@ -179,8 +179,10 @@ func getAesKey() (key []byte, err error) {
 	param.Set("clientId", GetClientId())
 	param.Set("ossToken", config.Conf().Origin.Token)
 	u.RawQuery = param.Encode()
-	// 发送请求
-	rep, err := http.Get(u.String())
+	// // 发送请求
+	// rep, err := common.HttpSaasClient.Get(u.String())
+	req, err := http.NewRequest("GET", u.String(), nil)
+	rep, err := common.HttpSaasClient.Do(req)
 	if err != nil {
 		logs.Error(err)
 		return

@@ -183,7 +183,7 @@ func inheritModules(poms []*Pom) {
 type getPomFunc func(dep PomDependency, repos ...[]string) *Pom
 
 // inheritPom 继承pom所需内容
-func inheritPom(pom *Pom, inheritDependencies bool, getpom getPomFunc) {
+func inheritPom(pom *Pom, getpom getPomFunc) {
 
 	// 记录统计过的parent 避免pom循环引用
 	parentSet := map[string]bool{}
@@ -218,9 +218,7 @@ func inheritPom(pom *Pom, inheritDependencies bool, getpom getPomFunc) {
 		pom.DependencyManagement = append(pom.DependencyManagement, parentPom.DependencyManagement...)
 
 		// 继承dependencies
-		if inheritDependencies {
-			pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
-		}
+		pom.Dependencies = append(pom.Dependencies, parentPom.Dependencies...)
 
 		// 继承repo&mirror
 		pom.Repositories = append(pom.Repositories, parentPom.Repositories...)
@@ -271,6 +269,9 @@ func inheritPom(pom *Pom, inheritDependencies bool, getpom getPomFunc) {
 		}
 		ipom.PomDependency = *dep
 
+		// import引入的pom需要继承parent
+		inheritPom(ipom, getpom)
+
 		// 复制dependencyManagement内容
 		for _, idep := range ipom.DependencyManagement {
 			if depIndex2Set[idep.Index2()] {
@@ -294,7 +295,7 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 	pom.Update(&pom.PomDependency)
 
 	// 继承pom
-	inheritPom(pom, true, getpom)
+	inheritPom(pom, getpom)
 
 	// 记录在根pom的dependencyManagement中非import组件信息
 	rootPomManagement := map[string]*PomDependency{}
@@ -359,23 +360,26 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 
 			np.Update(dep)
 
-			// 非根pom直接引入的依赖使用当前pom的dependencyManagement补全
-			if np != pom {
-				if d, ok := depManagement[dep.Index2()]; ok {
-					exclusion := append(dep.Exclusions, d.Exclusions...)
+			// 使用当前pom的dependencyManagement补全
+			if d, ok := depManagement[dep.Index2()]; ok {
+				exclusion := append(dep.Exclusions, d.Exclusions...)
+				if dep.Version == "" {
 					dep = d
-					dep.Exclusions = exclusion
-					np.Update(dep)
 				}
+				dep.Exclusions = exclusion
+				np.Update(dep)
 			}
 
 			// 非根pom直接引入的依赖 或者组件版本号为空 需要再次使用根pom的dependencyManagement补全
 			if np != pom || dep.Version == "" {
 				d, ok := rootPomManagement[dep.Index2()]
 				if ok {
-					// exclusion 需要保留
 					exclusion := append(dep.Exclusions, d.Exclusions...)
+					originVersion := dep.Version
 					dep = d
+					if dep.Version == "" {
+						dep.Version = originVersion
+					}
 					dep.Exclusions = exclusion
 					pom.Update(dep)
 				}
@@ -406,8 +410,8 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 				subpom.PomDependency = *dep
 				// 继承根pom的exclusion
 				subpom.Exclusions = append(subpom.Exclusions, np.Exclusions...)
-				// 子依赖不继承parent的依赖项
-				inheritPom(subpom, false, getpom)
+				// 依赖继承parent
+				inheritPom(subpom, getpom)
 				sub.Expand = subpom
 			}
 

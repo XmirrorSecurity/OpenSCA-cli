@@ -53,16 +53,17 @@ func DownloadUrlFromRepos(route string, do func(repo RepoConfig, r io.Reader), r
 		resp, err := HttpDownloadClient.Do(req)
 		if err != nil {
 			logs.Warn(err)
-			return false
+			continue
 		}
-		defer resp.Body.Close()
-		defer io.Copy(io.Discard, resp.Body)
 
 		if resp.StatusCode != 200 {
 			logs.Warnf("%d %s", resp.StatusCode, url)
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 		} else {
 			logs.Debugf("%d %s", resp.StatusCode, url)
 			do(repo, resp.Body)
+			resp.Body.Close()
 			return true
 		}
 

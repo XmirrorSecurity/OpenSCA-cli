@@ -161,6 +161,39 @@ var cases = []tool.TaskCase{
 			),
 		),
 	)},
+
+	// 直接依赖继承parent
+	{Path: "15", Result: tool.Dep("", "",
+		tool.Dep3("my.foo", "demo", "1.0",
+			tool.Dep3("com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.17.0",
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-annotations", "2.17.0"),
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-core", "2.17.0"),
+				tool.Dep3("com.fasterxml.jackson.core", "jackson-databind", "2.17.0",
+					tool.Dep3("net.bytebuddy", "byte-buddy", "1.14.9"),
+				),
+			),
+		),
+	)},
+
+	// 依赖的pom中DependencyManagement管理范围
+	{Path: "16", Result: tool.Dep("", "",
+		tool.Dep3("org.example", "demo", "1.0",
+			tool.Dep3("com.aliyun", "alibabacloud-dkms-gcs-sdk", "0.5.2",
+				tool.DevDep3("com.aliyun", "tea", "1.2.3"),
+				tool.Dep3("com.aliyun", "tea-util", "0.2.18",
+					tool.Dep3("com.google.code.gson", "gson", "2.8.9"),
+				),
+			),
+		),
+	)},
+
+	// import的pom需要继承parent
+	{Path: "17", Result: tool.Dep("", "",
+		tool.Dep3("foo", "demo", "1.0",
+			tool.Dep3("org.apache.logging.log4j", "log4j-api", "2.17.2"),
+			tool.Dep3("org.apache.logging.log4j", "log4j-core", "2.17.2"),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
