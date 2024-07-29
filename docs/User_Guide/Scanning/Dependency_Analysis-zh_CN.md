@@ -1,5 +1,18 @@
 [返回目录](/docs/README-zh-CN.md) / [English](./Dependency_Analysis.md)
 
+- [依赖分析](#依赖分析)
+- [使用 OpenSCA-cli 进行依赖分析](#使用-opensca-cli-进行依赖分析)
+  - [分析本地项目目录](#分析本地项目目录)
+    - [基本命令](#基本命令)
+    - [示例](#示例)
+  - [分析依赖特征文件](#分析依赖特征文件)
+    - [基本命令](#基本命令-1)
+    - [示例](#示例-1)
+  - [分析远程项目](#分析远程项目)
+    - [基本命令](#基本命令-2)
+    - [示例](#示例-2)
+  - [分析 SBOM](#分析-sbom)
+
 # 依赖分析
 
 OpenSCA 通过扫描项目依赖特征文件(动态或静态解析)，生成项目依赖关系， 帮助用户了解项目的依赖关系，以便更好地管理项目。
@@ -17,7 +30,7 @@ OpenSCA 通过扫描项目依赖特征文件(动态或静态解析)，生成项�
 ### 基本命令
 
  ```shell
- opensca-cli -path {报告名称}.cdx.json -out {报告名称}.dsdx,{报告名称}.spdx
+ opensca-cli -path {项目路径} -out {报告名称}.dsdx,{报告名称}.spdx
  ```
 
 ### 示例
@@ -125,5 +138,9 @@ opensca-cli -path https://example.com/project/package.json
 </td>
 </tr>
 </table>
+
+## 分析 SBOM
+
+OpenSCA 支持将 SBOM 文件作为输入，进行依赖分析, 详见 [SBOM](/docs/User_Guide/Generating_Reports/SBOM-zh_CN.md)
 
 
