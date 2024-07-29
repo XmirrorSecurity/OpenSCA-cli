@@ -15,6 +15,8 @@ OpenSCA 支持生成多种格式的 SBOM 清单, 包括 [DSDX](https://opensca.x
 
 除了生成 SBOM, OpenSCA 还支持将 SBOM 作为输入, 生成漏洞报告或转换为其他格式的 SBOM 清单.
 
+此外, OpenSCA 提供 SaaS 服务, 同步扫描结果后, 可以在 [OpenSCA SaaS Console](https://opensca.xmirror.cn/console) 查看和下载 SBOM 清单.
+
 支持的 SBOM 格式:
 
 | SBOM 清单   | 文件后缀                         |
