@@ -8,7 +8,7 @@
     - [安装](./User_Guide/Installation-zh_CN.md)
     - [扫描](./User_Guide/Scanning/)
         - [依赖分析](./User_Guide/Scanning/Dependency_Analysis-zh_CN.md)
-        - [连接漏洞库](./User_Guide/Scanning/Connectiong_to_Vulnerability_Databases-zh_CN.md)
+        - [连接漏洞库](./User_Guide/Scanning/Vulnerability_Analysis-zh_CN.md)
     - [查看结果](./User_Guide/Viewing_Results-zh_CN.md)
     - [生成报告](./User_Guide/Generating_Reports/)
         - [SBOM](./User_Guide/Generating_Reports/SBOM-zh_CN.md)
