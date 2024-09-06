@@ -61,7 +61,7 @@
 
 ## 下载安装
 
-1. 从 [github](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases)  下载对应系统架构的可执行文件压缩包
+1. 从 [github](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitcode](https://gitcode.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
 
 2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
 
@@ -70,10 +70,14 @@
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
    // gitee linux/mac
    git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+   // gitcode linux/mac
+   git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
    // github windows
    git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
    // gitee windows
    git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+   // gitcode windows
+    git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
    ```
 
    默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
