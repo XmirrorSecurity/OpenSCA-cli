@@ -70,7 +70,7 @@ install() {
         printf "  Adding OpenSCA-cli to PATH: "
         case "$current_shell" in
             "bash")
-                printf "'export PATH=%S/.config/opensca-cli:\$PATH >> ~/.bashrc'\n" "$HOME"
+                printf "'export PATH=%s/.config/opensca-cli:\$PATH >> ~/.bashrc'\n" "$HOME"
                 echo "export PATH=$HOME/.config/opensca-cli:\$PATH" >> ~/.bashrc
                 ;;
             "zsh")
