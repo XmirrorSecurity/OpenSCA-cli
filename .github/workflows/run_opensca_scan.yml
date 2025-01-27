@@ -1,0 +1,32 @@
+name: OpenSCA Scan
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+
+jobs:
+  opensca_scan:
+    name: OpenSCA Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            cmd/
+            opensca/
+            go.mod
+            main.go
+      - name: Run OpenSCA Scan
+        uses: XmirrorSecurity/opensca-scan-action@v1
+        with:
+          token: ${{ secrets.OPENSCA_TOKEN }}
+          proj: ${{ secrets.OPENSCA_PROJECT_ID }}
+          need-artifact: true
+          out: "outputs/results.json,outputs/result.html"

@@ -39,6 +39,12 @@ func Save(report Report, output string) {
 		switch filepath.Ext(out) {
 		case ".html":
 			Html(genReport(report), out)
+		case ".zip":
+			if strings.HasSuffix(out, ".dpsbom.zip") {
+				DpSbomZip(report, out)
+			} else {
+				Json(genReport(report), out)
+			}
 		case ".json":
 			if strings.HasSuffix(out, ".spdx.json") {
 				SpdxJson(report, out)
@@ -48,9 +54,13 @@ func Save(report Report, output string) {
 				CycloneDXJson(report, out)
 			} else if strings.HasSuffix(out, ".swid.json") {
 				SwidJson(report, out)
+			} else if strings.HasSuffix(out, ".dpsbom.json") {
+				DpSbomZip(report, out)
 			} else {
 				Json(genReport(report), out)
 			}
+		case ".dpsbom":
+			DpSbomZip(report, out)
 		case ".dsdx":
 			Dsdx(report, out)
 		case ".spdx":
