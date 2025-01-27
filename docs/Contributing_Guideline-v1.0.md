@@ -78,4 +78,4 @@ We appreciate all the contributions to OpenSCA.
 
 Thanks again for your interest in OpenSCA and your support for our solution to open source vulnerabilities.
 
-For the Chinese version of our contributing guideline, please check [贡献指南（中文版）v1.0](./Contributing_Guideline-v1.0-zh_CN.md)。
+For the Chinese version of our contributing guideline, please check [贡献指南(中文版)v1.0](./Contributing_Guideline-v1.0-zh_CN.md)。
