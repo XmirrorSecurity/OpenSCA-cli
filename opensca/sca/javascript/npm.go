@@ -143,7 +143,11 @@ func ParsePackageJsonWithNode(pkgjson *PackageJson, nodeMap map[string]*PackageJ
 			subjs = npmOrigin(name, version)
 		}
 		if subjs == nil {
-			return nil
+			// 部分投毒组件会从官方库下架 这种构造一个虚拟的PacakgeJson保证检出
+			subjs = &PackageJson{
+				Name:    name,
+				Version: version,
+			}
 		}
 		var dep *model.DepGraph
 		if dev {

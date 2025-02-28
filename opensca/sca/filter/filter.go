@@ -69,10 +69,11 @@ var (
 )
 
 var (
-	SbomSpdx = filterFunc(strings.HasSuffix, ".spdx")
-	SbomDsdx = filterFunc(strings.HasSuffix, ".dsdx")
-	SbomJson = filterFunc(strings.HasSuffix, ".json")
-	SbomXml  = filterFunc(strings.HasSuffix, ".xml")
+	SbomSpdx   = filterFunc(strings.HasSuffix, ".spdx")
+	SbomDsdx   = filterFunc(strings.HasSuffix, ".dsdx")
+	SbomJson   = filterFunc(strings.HasSuffix, ".json")
+	SbomXml    = filterFunc(strings.HasSuffix, ".xml")
+	SbomDbSbom = filterFunc(strings.HasSuffix, ".dbsbom")
 	// SbomRdf  = filterFunc(strings.HasSuffix, ".rdf")
 )
 

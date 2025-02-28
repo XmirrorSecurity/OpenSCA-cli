@@ -31,7 +31,7 @@ func ParseDsdxXml(f *model.File) *model.DepGraph {
 
 func parseDsdxDoc(f *model.File, doc *model.DsdxDocument) *model.DepGraph {
 
-	if doc == nil || doc.DSDXVersion == "" {
+	if doc == nil || len(doc.Components) == 0 {
 		return nil
 	}
 
@@ -76,7 +76,7 @@ func parseDsdxDoc(f *model.File, doc *model.DsdxDocument) *model.DepGraph {
 // ReadDsdx 读取dsdx文件
 func ReadDsdx(f *model.File) *model.DsdxDocument {
 
-	dsdx := &model.DsdxDocument{}
+	dsdx := &model.DsdxDocument{Dependencies: model.DsdxDependencies{}}
 
 	// 记录依赖关系
 	dependencies := map[string][]string{}

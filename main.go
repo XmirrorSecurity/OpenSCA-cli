@@ -88,8 +88,9 @@ func main() {
 	}
 
 	// 打印概览信息
-	fmt.Println("\n\nComplete!\n" + format.Statis(report))
-	logs.Info("\nComplete!\n" + format.Statis(report))
+	dep, vul := format.Statis(report)
+	fmt.Println("\nComplete!\n" + dep + vul)
+	logs.Info("\nComplete!\n" + dep + vul)
 
 	// 发送检测报告
 	if err := format.Saas(report); err != nil {

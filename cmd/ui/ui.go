@@ -93,8 +93,9 @@ func OpenUI(report format.Report) {
 }
 
 func TaskInfo(report format.Report) *tview.TextView {
+	dep, vul := format.Statis(report)
 	info := tview.NewTextView().
-		SetText(format.Statis(report))
+		SetText(fmt.Sprintf("%s\n%s", dep, vul))
 	info.SetTextColor(tcell.ColorBlue)
 	return info
 }

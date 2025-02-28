@@ -7,7 +7,7 @@ import (
 )
 
 // Statis 统计概览信息
-func Statis(report Report) string {
+func Statis(report Report) (string, string) {
 
 	// 组件风险统计 key:0代表组件总数
 	depStatic := map[int]int{
@@ -50,10 +50,11 @@ func Statis(report Report) string {
 
 		return true
 	})
-
-	return fmt.Sprintf("Components:%d C:%d H:%d M:%d L:%d\n"+
-		"Vulnerabilities:%d C:%d H:%d M:%d L:%d",
-		depStatic[0], depStatic[1], depStatic[2], depStatic[3], depStatic[4],
-		vulStatic[0], vulStatic[1], vulStatic[2], vulStatic[3], vulStatic[4],
-	)
+	if vulStatic[0] != 0 {
+		return fmt.Sprintf("Components:%d C:%d H:%d M:%d L:%d",
+				depStatic[0], depStatic[1], depStatic[2], depStatic[3], depStatic[4]),
+			fmt.Sprintf("\nVulnerabilities:%d C:%d H:%d M:%d L:%d",
+				vulStatic[0], vulStatic[1], vulStatic[2], vulStatic[3], vulStatic[4])
+	}
+	return fmt.Sprintf("Components: %d", depStatic[0]), ""
 }
