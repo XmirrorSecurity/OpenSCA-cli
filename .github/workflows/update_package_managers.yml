@@ -19,11 +19,11 @@ jobs:
           formula-name: opensca-cli
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
-  winget:
-    runs-on: windows-latest
-    steps:
-      - uses: vedantmgoyal2009/winget-releaser@v2
-        with:
-          identifier: XmirrorSecurity.OpenSCA-cli
-          token: ${{ secrets.COMMITTER_TOKEN }}
+#  winget:
+#    runs-on: windows-latest
+#    steps:
+#      - uses: vedantmgoyal2009/winget-releaser@v2
+#        with:
+#          identifier: XmirrorSecurity.OpenSCA-cli
+#          token: ${{ secrets.COMMITTER_TOKEN }}
 
