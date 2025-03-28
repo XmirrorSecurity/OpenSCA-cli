@@ -287,6 +287,12 @@ func inRangeInterval(ver *Version, interval string) bool {
 				}
 			}
 		}
+		// 兼容 [version] 写法
+		if interval[0] == '[' && interval[len(interval)-1] == ']' && !strings.Contains(interval, ",") {
+			if newVersion(strings.Trim(interval, "[]")).Equal(ver) {
+				return true
+			}
+		}
 		// 判断左边界是否为闭
 		left := interval[0] == '['
 		// 判断右边界是否为闭
