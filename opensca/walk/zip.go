@@ -93,7 +93,7 @@ func xjar(ctx context.Context, filter ExtractFileFilter, input, output string) b
 	tempf := common.CreateTemp("jar")
 	defer os.Remove(tempf.Name())
 
-	data, err := io.ReadAll(tempf)
+	data, err := os.ReadFile(input)
 	if err != nil {
 		logs.Warn(err)
 		tempf.Close()
