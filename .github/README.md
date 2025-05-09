@@ -19,7 +19,11 @@ English|[中文](../README.md)
 
 - [Introduction](#introduction)
 - [Detection Ability](#detection-ability)
-- [Download \& Deployment](#download--deployment)
+- [Installation](#installation)
+  - [Method 1: Download from Releases](#method-1-download-from-releases)
+  - [Method 2: Use install script](#method-2-use-install-script)
+  - [Method 3: Use package manager(Homebrew)](#method-3-use-package-managerhomebrew)
+  - [Method 4: Build from source](#method-4-build-from-source)
 - [Use OpenSCA](#use-opensca)
   - [Parameters](#parameters)
   - [Report Formats](#report-formats)
@@ -64,28 +68,57 @@ OpenSCA is now capable of parsing configuration files in the listed programming 
 | `Erlang`     | `Rebar`         | `rebar.lock`                                                                                                                                      |
 | `Python`     | `Pip`           | `Pipfile` `Pipfile.lock` `setup.py` `requirements.txt` `requirements.in`(For the latter two, pipenv environment & internet connection are needed) |
 
-## Download & Deployment
+## Installation
+
+OpenSCA-cli is available for Windows, Linux and MacOS. The installation method is as follows:
+
+### Method 1: Download from Releases
 
 1. Download the appropriate executable file according to your system architecture from [releases](https://github.com/XmirrorSecurity/OpenSCA-cli/releases).
+2. Unzip the downloaded file and run `opensca-cli` directly.
 
-2. Or download the source code and compile (`go 1.18` and above is needed)
+### Method 2: Use install script
 
-   ```shell
-   // github linux/mac
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
-   // gitee linux/mac
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
-   // github windows
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
-   // gitee windows
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
-   ```
+- For Mac/Linux Users
+    ```shell
+    curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
 
-   The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
+    # Try this when internet connection fails
+    curl -sSL https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.sh | sh -s -- gitee
+    ```
+- For Windows Users(need PowerShell)
+    ```powershell
+    iex "&{$(irm https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.ps1)}"
 
-   - Disable `CGO_ENABLED` `CGO_ENABLED=0`
-   - Set the operating system `GOOS=${OS} \\ darwin,liunx,windows`
-   - Set the architecture `GOARCH=${arch} \\ amd64,arm64`
+    # Try this when internet connection fails
+    iex "&{$(irm https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.ps1)} gitee"
+    ```
+
+### Method 3: Use package manager(Homebrew)
+```shell
+brew install opensca-cli
+```
+
+### Method 4: Build from source
+
+Clone the source code and compile (`go 1.18` and above is needed)
+
+```shell
+# github linux/mac
+git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+# gitee linux/mac
+git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+# github windows
+git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+# gitee windows
+git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+```
+
+The default option is to generate the program of the current system architecture. If you want to try it for other system architectures, you can set the following environment variables before compiling.
+
+- Disable `CGO_ENABLED` `CGO_ENABLED=0`
+- Set the operating system `GOOS=${OS} \\ darwin,liunx,windows`
+- Set the architecture `GOARCH=${arch} \\ amd64,arm64`
 
 ## Use OpenSCA
 
