@@ -17,6 +17,10 @@
 - [项目介绍](#项目介绍)
 - [检测能力](#检测能力)
 - [下载安装](#下载安装)
+  - [方式 1: 从 Releases 下载](#方式-1-从-releases-下载)
+  - [方式 2: 一键安装脚本](#方式-2-一键安装脚本)
+  - [方式 3: 使用包管理器(Homebrew)](#方式-3-使用包管理器homebrew)
+  - [方式 4: 从源码构建](#方式-4-从源码构建)
 - [使用说明](#使用说明)
   - [参数说明](#参数说明)
   - [报告格式](#报告格式)
@@ -61,33 +65,63 @@
 
 ## 下载安装
 
+OpenSCA-cli 支持 Windows、Linux、MacOS 等操作系统，支持 x86_64 和 arm64 架构。目前提供了以下几种安装方式：
+
+### 方式 1: 从 Releases 下载
+
 1. 从 [github](https://github.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitee](https://gitee.com/XmirrorSecurity/OpenSCA-cli/releases) 或 [gitcode](https://gitcode.com/XmirrorSecurity/OpenSCA-cli/releases) 下载对应系统架构的可执行文件压缩包
+2. 解压，并运行 `opensca-cli` 可执行文件即可。
 
-2. 或者下载源码编译(需要 `go 1.18` 及以上版本)
+### 方式 2: 一键安装脚本
 
-   ```shell
-   // github linux/mac
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
-   // gitee linux/mac
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
-   // gitcode linux/mac
-   git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
-   // github windows
-   git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
-   // gitee windows
-   git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
-   // gitcode windows
-    git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
-   ```
+- Mac/Linux 用户
+    ```shell
+    curl -sSL https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.sh | sh
 
-   默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
+    # 如果遇到网络问题，可尝试以下命令
+    curl -sSL https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.sh | sh -s -- gitee
+    ```
+- For Windows Users(need PowerShell)
+    ```powershell
+    iex "&{$(irm https://raw.githubusercontent.com/XmirrorSecurity/OpenSCA-cli/master/scripts/install.ps1)}"
 
-   - 禁用`CGO_ENABLED`
-     `CGO_ENABLED=0`
-   - 指定操作系统
-     `GOOS=${OS} \\ darwin,liunx,windows`
-   - 指定体系架构
-     `GOARCH=${arch} \\ amd64,arm64`
+    # 如遇到网络问题，可尝试以下命令
+    iex "&{$(irm https://gitee.com/XmirrorSecurity/OpenSCA-cli/raw/master/scripts/install.ps1)} gitee"
+    ```
+
+### 方式 3: 使用包管理器(Homebrew)
+
+```
+brew install opensca-cli
+```
+
+### 方式 4: 从源码构建
+
+克隆并源码编译(需要 `go 1.18` 及以上版本)
+
+```shell
+# github linux/mac
+git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+# gitee linux/mac
+git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+# gitcode linux/mac
+git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca && cd opensca && go build
+# github windows
+git clone https://github.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+# gitee windows
+git clone https://gitee.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+# gitcode windows
+git clone https://gitcode.com/XmirrorSecurity/OpenSCA-cli.git opensca ; cd opensca ; go build
+```
+
+默认生成当前系统架构的程序，如需生成其他系统架构可配置环境变量后编译
+
+- 禁用`CGO_ENABLED`
+  `CGO_ENABLED=0`
+- 指定操作系统
+  `GOOS=${OS} \\ darwin,liunx,windows`
+- 指定体系架构
+  `GOARCH=${arch} \\ amd64,arm64`
 
 ## 使用说明
 
