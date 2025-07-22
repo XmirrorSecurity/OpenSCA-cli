@@ -26,13 +26,13 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 			call(file, ParseDsdx(file))
 		}
 		if filter.SbomDbSbom(file.Relpath()) {
-			call(file, ParseDpSbomJson(file))
+			call(file, ParseBomSWJson(file))
 		}
 		if filter.SbomJson(file.Relpath()) {
 			call(file, ParseSpdxJson(file))
 			call(file, ParseCdxJson(file))
 			call(file, ParseDsdxJson(file))
-			call(file, ParseDpSbomJson(file))
+			call(file, ParseBomSWJson(file))
 		}
 		if filter.SbomXml(file.Relpath()) {
 			call(file, ParseSpdxXml(file))

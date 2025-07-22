@@ -7,15 +7,15 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
-func ParseDpSbomJson(f *model.File) *model.DepGraph {
-	doc := &model.DpSbomDocument{}
+func ParseBomSWJson(f *model.File) *model.DepGraph {
+	doc := &model.BomSWDocument{}
 	f.OpenReader(func(reader io.Reader) {
 		json.NewDecoder(reader).Decode(doc)
 	})
-	return parseDpSbomDoc(f, doc)
+	return parseBomSWDoc(f, doc)
 }
 
-func parseDpSbomDoc(f *model.File, doc *model.DpSbomDocument) *model.DepGraph {
+func parseBomSWDoc(f *model.File, doc *model.BomSWDocument) *model.DepGraph {
 
 	if doc == nil {
 		return nil
@@ -34,19 +34,19 @@ func parseDpSbomDoc(f *model.File, doc *model.DpSbomDocument) *model.DepGraph {
 		}
 	}).LoadOrStore
 
-	for _, pkg := range doc.Packages {
-		dep := _dep(pkg.Identifier.Purl)
+	for _, pkg := range doc.Software.Components {
+		dep := _dep(pkg.ID)
 		dep.Licenses = pkg.License
-		depIdMap[pkg.Identifier.Purl] = dep
+		depIdMap[pkg.ID] = dep
 	}
 
-	for _, dependOn := range doc.Dependencies {
+	for _, dependOn := range doc.Software.Dependencies {
 		parent, ok := depIdMap[dependOn.Ref]
 		if !ok {
 			continue
 		}
 		for _, dep := range dependOn.DependsOn {
-			child, ok := depIdMap[dep.Target]
+			child, ok := depIdMap[dep.Ref]
 			if !ok {
 				continue
 			}
