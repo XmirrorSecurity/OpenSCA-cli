@@ -1,112 +1,125 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
-type DpSbomDocument struct {
+type BomSWDocument struct {
+	Basic    swBasicInfo               `json:"documentBasicInfo"`
+	Software swSoftwareCompositionInfo `json:"softwareCompositionInfo"`
+}
+
+type swBasicInfo struct {
 	// 文档名称
-	DocumentName string `json:"DocumentName"`
+	DocumentName string `json:"documentName"`
 	// 文档版本
-	DocumentVersion string `json:"DocumentVersion"`
+	DocumentVersion string `json:"documentVersion"`
 	// 文档创建/更新时间 yyyy-MM-ddTHH:mm:ssTZD
-	DocumentTime string `json:"DocumentTime"`
+	DocumentTime string `json:"timestamp"`
 	// 文档格式
-	BomFormat string `json:"BomFormat"`
+	SbomFormat string `json:"sbomFormat"`
 	// 生成工具
-	Tool string `json:"tool"`
-	// sbom签名信息
-	Hashes DpSbomHashes `json:"Hashes"`
+	ToolInfo string `json:"toolInfo"`
+	// bom作者
+	SbomAuthor string `json:"sbomAuthor"`
+	// 文档作者注释
+	SbomAuthorComments string `json:"sbomAuthorComments"`
+	// 文档注释
+	SbomComments string `json:"sbomComments"`
+	// 文档类型
+	SbomType string `json:"sbomType"`
+}
+
+type swSoftwareCompositionInfo struct {
 	// 组件列表
-	Packages []DpSbomPackage `json:"Packages"`
+	Components []BomSWComponent `json:"components"`
 	// 依赖关系
-	Dependencies []DpSbomDependencies `json:"Dependencies"`
+	Dependencies []swDependencies `json:"dependencies"`
 }
 
-type DpSbomPackage struct {
-	Name    string `json:"ComponentName"`
-	Version string `json:"ComponentVersion"`
-
-	Identifier struct {
-		Purl string `json:"PURL"`
-	} `json:"ComponentIdentifier"`
-
-	License []string `json:"License"`
-
-	Author   []map[string]string `json:"Author"`
-	Provider []map[string]string `json:"Provider"`
-	Hash     DpSbomHash          `json:"ComponentHash"`
-
+type BomSWComponent struct {
+	Author   map[string]string `json:"componentAuthor"`
+	Provider map[string]string `json:"componentProvider"`
+	Name     string            `json:"componentName"`
+	Version  string            `json:"componentVersion"`
+	// map[hash算法]hash值
+	HashValue []swChecksumValue `json:"componentHashValue"`
+	ID        string            `json:"componentId"`
+	License   []string          `json:"license"`
 	// 组件信息更新时间 yyyy-MM-ddTHH:mm:ssTZD
-	Timestamp string `json:"Timestamp"`
+	Timestamp string `json:"componentTimestamp"`
 }
 
-type DpSbomDependencies struct {
-	Ref       string `json:"Ref"`
+type swChecksumValue struct {
+	Algorithm string `json:"algorithm"`
+	Value     string `json:"hashValue"`
+}
+
+type swDependencies struct {
+	Ref       string `json:"ref"`
 	DependsOn []struct {
-		Target string `json:"Target"`
-	} `json:"DependsOn"`
+		Ref string `json:"ref"`
+	} `json:"dependsOn"`
 }
 
-func newDependencies(ref string, dependsOn []string) DpSbomDependencies {
-	deps := DpSbomDependencies{Ref: ref}
+func newDependencies(ref string, dependsOn []string) swDependencies {
+	deps := swDependencies{Ref: ref}
 	deps.DependsOn = make([]struct {
-		Target string "json:\"Target\""
+		Ref string `json:"ref"`
 	}, len(dependsOn))
 	for i, d := range dependsOn {
-		deps.DependsOn[i].Target = d
+		deps.DependsOn[i].Ref = d
 	}
 	return deps
 }
 
-type DpSbomHashes struct {
-	Algorithm   string `json:"Algorithm"`
-	HashFile    string `json:"HashFile,omitempty"`
-	DigitalFile string `json:"DigitalFile,omitempty"`
-}
-
-type DpSbomHash struct {
-	Algorithm string `json:"Algorithm,omitempty"`
-	Hash      string `json:"Hash,omitempty"`
-}
-
-func NewDpSbomDocument(name, creator string) *DpSbomDocument {
+func NewBomSWDocument(name, creator string) *BomSWDocument {
 	version := "1.0.0"
 	timestamp := time.Now().Format("2006-01-02T15:04:05MST")
-	return &DpSbomDocument{
-		DocumentName:    name,
-		DocumentVersion: version,
-		DocumentTime:    timestamp,
-		BomFormat:       "DP-SBOM-1.0",
-		Tool:            creator,
-		Hashes: DpSbomHashes{
-			Algorithm: "SHA-256",
-			HashFile:  "sha256.txt",
+	return &BomSWDocument{
+		Basic: swBasicInfo{
+			DocumentName:       name,
+			DocumentVersion:    version,
+			DocumentTime:       timestamp,
+			SbomFormat:         "BOM-SW 1.0",
+			ToolInfo:           creator,
+			SbomAuthor:         "",
+			SbomAuthorComments: "",
+			SbomComments:       "",
+			SbomType:           "analyzed",
 		},
-		Dependencies: []DpSbomDependencies{},
+		Software: swSoftwareCompositionInfo{
+			Dependencies: []swDependencies{},
+		},
 	}
 }
 
-func (doc *DpSbomDocument) AppendComponents(fn func(*DpSbomPackage)) {
-	c := DpSbomPackage{}
+func (doc *BomSWDocument) AppendComponents(fn func(*BomSWComponent)) {
+	c := BomSWComponent{
+		Author: map[string]string{
+			"name": "NONE",
+		},
+		Provider: map[string]string{
+			"shortName": "NONE",
+			"fullName":  "NONE",
+		},
+		HashValue: []swChecksumValue{},
+		License:   []string{},
+	}
 	if fn != nil {
 		fn(&c)
 	}
 	if c.Timestamp == "" {
 		c.Timestamp = time.Now().Format("2006-01-02T15:04:05MST")
 	}
-	if c.Author == nil {
-		c.Author = []map[string]string{}
-	}
-	if c.Provider == nil {
-		c.Provider = []map[string]string{}
-	}
-	doc.Packages = append(doc.Packages, c)
+	doc.Software.Components = append(doc.Software.Components, c)
 }
 
-func (doc *DpSbomDocument) AppendDependencies(parentId string, childrenIds []string) {
-	if doc.Dependencies == nil {
-		doc.Dependencies = []DpSbomDependencies{}
+func (doc *BomSWDocument) AppendDependencies(parentId string, childrenIds []string) {
+	if doc.Software.Dependencies == nil {
+		doc.Software.Dependencies = []swDependencies{}
 	}
 	if len(childrenIds) > 0 {
-		doc.Dependencies = append(doc.Dependencies, newDependencies(parentId, childrenIds))
+		doc.Software.Dependencies = append(doc.Software.Dependencies, newDependencies(parentId, childrenIds))
 	}
 }
