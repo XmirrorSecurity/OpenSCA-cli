@@ -18,7 +18,7 @@ FROM ${BASEIMAGE}
 LABEL authors="OpenSCA Team <opensca@anpro-tech.com>"
 
 COPY --from=builder /app/opensca-cli /app/opensca-cli
-COPY --from=builder /app/opensca-cli /app/config.json
+COPY --from=builder /app/config.json /app/config.json
 WORKDIR /src
 ENTRYPOINT [ "/app/opensca-cli", "-path", "/src"]
 CMD ["-config", "/src/config.json"]
