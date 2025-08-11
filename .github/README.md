@@ -323,7 +323,7 @@ Add WeChat for further consults is also an option:
 
 Our QQ Group: 832039395
 
-Mailbox: opensca@anpro-tech.com
+Mailbox: opensca@xmirror.cn
 
 ## Authors
 

@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
     -o /app/opensca-cli main.go
 
 FROM ${BASEIMAGE}
-LABEL authors="OpenSCA Team <opensca@anpro-tech.com>"
+LABEL authors="OpenSCA Team <opensca@xmirror.cn>"
 
 COPY --from=builder /app/opensca-cli /app/opensca-cli
 COPY --from=builder /app/config.json /app/config.json
