@@ -36,7 +36,7 @@ The emerging community is now run by OpenSCA project team. As the development of
 
 The current contributing system can be roughly divided into two parts: one about code and the other about points. For the code branch, you will become a contributor after contributing code through **Pull Request**s and getting accepted by the team. Then you'll be able to participate in the further plan and implementation for the project, judgment for the BUG, review the PR and verify new contributors.
 
-For the points branch, apart from gaining them through contributing code, it also works to actively get involved in reporting BUG, discussing relevant technology and sharing your experience of using OpenSCA. The points could exchange for gifts. The detailed rules of gaining and exchanging points could differ according to time or diverse activities. Please feel free to throw an email to Opensca@anpro-tech.com for the latest rules. 
+For the points branch, apart from gaining them through contributing code, it also works to actively get involved in reporting BUG, discussing relevant technology and sharing your experience of using OpenSCA. The points could exchange for gifts. The detailed rules of gaining and exchanging points could differ according to time or diverse activities. Please feel free to throw an email to opensca@xmirror.cn for the latest rules. 
 
 ### Report a BUG
 

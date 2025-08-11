@@ -338,7 +338,7 @@ v1.0.5及更低版本需要自行修改源码配置镜像库地址，建议升�
 
 QQ技术交流群：832039395
 
-官方邮箱：<opensca@anpro-tech.com>
+官方邮箱：<opensca@xmirror.cn>
 
 ## 贡献者
 

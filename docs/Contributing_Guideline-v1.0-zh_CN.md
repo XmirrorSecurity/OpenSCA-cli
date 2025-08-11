@@ -38,11 +38,11 @@ OpenSCA社区尚处于起步阶段，由悬镜安全OpenSCA项目团队管理。
 
 ### 如何提出BUG
 
-如果您在部署或使用OpenSCA时发现了BUG，可以在Issue板块提出；如果您对我们已经上传的公开文档中的内容有疑惑，可以直接发送邮件到 [Opensca@anpro-tech.com](mailto:Opensca@anpro-tech.com)，也可通过OpenSCA社区微信公众号、微信群、QQ群等渠道联系我们。
+如果您在部署或使用OpenSCA时发现了BUG，可以在Issue板块提出；如果您对我们已经上传的公开文档中的内容有疑惑，可以直接发送邮件到 [opensca@xmirror.cn](mailto:opensca@xmirror.cn)，也可通过OpenSCA社区微信公众号、微信群、QQ群等渠道联系我们。
 
 在提出BUG之前，您需要先确认您部署的是OpenSCA的最新版本，然后浏览Issue板块，确认该BUG没有被其他人提出过。以上步骤确认无误后，您可以在Issue板块提出您发现的BUG，等待项目成员或其他社区成员参与讨论或进行处理；也可以提一个PR对它进行修复，然后等待项目成员的审核。
 
-*漏洞问题不适合公开提出或进行讨论，如果您发现了OpenSCA的安全漏洞，请发送相关信息到[Opensca@anpro-tech.com](mailto:Opensca@anpro-tech.com)与我们取得联系。
+*漏洞问题不适合公开提出或进行讨论，如果您发现了OpenSCA的安全漏洞，请发送相关信息到[opensca@xmirror.cn](mailto:opensca@xmirror.cn)与我们取得联系。
 
 ### BUG类型划分
 
