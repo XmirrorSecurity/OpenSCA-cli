@@ -57,7 +57,7 @@ Click **STAR** to leave encouragement.
 OpenSCA is now capable of parsing configuration files in the listed programming languages and correspondent package managers. The team is now dedicated to introducing more languages and enriching the parsing of relevant configuration files gradually.
 
 | LANGUAGE     | PACKAGE MANAGER | FILE                                                                                                                                              |
-| ------------ | --------------- |---------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Java`       | `Maven`         | `pom.xml`                                                                                                                                         |
 | `Java`       | `Gradle`        | `.gradle` `.gradle.kts`                                                                                                                           |
 | `JavaScript` | `Npm`           | `package-lock.json` `package.json` `yarn.lock`                                                                                                    |
@@ -124,14 +124,14 @@ The default option is to generate the program of the current system architecture
 
 ### Parameters
 
-| PARAMETER  | TYPE     | Descripation                                                                                                                                                                                                                                                                | SAMPLE                                                                                                                                                                                                                                                          |
-| ---------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`   | `string` | Set the path of the configuration file         | `-config config.json`                                                                                                                                                                                                                                           |
-| `path`     | `string` | Set the path of the target file or directory                                                                                                                                                                                                                               | `-path ./foo`                                                                                                                                                                                                                                                   |                                                                                                            
-| `out`      | `string` | Save the result to the specified file whose format is defined by the suffix | `-out out.json, out.html`  |
-| `log`    | `string`   | Specify the path of log file                                                                                                                                                                                                                                                  | `-log my_log.txt`                                                                                                                                                                                                                                                        |
-| `token`    | `string` | Cloud service verification from our offical website                                                                                                                                                   | `-token xxx`                                                                                                                                                                                                                                                |
-| `proj`    | `string` | SaaS project `token` to sync report with [OpenSCA SaaS](https://opensca.xmirror.cn/console)                                                                                                                                              | `-proj xxx`                                                                                                                                                                                                                                                |
+| PARAMETER | TYPE     | Descripation                                                                                | SAMPLE                    |
+| --------- | -------- | ------------------------------------------------------------------------------------------- | ------------------------- |
+| `config`  | `string` | Set the path of the configuration file                                                      | `-config config.json`     |
+| `path`    | `string` | Set the path of the target file or directory                                                | `-path ./foo`             |
+| `out`     | `string` | Save the result to the specified file whose format is defined by the suffix                 | `-out out.json, out.html` |
+| `log`     | `string` | Specify the path of log file                                                                | `-log my_log.txt`         |
+| `token`   | `string` | Cloud service verification from our offical website                                         | `-token xxx`              |
+| `proj`    | `string` | SaaS project `token` to sync report with [OpenSCA SaaS](https://opensca.xmirror.cn/console) | `-proj xxx`               |
 
 From v3.0.0, apart from these parameters available for CMD/CRT, there are also others for different requirements which have to be set in the configuration file. 
 
@@ -157,18 +157,19 @@ Using previous versions to connect the cloud databse will still need the setting
 
 Files supported by the `out` parameter are listed below：
 
-| TYPE   | FORMAT | SPECIFIED SUFFIX                 | VERSION            |
-| ------ | ------ | -------------------------------- | ------------------ |
-| REPORT | `json` | `.json`                          | `*`                |
-|        | `xml`  | `.xml`                           | `*`                |
-|        | `html` | `.html`                          | `v1.0.6` and above |
-|        | `sqlite` | `.sqlite`                      | `v1.0.13` and above|
-|        | `csv` | `.csv`                            | `v1.0.13` and above|
-|        | `sarif`| `.sarif`                         |                    |
-| SBOM   | `spdx` | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above |
-|        | `cdx`  | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above |
-|        | `swid` | `.swid.json` `.swid.xml`         | `v1.0.11`and above |
-|        | `dsdx` | `.dsdx` `.dsdx.json` `.dsdx.xml` | `v3.0.0`and above  |
+| TYPE   | FORMAT   | SPECIFIED SUFFIX                 | VERSION             |
+| ------ | -------- | -------------------------------- | ------------------- |
+| REPORT | `json`   | `.json`                          | `*`                 |
+|        | `xml`    | `.xml`                           | `*`                 |
+|        | `html`   | `.html`                          | `v1.0.6` and above  |
+|        | `sqlite` | `.sqlite`                        | `v1.0.13` and above |
+|        | `csv`    | `.csv`                           | `v1.0.13` and above |
+|        | `sarif`  | `.sarif`                         |                     |
+| SBOM   | `spdx`   | `.spdx` `.spdx.json` `.spdx.xml` | `v1.0.8` and above  |
+|        | `cdx`    | `.cdx.json` `.cdx.xml`           | `v1.0.11`and above  |
+|        | `swid`   | `.swid.json` `.swid.xml`         | `v1.0.11`and above  |
+|        | `dsdx`   | `.dsdx` `.dsdx.json` `.dsdx.xml` | `v3.0.0`and above   |
+|        | `bomsw`  | `.bomsw.json`                    | `v3.0.8`and above   |
 
 ### Sample
 
@@ -231,25 +232,25 @@ For more information, visit [Docker Hub Page](https://hub.docker.com/r/opensca/o
 
 #### Explanations of Vulnerability Database Fields
 
-| FIELD               | Descripation                                                       | REQUIRED OR NOT |
-| ------------------- | ----------------------------------------------------------------- | --------------- |
-| `vendor`            | the manufacturer of the component                                 | N               |
-| `product`           | the name of the component                                         | Y               |
-| `version`           | the versions of the component affected by the vulnerability       | Y               |
-| `language`          | the programming language of the component                         | Y               |
-| `name`              | the name of the vulnerability                                     | N               |
-| `id`                | custom identifier                                                 | Y               |
-| `cve_id`            | cve identifier                                                    | N               |
-| `cnnvd_id`          | cnnvd identifier                                                  | N               |
-| `cnvd_id`           | cnvd identifier                                                   | N               |
-| `cwe_id`            | cwe identifier                                                    | N               |
-| `description`       | the descripation of the vulnerability                              | N               |
-| `description_en`    | the descripation of the vulnerability in English                   | N               |
-| `suggestion`        | the suggestion for fixing the vulnerability                       | N               |
-| `attack_type`       | the type of attack                                                | N               |
-| `release_date`      | the release date of the vulnerability                             | N               |
-| `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4) | N               |
-| `exploit_level_id`  | the exploit level of the vulnerability (0-N/A 1-Available)        | N               |
+| FIELD               | Descripation                                                                                 | REQUIRED OR NOT |
+| ------------------- | -------------------------------------------------------------------------------------------- | --------------- |
+| `vendor`            | the manufacturer of the component                                                            | N               |
+| `product`           | the name of the component                                                                    | Y               |
+| `version`           | the versions of the component affected by the vulnerability                                  | Y               |
+| `language`          | the programming language of the component                                                    | Y               |
+| `name`              | the name of the vulnerability                                                                | N               |
+| `id`                | custom identifier                                                                            | Y               |
+| `cve_id`            | cve identifier                                                                               | N               |
+| `cnnvd_id`          | cnnvd identifier                                                                             | N               |
+| `cnvd_id`           | cnvd identifier                                                                              | N               |
+| `cwe_id`            | cwe identifier                                                                               | N               |
+| `description`       | the descripation of the vulnerability                                                        | N               |
+| `description_en`    | the descripation of the vulnerability in English                                             | N               |
+| `suggestion`        | the suggestion for fixing the vulnerability                                                  | N               |
+| `attack_type`       | the type of attack                                                                           | N               |
+| `release_date`      | the release date of the vulnerability                                                        | N               |
+| `security_level_id` | the security level of the vulnerability (diminishing from 1 to 4)                            | N               |
+| `exploit_level_id`  | the exploit level of the vulnerability (-2:unknown,-1:difficult,0:difficult,1:easy,2:normal) | N               |
 
 *There are several pre-set values to the "language" field, including java, javascript, golang, rust, php, ruby and python. Other languages are not limited to the pre-set value.
 
