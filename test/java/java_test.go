@@ -194,6 +194,15 @@ var cases = []tool.TaskCase{
 			tool.Dep3("org.apache.logging.log4j", "log4j-core", "2.17.2"),
 		),
 	)},
+
+	// 直接依赖优先级高于dependencyManagement
+	{Path: "18", Result: tool.Dep("", "",
+		tool.Dep3("foo", "demo", "1.0",
+			tool.DevDep3("org.apache.logging.log4j", "log4j-core", "1.0"),
+			tool.DevDep3("org.apache.logging.log4j", "log4j-core2", "2.0"),
+			tool.Dep3("org.apache.logging.log4j", "log4j-core3", "3.0"),
+		),
+	)},
 }
 
 func Test_JavaWithStatic(t *testing.T) {
