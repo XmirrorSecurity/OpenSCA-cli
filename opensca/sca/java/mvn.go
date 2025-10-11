@@ -284,6 +284,22 @@ func inheritPom(pom *Pom, getpom getPomFunc) {
 	}
 }
 
+func replacePomDependency(old, new *PomDependency, indirect bool) (replaced *PomDependency) {
+	originVersion := old.Version
+	originScope := old.Scope
+	dep := *new
+	replaced = &dep
+	// 间接依赖优先使用新的version
+	if indirect && replaced.Version == "" {
+		replaced.Version = originVersion
+	}
+	// 直接依赖优先保留原始scope
+	if !indirect && originScope != "" {
+		replaced.Scope = originScope
+	}
+	return
+}
+
 // parsePom 解析单个pom 返回该pom的依赖图
 func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph {
 
@@ -364,7 +380,7 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 			if d, ok := depManagement[dep.Index2()]; ok {
 				exclusion := append(dep.Exclusions, d.Exclusions...)
 				if dep.Version == "" {
-					dep = d
+					dep = replacePomDependency(dep, d, false)
 				}
 				dep.Exclusions = exclusion
 				np.Update(dep)
@@ -375,11 +391,7 @@ func parsePom(ctx context.Context, pom *Pom, getpom getPomFunc) *model.DepGraph 
 				d, ok := rootPomManagement[dep.Index2()]
 				if ok {
 					exclusion := append(dep.Exclusions, d.Exclusions...)
-					originVersion := dep.Version
-					dep = d
-					if dep.Version == "" {
-						dep.Version = originVersion
-					}
+					dep = replacePomDependency(dep, d, true)
 					dep.Exclusions = exclusion
 					pom.Update(dep)
 				}
