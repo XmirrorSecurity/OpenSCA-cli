@@ -5,8 +5,9 @@ import (
 )
 
 type BomSWDocument struct {
-	Basic    swBasicInfo               `json:"documentBasicInfo"`
-	Software swSoftwareCompositionInfo `json:"softwareCompositionInfo"`
+	Basic         swBasicInfo               `json:"documentBasicInfo"`
+	Software      swSoftwareCompositionInfo `json:"softwareCompositionInfo"`
+	SbomHashCheck string                    `json:"BOM-SW1.0-SBOM-HASH"`
 }
 
 type swBasicInfo struct {
