@@ -103,7 +103,7 @@ func Sarif(report Report, out string) {
 
 			result := sarifResult{
 				RuleId: vuln.Id,
-				Level:  "warning",
+				Level:  vuln.SarifLevel(),
 			}
 			result.Message.Text = fmt.Sprintf("引入的组件 %s 中存在 %s", n.Dep.Key()[:strings.LastIndex(n.Dep.Key(), ":")], vuln.Name)
 			for i, path := range n.Paths {

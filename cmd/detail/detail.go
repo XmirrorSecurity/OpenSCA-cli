@@ -170,6 +170,19 @@ func (v *Vuln) SecurityLevel() string {
 	return "Unknown"
 }
 
+// SarifLevel 返回SARIF格式的漏洞级别
+func (v *Vuln) SarifLevel() string {
+	switch v.SecurityLevelId {
+	case 1, 2: // Critical, High
+		return "error"
+	case 3: // Medium
+		return "warning"
+	case 4: // Low
+		return "note"
+	}
+	return "warning" // Unknown
+}
+
 func vulnLanguageKey(language model.Language) []string {
 	switch language {
 	case model.Lan_Java:
