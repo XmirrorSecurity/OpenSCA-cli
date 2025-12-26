@@ -1,8 +1,12 @@
 package format
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
+	"sort"
+	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/detail"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
@@ -20,6 +24,9 @@ func BomSWJson(report Report, out string) {
 func bomSWDoc(report Report) *model.BomSWDocument {
 
 	doc := model.NewBomSWDocument(report.TaskInfo.AppName, "opensca-cli")
+	defer func() {
+		doc.SbomHashCheck = calculateSbomHashCheck(doc)
+	}()
 
 	report.DepDetailGraph.ForEach(func(n *detail.DepDetailGraph) bool {
 
@@ -51,4 +58,55 @@ func bomSWDoc(report Report) *model.BomSWDocument {
 	})
 
 	return doc
+}
+
+func calculateSbomHashCheck(doc *model.BomSWDocument) string {
+	sha256Hash := sha256.New()
+	writeHash := func(v string) { sha256Hash.Write([]byte(v)) }
+	// basic info
+	writeHash(doc.Basic.DocumentName)
+	writeHash(doc.Basic.DocumentVersion)
+	writeHash(doc.Basic.DocumentTime)
+	writeHash(doc.Basic.SbomFormat)
+	writeHash(doc.Basic.ToolInfo)
+	writeHash(doc.Basic.SbomAuthor)
+	writeHash(doc.Basic.SbomAuthorComments)
+	writeHash(doc.Basic.SbomComments)
+	// components
+	for _, component := range doc.Software.Components {
+		writeHash(sortMapString(component.Author))
+		writeHash(sortMapString(component.Provider))
+		writeHash(component.Name)
+		writeHash(component.Version)
+		for _, hash := range component.HashValue {
+			writeHash(hash.Algorithm + ":" + hash.Value)
+		}
+		writeHash(component.ID)
+		for _, lic := range component.License {
+			writeHash(lic)
+		}
+		writeHash(component.Timestamp)
+	}
+	// dependencies
+	for _, deps := range doc.Software.Dependencies {
+		writeHash(deps.Ref)
+		for _, depsOn := range deps.DependsOn {
+			writeHash(depsOn.Ref)
+		}
+	}
+	hashStr := hex.EncodeToString(sha256Hash.Sum(nil)[:])
+	return hashStr
+}
+
+func sortMapString(v map[string]string) string {
+	keys := []string{}
+	for key := range v {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	res := strings.Builder{}
+	for _, key := range keys {
+		res.WriteString(key + ":" + v[key])
+	}
+	return res.String()
 }
