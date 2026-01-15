@@ -1,6 +1,6 @@
 module github.com/xmirrorsecurity/opensca-cli/v3
 
-go 1.20
+go 1.25
 
 require (
 	github.com/BurntSushi/toml v1.3.2
