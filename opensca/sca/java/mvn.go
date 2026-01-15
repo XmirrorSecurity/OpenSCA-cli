@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
@@ -527,6 +528,10 @@ func DownloadPomFromRepo(dep PomDependency, do func(r io.Reader), repos ...commo
 // MvnTree 调用mvn dependency:tree解析依赖
 // pom: pom文件信息
 func MvnTree(ctx context.Context, pom *Pom) *model.DepGraph {
+
+	if !config.Conf().Optional.Dynamic {
+		return nil
+	}
 
 	if pom == nil {
 		return nil

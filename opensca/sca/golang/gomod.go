@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
 
@@ -130,6 +131,10 @@ func ParseGosum(file *model.File) *model.DepGraph {
 
 // GoModGraph 调用 go mod graph 解析依赖
 func GoModGraph(ctx context.Context, modfile *model.File) *model.DepGraph {
+
+	if !config.Conf().Optional.Dynamic {
+		return nil
+	}
 
 	_, err := exec.LookPath("go")
 	if err != nil {

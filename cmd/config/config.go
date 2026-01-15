@@ -41,6 +41,7 @@ type OptionalConfig struct {
 	ProgressBar bool   `json:"progress"`
 	TLSVerify   bool   `json:"tls"`
 	Proxy       string `json:"proxy"`
+	Dynamic     bool   `json:"dynamic"`
 }
 
 type RepoConfig struct {

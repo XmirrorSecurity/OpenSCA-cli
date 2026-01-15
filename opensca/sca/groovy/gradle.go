@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
@@ -114,6 +115,10 @@ type gradleDep struct {
 }
 
 func GradleTree(ctx context.Context, dir *model.File) []*model.DepGraph {
+
+	if !config.Conf().Optional.Dynamic {
+		return nil
+	}
 
 	if dir == nil {
 		return nil

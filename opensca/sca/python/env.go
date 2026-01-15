@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
@@ -123,6 +124,9 @@ func pipenvGraph(ctx context.Context, dir string) *model.DepGraph {
 }
 
 func runCmd(ctx context.Context, dir string, cmd string, args ...string) ([]byte, bool) {
+	if !config.Conf().Optional.Dynamic {
+		return nil, false
+	}
 	c := exec.CommandContext(ctx, cmd, args...)
 	c.Dir = dir
 	out, err := c.CombinedOutput()
