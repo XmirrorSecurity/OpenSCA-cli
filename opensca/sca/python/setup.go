@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 )
@@ -71,6 +72,10 @@ type setupDep struct {
 }
 
 func ParseSetupPyWithPython(file *model.File) *model.DepGraph {
+
+	if !config.Conf().Optional.Dynamic {
+		return nil
+	}
 
 	if _, err := exec.LookPath("python"); err != nil {
 		return nil

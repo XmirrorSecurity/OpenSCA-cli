@@ -48,7 +48,11 @@
 
     // 全局http代理
     // global proxy for http requests, eg: http://127.0.0.1:7890
-    "proxy": ""
+    "proxy": "",
+
+    // 允许动态命令
+    // allow dynamic command, eg: mvn
+    "dynamic": false
 
   },
 

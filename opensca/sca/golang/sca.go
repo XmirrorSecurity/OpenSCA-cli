@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/xmirrorsecurity/opensca-cli/v3/cmd/config"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
 )
@@ -44,12 +45,14 @@ func (sca Sca) Sca(ctx context.Context, parent *model.File, files []*model.File,
 	}
 
 	// 尝试调用 go mod graph
-	for dir, f := range gomod {
-		graph := GoModGraph(ctx, f)
-		if graph != nil && len(graph.Children) > 0 {
-			call(f, graph)
-			delete(gomod, dir)
-			delete(gosum, dir)
+	if config.Conf().Optional.Dynamic {
+		for dir, f := range gomod {
+			graph := GoModGraph(ctx, f)
+			if graph != nil && len(graph.Children) > 0 {
+				call(f, graph)
+				delete(gomod, dir)
+				delete(gosum, dir)
+			}
 		}
 	}
 
