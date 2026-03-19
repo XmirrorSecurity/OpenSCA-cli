@@ -1,6 +1,6 @@
 module opensca-example
 
-go 1.20
+go 1.25
 
 require github.com/xmirrorsecurity/opensca-cli/v3 v3.0.2
 

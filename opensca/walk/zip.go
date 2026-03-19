@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
@@ -40,17 +39,17 @@ func xzip(ctx context.Context, filter ExtractFileFilter, input, output string) b
 			continue
 		}
 
-		fp := filepath.Join(output, f.Name)
+		entryName := f.Name
 
 		if f.Flags == 0 {
 			gbk := mahonia.NewDecoder("gbk").ConvertString(f.Name)
 			_, cdata, _ := mahonia.NewDecoder("utf-8").Translate([]byte(gbk), true)
-			fp = filepath.Join(output, string(cdata))
+			entryName = string(cdata)
 		}
 
-		// avoid zip slip
-		if !strings.HasPrefix(fp, filepath.Clean(output)+string(os.PathSeparator)) {
-			logs.Warn("Invalid file path: %s", fp)
+		fp, err := resolveExtractPath(output, entryName)
+		if err != nil {
+			logs.Warn(err)
 			continue
 		}
 
