@@ -44,11 +44,9 @@ func xtar(ctx context.Context, filter ExtractFileFilter, input, output string) b
 			break
 		}
 
-		fp := filepath.Join(output, fh.Name)
-
-		// avoid zip slip
-		if !strings.HasPrefix(fp, filepath.Clean(output)+string(os.PathSeparator)) {
-			logs.Warn("Invalid file path: %s", fp)
+		fp, err := resolveExtractPath(output, fh.Name)
+		if err != nil {
+			logs.Warn(err)
 			continue
 		}
 
