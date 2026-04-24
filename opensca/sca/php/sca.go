@@ -56,7 +56,7 @@ loop:
 		}
 
 		// vendor中的composer.json没有对应lock则不做处理
-		for _, dir := range strings.Split(dir, "/") {
+		for dir := range strings.SplitSeq(dir, "/") {
 			if strings.EqualFold(dir, "vendor") {
 				continue loop
 			}

@@ -34,7 +34,7 @@ type TaskInfo struct {
 }
 
 func Save(report Report, output string) {
-	for _, out := range strings.Split(output, ",") {
+	for out := range strings.SplitSeq(output, ",") {
 		logs.Infof("result save to %s", out)
 		switch filepath.Ext(out) {
 		case ".html":

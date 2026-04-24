@@ -275,13 +275,13 @@ func (v *Version) Ok() bool {
 // inRangeInterval 判断一个版本是否在一个版本范围内
 func inRangeInterval(ver *Version, interval string) bool {
 	// 遍历所有范围
-	for _, interval := range strings.Split(interval, "||") {
+	for interval := range strings.SplitSeq(interval, "||") {
 		if len(interval) < 2 {
 			continue
 		}
 		// 集合形式
 		if interval[0] == '{' && interval[len(interval)-1] == '}' {
-			for _, v := range strings.Split(strings.Trim(interval, "{}"), ",") {
+			for v := range strings.SplitSeq(strings.Trim(interval, "{}"), ",") {
 				if newVersion(v).Equal(ver) {
 					return true
 				}
