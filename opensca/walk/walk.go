@@ -23,7 +23,7 @@ type WalkFileFunc func(parent *model.File, files []*model.File)
 // filter: 过滤需要提取的文件
 // do: 对文件的操作
 // size: 检测文件大小
-func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
+func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, ignore ExtractFileFilter, do WalkFileFunc) (size int64, err error) {
 
 	delete, file, err := download(origin)
 	if err != nil {
@@ -52,12 +52,12 @@ func Walk(ctx context.Context, name, origin string, filter ExtractFileFilter, do
 
 	parent := model.NewFile(file, name)
 	wg := &sync.WaitGroup{}
-	err = walk(ctx, wg, parent, filter, do)
+	err = walk(ctx, wg, parent, filter, ignore, do)
 	wg.Wait()
 	return
 }
 
-func walk(ctx context.Context, wg *sync.WaitGroup, parent *model.File, filterFunc ExtractFileFilter, walkFunc WalkFileFunc) error {
+func walk(ctx context.Context, wg *sync.WaitGroup, parent *model.File, filterFunc, ignoreFunc ExtractFileFilter, walkFunc WalkFileFunc) error {
 
 	var files []*model.File
 
@@ -73,14 +73,21 @@ func walk(ctx context.Context, wg *sync.WaitGroup, parent *model.File, filterFun
 			logs.Warn(err)
 			return nil
 		}
+
+		rel := filepath.Join(parent.Relpath(), strings.TrimPrefix(path, parent.Abspath()))
+		if path != parent.Abspath() && ignoreFunc != nil && ignoreFunc(rel) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
 		if info.IsDir() {
 			if strings.HasSuffix(path, ".git") || strings.HasSuffix(path, ".opensca-cache") || strings.HasSuffix(path, ".temp") {
 				return filepath.SkipDir
 			}
 			return nil
 		}
-
-		rel := filepath.Join(parent.Relpath(), strings.TrimPrefix(path, parent.Abspath()))
 
 		if filterFunc != nil && !filterFunc(rel) {
 			return nil
@@ -98,7 +105,7 @@ func walk(ctx context.Context, wg *sync.WaitGroup, parent *model.File, filterFun
 				defer wg.Done()
 				defer os.RemoveAll(dir)
 				parent := model.NewFile(dir, rel)
-				if err := walk(ctx, wg, parent, filterFunc, walkFunc); err != nil {
+				if err := walk(ctx, wg, parent, filterFunc, ignoreFunc, walkFunc); err != nil {
 					logs.Warn(err)
 				}
 			}()

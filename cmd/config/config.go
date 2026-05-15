@@ -33,15 +33,16 @@ type OriginConfig struct {
 }
 
 type OptionalConfig struct {
-	UI          bool   `json:"ui"`
-	Dedup       bool   `json:"dedup"`
-	DirOnly     bool   `json:"dir"`
-	VulnOnly    bool   `json:"vuln"`
-	SaveDev     bool   `json:"dev"`
-	ProgressBar bool   `json:"progress"`
-	TLSVerify   bool   `json:"tls"`
-	Proxy       string `json:"proxy"`
-	Dynamic     bool   `json:"dynamic"`
+	UI          bool     `json:"ui"`
+	Dedup       bool     `json:"dedup"`
+	DirOnly     bool     `json:"dir"`
+	VulnOnly    bool     `json:"vuln"`
+	SaveDev     bool     `json:"dev"`
+	ProgressBar bool     `json:"progress"`
+	TLSVerify   bool     `json:"tls"`
+	Proxy       string   `json:"proxy"`
+	Dynamic     bool     `json:"dynamic"`
+	Ignore      []string `json:"ignore"`
 }
 
 type RepoConfig struct {

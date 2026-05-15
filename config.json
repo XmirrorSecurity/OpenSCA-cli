@@ -30,6 +30,10 @@
     // only detect directory (skip compress file)
     "dir": false,
 
+    // 忽略指定路径(兼容 .gitignore 语法)
+    // ignore paths (compatible with .gitignore syntax)
+    "ignore": [],
+
     // 仅保留漏洞组件
     // only save components with vulnerability
     "vuln": false,

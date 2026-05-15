@@ -27,6 +27,8 @@ type TaskArg struct {
 
 	// 额外的文件过滤函数 默认为压缩文件名过滤函数
 	ExtractFileFilter walk.ExtractFileFilter
+	// 忽略文件过滤函数 命中时跳过扫描
+	IgnoreFileFilter walk.ExtractFileFilter
 	// 额外的结果回调函数
 	ResCallFunc model.ResCallback
 }
@@ -94,7 +96,7 @@ func RunTask(ctx context.Context, arg *TaskArg) (result TaskResult) {
 
 		return false
 
-	}, func(parent *model.File, files []*model.File) {
+	}, arg.IgnoreFileFilter, func(parent *model.File, files []*model.File) {
 
 		for _, sca := range arg.Sca {
 

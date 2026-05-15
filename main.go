@@ -21,6 +21,7 @@ import (
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/common"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/logs"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/model"
+	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/filter"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/java"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/javascript"
 	"github.com/xmirrorsecurity/opensca-cli/v3/opensca/sca/php"
@@ -53,6 +54,7 @@ func main() {
 	if config.Conf().Optional.DirOnly {
 		arg.ExtractFileFilter = func(relpath string) bool { return false }
 	}
+	arg.IgnoreFileFilter = filter.IgnorePatterns(config.Conf().Optional.Ignore)
 
 	// 开启进度条
 	var stopProgress func()
@@ -123,8 +125,6 @@ func args() {
 	flag.Parse()
 
 	if v {
-		fmt.Println(logo)
-		fmt.Println("Current version: ", version)
 		os.Exit(0)
 	}
 

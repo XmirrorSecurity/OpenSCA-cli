@@ -3,6 +3,8 @@ package filter
 import (
 	"path/filepath"
 	"strings"
+
+	gitignore "github.com/sabhiram/go-gitignore"
 )
 
 func filterFunc(strFunc func(string, string) bool, args ...string) func(string) bool {
@@ -88,3 +90,31 @@ var (
 		".bz2",
 	)
 )
+
+func IgnorePatterns(patterns []string) func(string) bool {
+	if len(patterns) == 0 {
+		return nil
+	}
+	matcher := gitignore.CompileIgnoreLines(patterns...)
+	return func(filename string) bool {
+		for _, candidate := range ignoreCandidates(filename) {
+			if matcher.MatchesPath(candidate) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func ignoreCandidates(filename string) []string {
+	filename = filepath.ToSlash(filepath.Clean(filename))
+	filename = strings.TrimPrefix(filename, "./")
+	if filename == "." || filename == "" {
+		return nil
+	}
+	candidates := []string{filename}
+	if i := strings.Index(filename, "/"); i != -1 && i+1 < len(filename) {
+		candidates = append(candidates, filename[i+1:])
+	}
+	return candidates
+}
