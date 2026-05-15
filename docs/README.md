@@ -13,7 +13,7 @@
   - [Generating Reports](./User_Guide/Generating_Reports/)
     - [Software Bill of Materials (SBOM)](./User_Guide/Generating_Reports/SBOM.md)
     - [Detection Reports](./User_Guide/Generating_Reports/Reports.md)
-  - [Parameter Explanations](./User_Guide/Parameter_Explanations.md)
+  - [Configuration and Parameters](./User_Guide/Configuration-and-Parameters.md)
   - [Docker](./User_Guide/Docker.md)
 - [Integrations](./Integrations/)
   - [IDE Plugins](./Integrations/IDE_Plugins.md)

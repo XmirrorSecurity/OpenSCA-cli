@@ -2,6 +2,7 @@
 
 - [命令行参数](#命令行参数)
 - [配置文件说明](#配置文件说明)
+- [忽略路径配置示例](#忽略路径配置示例)
 - [漏洞数据库配置示例](#漏洞数据库配置示例)
 - [漏洞数据库字段说明](#漏洞数据库字段说明)
 
@@ -35,6 +36,7 @@
   - `dev`: `Boolean` 是否保留开发组件, 默认为 `true`
   - `tls`: `Boolean` 开启 TLS 证书验证, 默认为 `false`
   - `proxy`: `String` 代理地址, 默认为空
+  - `ignore`: `Array<String>` 扫描时忽略的路径规则, 默认为空。仅读取当前配置文件中的规则, 不会自动读取项目 `.gitignore`; 规则语法兼容常用 `.gitignore` 写法, 包括目录匹配、通配符和 `!` 反选
 - `repo`: `Object` 组件仓库配置
   - `maven`: `Array` maven 镜像/私服仓库配置
     - `url`: `String` 仓库地址
@@ -59,6 +61,24 @@
   - `sqlite`: `Object` SQLite 数据库漏洞数据源配置
     - `dsn`: `String` 数据库连接字符串
     - `table`: `String` 数据表名
+
+# 忽略路径配置示例
+
+如需跳过测试依赖、临时目录或特定压缩包, 可在 `optional.ignore` 中配置忽略规则:
+
+```json
+{
+  "optional": {
+    "ignore": [
+      "JarCollection/",
+      "*.jar",
+      "!libs/keep.jar"
+    ]
+  }
+}
+```
+
+上例会跳过 `JarCollection/` 目录及所有 `.jar` 文件, 但保留 `libs/keep.jar`。该配置只影响 OpenSCA 扫描过程, 不会修改项目文件。
 
 # 漏洞数据库配置示例
 

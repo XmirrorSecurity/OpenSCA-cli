@@ -26,6 +26,7 @@ English|[中文](../README.md)
   - [Method 4: Build from source](#method-4-build-from-source)
 - [Use OpenSCA](#use-opensca)
   - [Parameters](#parameters)
+  - [Ignore Paths in Configuration](#ignore-paths-in-configuration)
   - [Report Formats](#report-formats)
   - [Sample](#sample)
     - [Scan \& Report via Docker Container](#scan--report-via-docker-container)
@@ -148,6 +149,22 @@ If no path of configuration file is set, the following ones will be checked:
   1. `config.json` under the working directory
   2. `opensca_config.json` under the user directory
   3. `config.json` under `opensca-cli` directory
+
+### Ignore Paths in Configuration
+
+Use `optional.ignore` in the configuration file to skip files or directories during scanning. OpenSCA only reads ignore rules from the current configuration file and does not automatically load the project's `.gitignore`. The rules are compatible with common `.gitignore` syntax, including directory matches, wildcards, and `!` negation.
+
+```json
+{
+  "optional": {
+    "ignore": [
+      "JarCollection/",
+      "*.jar",
+      "!libs/keep.jar"
+    ]
+  }
+}
+```
 
 From v3.0.0, `url` has been put in the configuration file. The default set goes to our cloud vulnerability database. Other online database in accordance with our database structure can also be set through configuration file.  
 
