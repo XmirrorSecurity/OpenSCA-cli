@@ -36,7 +36,7 @@ func ParseYarnLock(file *model.File) map[string]*YarnLock {
 
 		if !strings.HasPrefix(line, " ") && strings.HasSuffix(line, ":") {
 			lastDep = &YarnLock{Dependencies: map[string]string{}}
-			for _, tag := range strings.Split(line, ",") {
+			for tag := range strings.SplitSeq(line, ",") {
 				i := strings.LastIndex(tag, "@")
 				if i == -1 {
 					logs.Warnf("parse file %s line: %s fail", file.Relpath(), line)

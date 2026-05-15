@@ -234,7 +234,7 @@ func FindMaxVersion(version string, versions []string) string {
 		s = strings.TrimLeft(strings.TrimSpace(s), "vV")
 		// 将 ~x[.x](php范围约束) 替换为 ^x[.x](semver范围约束)
 		var fix []string
-		for _, sub := range strings.Split(s, ",") {
+		for sub := range strings.SplitSeq(s, ",") {
 			if strings.Contains(sub, "~") && strings.Count(sub, ".") < 2 {
 				sub = strings.ReplaceAll(sub, "~", "^")
 			}
@@ -243,7 +243,7 @@ func FindMaxVersion(version string, versions []string) string {
 		return strings.Join(fix, ",")
 	}
 	var cs []*semver.Constraints
-	for _, v := range strings.Split(version, "|") {
+	for v := range strings.SplitSeq(version, "|") {
 		c, err := semver.NewConstraint(fix(v))
 		if err == nil {
 			cs = append(cs, c)

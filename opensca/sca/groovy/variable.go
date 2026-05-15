@@ -83,7 +83,7 @@ func (v Variable) Scan(file *model.File) {
 		if object == "" {
 			continue
 		}
-		for _, line := range strings.Split(text[bi[1]:end], "\n") {
+		for line := range strings.SplitSeq(text[bi[1]:end], "\n") {
 			match := varReg.FindStringSubmatch(line)
 			if len(match) == 3 {
 				if object == "ext" {
